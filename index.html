@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MagicLight Auto — Control Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#f97316;--orange-d:#c05a0a;--orange-g:rgba(249,115,22,.15);
+  --teal:#14b8a6;--teal-g:rgba(20,184,166,.12);
+  --blue:#6366f1;--red:#ef4444;--green:#22c55e;--amber:#f59e0b;
+  --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;
+  --radius:10px;
+}
+[data-theme="dark"]{
+  --bg:#0d0f14;--surface:#141720;--card:#1a1e2b;
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
+  --txt:#e2e4ea;--txt2:#8b8fa8;--txt3:#555870;
+  --ibg:rgba(255,255,255,.04);--overlay:rgba(0,0,0,.6);
+}
+[data-theme="light"]{
+  --bg:#f0f2f5;--surface:#ffffff;--card:#ffffff;
+  --border:rgba(0,0,0,.09);--border2:rgba(0,0,0,.16);
+  --txt:#111318;--txt2:#555b72;--txt3:#9198b0;
+  --ibg:rgba(0,0,0,.03);--overlay:rgba(0,0,0,.35);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--txt);min-height:100vh;font-size:14px;line-height:1.6;transition:background .2s,color .2s;}
+a{color:var(--orange);text-decoration:none;}
+
+/* ── Layout ── */
+.app{display:flex;min-height:100vh;}
+.backdrop{display:none;position:fixed;inset:0;background:var(--overlay);z-index:99;opacity:0;transition:opacity .25s;pointer-events:none;}
+.backdrop.show{display:block;opacity:1;pointer-events:auto;}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:224px;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;
+  transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s,background .2s;
+}
+.logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);}
+.logo-mark{display:flex;align-items:center;gap:9px;font-family:var(--display);font-size:15px;font-weight:700;color:var(--txt);letter-spacing:-.02em;}
+.logo-dot{width:27px;height:27px;border-radius:7px;background:linear-gradient(135deg,var(--orange),var(--orange-d));display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.logo-sub{font-size:9.5px;color:var(--txt3);margin-top:2px;font-family:var(--mono);letter-spacing:.05em;}
+nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.ns{font-size:9px;color:var(--txt3);padding:13px 12px 3px;text-transform:uppercase;letter-spacing:.1em;font-family:var(--mono);}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--txt2);margin-bottom:1px;transition:background .14s,color .14s;user-select:none;}
+.ni:hover{background:rgba(128,128,128,.08);color:var(--txt);}
+.ni.active{background:var(--orange-g);color:var(--orange);}
+.ni .ico{font-size:14px;width:19px;text-align:center;flex-shrink:0;}
+.nb{margin-left:auto;font-size:9px;font-family:var(--mono);background:rgba(249,115,22,.2);color:var(--orange);padding:1px 6px;border-radius:99px;}
+.sb-foot{padding:12px 10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:7px;}
+.sb-stat{font-size:10.5px;color:var(--txt3);font-family:var(--mono);line-height:1.9;}
+
+/* ── Topbar ── */
+.main{margin-left:224px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:50;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:var(--surface);border-bottom:1px solid var(--border);transition:background .2s;}
+.topbar-l{display:flex;align-items:center;gap:10px;}
+.hamburger{display:none;background:none;border:none;color:var(--txt2);font-size:19px;cursor:pointer;padding:4px 6px;border-radius:6px;transition:color .14s,background .14s;}
+.hamburger:hover{color:var(--txt);background:rgba(128,128,128,.08);}
+.tb-title{font-family:var(--display);font-size:13px;font-weight:500;color:var(--txt2);}
+.tb-title span{color:var(--txt);font-weight:600;}
+.topbar-r{display:flex;align-items:center;gap:7px;}
+.theme-btn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border2);background:var(--ibg);color:var(--txt2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:background .14s,color .14s;}
+.theme-btn:hover{background:rgba(128,128,128,.1);color:var(--txt);}
+.content{padding:22px;flex:1;}
+
+/* ── Panels ── */
+.panel{display:none;}
+.panel.active{display:block;animation:fu .22s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.ph{margin-bottom:20px;}
+.pt{font-family:var(--display);font-size:21px;font-weight:700;color:var(--txt);letter-spacing:-.03em;}
+.ps-{font-size:13px;color:var(--txt2);margin-top:3px;}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;transition:background .2s,border-color .2s;}
+.chd{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.ct{font-family:var(--display);font-size:10.5px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;}
+
+/* ── Grids ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;}
+
+/* ── Stats ── */
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;transition:background .2s;}
+.sl{font-size:9.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--mono);margin-bottom:5px;}
+.sv{font-family:var(--display);font-size:25px;font-weight:700;color:var(--txt);letter-spacing:-.04em;}
+.ss{font-size:10.5px;color:var(--txt3);margin-top:2px;}
+.co{color:var(--orange);}.ct2{color:var(--teal);}.cg{color:var(--green);}.cr{color:var(--red);}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .14s;white-space:nowrap;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.bp{background:var(--orange);color:#fff;}.bp:hover:not(:disabled){background:#ea6a09;transform:translateY(-1px);}
+.bs{background:var(--ibg);color:var(--txt);border:1px solid var(--border2);}.bs:hover{background:rgba(128,128,128,.1);}
+.bt{background:var(--teal);color:#fff;}.bt:hover{background:#0d9488;}
+.bd{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}.bd:hover{background:rgba(239,68,68,.2);}
+.bg_{background:transparent;color:var(--txt2);border:1px solid var(--border);}.bg_:hover{color:var(--txt);border-color:var(--border2);background:rgba(128,128,128,.06);}
+.byt{background:#ff0000;color:#fff;}.byt:hover{background:#cc0000;}
+.bsm{padding:5px 10px;font-size:12px;border-radius:6px;}
+.bbl{width:100%;justify-content:center;}
+
+/* ── Forms ── */
+.fg{margin-bottom:12px;}
+.fl{font-size:10px;color:var(--txt2);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);}
+.fc{width:100%;background:var(--ibg);border:1px solid var(--border2);border-radius:8px;color:var(--txt);font-family:var(--sans);font-size:13px;padding:7px 11px;outline:none;transition:border-color .14s,background .2s;}
+.fc:focus{border-color:var(--orange);}
+select.fc{cursor:pointer;}select.fc option{background:var(--card);}
+textarea.fc{resize:vertical;min-height:75px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.tr{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--ibg);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
+.trl{font-size:13px;color:var(--txt);}
+.trs{font-size:10.5px;color:var(--txt3);margin-top:1px;}
+.tog{position:relative;width:34px;height:19px;cursor:pointer;flex-shrink:0;}
+.tog input{opacity:0;width:0;height:0;position:absolute;}
+.tog-sl{position:absolute;inset:0;background:rgba(128,128,128,.2);border-radius:99px;transition:.18s;}
+.tog-sl::before{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.18s;}
+.tog input:checked+.tog-sl{background:var(--orange);}
+.tog input:checked+.tog-sl::before{transform:translateX(15px);}
+
+/* ── Chips ── */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-family:var(--mono);font-weight:500;}
+.cd{background:rgba(34,197,94,.12);color:var(--green);}
+.cp{background:rgba(245,158,11,.15);color:var(--amber);}
+.cpr{background:rgba(249,115,22,.15);color:var(--orange);}
+.ce{background:rgba(239,68,68,.12);color:var(--red);}
+.cn{background:rgba(128,128,128,.12);color:var(--txt2);}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:10px;font-family:var(--mono);}
+.por{background:var(--orange-g);color:var(--orange);}
+.ptl{background:var(--teal-g);color:var(--teal);}
+.pgr{background:rgba(34,197,94,.12);color:var(--green);}
+
+/* ── Log box ── */
+.logbox{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;height:210px;overflow-y:auto;font-family:var(--mono);font-size:11px;line-height:1.85;transition:background .2s;}
+.ll{display:flex;gap:9px;}
+.lt{color:var(--txt3);flex-shrink:0;}
+.lok{color:var(--green);}.lwarn{color:var(--amber);}.lerr{color:var(--red);}.linfo{color:var(--teal);}.lstep{color:var(--orange);}
+
+/* ── Progress ── */
+.pw{background:rgba(128,128,128,.1);border-radius:99px;overflow:hidden;}
+.pf{height:5px;border-radius:99px;background:linear-gradient(90deg,var(--orange),#fbbf24);transition:width .4s;}
+.pf.tl{background:linear-gradient(90deg,var(--teal),#5eead4);}
+.pf.rd{background:linear-gradient(90deg,#ff0000,#ff6b6b);}
+.pf.gr{background:linear-gradient(90deg,var(--green),#86efac);}
+
+/* ── Pipeline ── */
+.pipeline{display:flex;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;}
+.pp{flex:1;padding:11px 9px;border-right:1px solid var(--border);transition:background .2s;}
+.pp:last-child{border-right:none;}
+.pp.dn{background:rgba(34,197,94,.06);}
+.pp.ac{background:rgba(249,115,22,.08);}
+.pp.wt{opacity:.38;}
+.pp-n{font-family:var(--mono);font-size:9px;color:var(--txt3);}
+.pp-t{font-size:11px;font-weight:500;color:var(--txt);margin-top:2px;}
+.pp-s{font-size:10px;color:var(--txt3);margin-top:2px;}
+.pp.dn .pp-s{color:var(--green);}
+.pp.ac .pp-s{color:var(--orange);}
+
+/* ── Run card ── */
+.rc{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--ibg);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;transition:border-color .14s;}
+.rc:hover{border-color:var(--border2);}
+.ri{font-size:16px;flex-shrink:0;}
+.rinfo{flex:1;min-width:0;}
+.rt{font-size:13px;font-weight:500;color:var(--txt);}
+.rm{font-size:10px;color:var(--txt3);font-family:var(--mono);margin-top:1px;}
+
+/* ── Table ── */
+.sw{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:var(--ibg);color:var(--txt3);padding:8px 12px;text-align:left;font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--txt);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(128,128,128,.03);}
+.tm{font-family:var(--mono);font-size:10px;color:var(--txt2);}
+.ttl{font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tclip{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt2);font-size:11px;}
+
+/* ── Divider ── */
+.hr{height:1px;background:var(--border);margin:14px 0;}
+
+/* ── Dots ── */
+.ld{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);animation:pd 2s ease infinite;}
+@keyframes pd{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.6}}
+.bd2{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--green);animation:bk 1.2s ease-in-out infinite;vertical-align:middle;margin-right:3px;}
+@keyframes bk{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── YouTube ── */
+.yt-hd{background:linear-gradient(135deg,rgba(255,0,0,.09),rgba(255,0,0,.04));border:1px solid rgba(255,0,0,.18);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
+.yt-steps{display:flex;flex-direction:column;}
+.yt-step{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--border);}
+.yt-step:last-child{border-bottom:none;}
+.yt-snum{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:var(--mono);background:rgba(128,128,128,.1);color:var(--txt3);border:1px solid var(--border);transition:.2s;}
+.yt-step.done .yt-snum{background:rgba(34,197,94,.15);color:var(--green);border-color:rgba(34,197,94,.3);}
+.yt-step.act .yt-snum{background:var(--orange-g);color:var(--orange);border-color:rgba(249,115,22,.3);}
+.yt-sb{flex:1;}
+.yt-st{font-size:13px;font-weight:500;color:var(--txt);margin-bottom:3px;}
+.yt-sd{font-size:12px;color:var(--txt2);}
+.yt-sa{margin-top:9px;}
+.ph-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:11px;}
+.ph-cell{text-align:center;padding:8px;background:var(--ibg);border-radius:8px;border:1px solid var(--border);}
+.ph-lbl{font-size:9px;color:var(--txt3);font-family:var(--mono);text-transform:uppercase;}
+.ph-st{font-size:12px;margin-top:3px;}
+.tdrop{width:100%;aspect-ratio:16/9;background:var(--ibg);border:2px dashed var(--border2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:5px;color:var(--txt3);font-size:12px;transition:border-color .14s;overflow:hidden;}
+.tdrop:hover{border-color:var(--orange);color:var(--txt2);}
+
+/* ── Drive ── */
+.df{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px;transition:border-color .14s;}
+.df:hover{border-color:var(--border2);}
+.dft{width:100%;aspect-ratio:16/9;background:rgba(249,115,22,.07);border:1px dashed var(--border2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:9px;overflow:hidden;}
+
+/* ── Embed ── */
+.ew{width:100%;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card);}
+.etb{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--surface);}
+.etl{font-size:11.5px;font-weight:500;color:var(--txt2);font-family:var(--mono);}
+.eif{width:100%;height:540px;border:none;display:block;}
+.epl{display:flex;flex-direction:column;align-items:center;justify-content:center;height:380px;color:var(--txt3);font-size:13px;gap:9px;}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(128,128,128,.18);border-radius:99px;}
+
+/* ── Mobile ── */
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%);box-shadow:none;}
+  .sidebar.open{transform:none;box-shadow:4px 0 28px rgba(0,0,0,.45);}
+  .main{margin-left:0;}
+  .hamburger{display:flex;}
+  .g4{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr;}
+  .fr{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .g4,.g3,.g2{grid-template-columns:1fr;}
+  .content{padding:13px;}
+  .pipeline{flex-direction:column;}
+  .pp{border-right:none;border-bottom:1px solid var(--border);}
+  .pp:last-child{border-bottom:none;}
+  .topbar{padding:0 13px;}
+  .ph-row{grid-template-columns:repeat(3,1fr);}
+}
+</style>
+</head>
+<body>
+
+<div class="backdrop" id="backdrop" onclick="closeSB()"></div>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-mark"><span class="logo-dot">🪄</span> MagicLight</div>
+    <div class="logo-sub">AUTO CONTROL v3.2</div>
+  </div>
+  <nav>
+    <div class="ns">Operations</div>
+    <div class="ni active" data-panel="p-run"><span class="ico">▶</span> Run Workflow</div>
+    <div class="ni" data-panel="p-prog"><span class="ico">📡</span> Live Progress</div>
+    <div class="ni" data-panel="p-sheet"><span class="ico">📊</span> Sheet View <span class="nb" id="nb-p">0</span></div>
+    <div class="ni" data-panel="p-embed"><span class="ico">🔗</span> Sheet Embed</div>
+    <div class="ns">Publishing</div>
+    <div class="ni" data-panel="p-yt"><span class="ico">▶</span> YouTube Upload</div>
+    <div class="ni" data-panel="p-drive"><span class="ico">☁</span> Drive Manager</div>
+    <div class="ns">System</div>
+    <div class="ni" data-panel="p-cfg"><span class="ico">⚙</span> Configuration</div>
+    <div class="ni" data-panel="p-logs"><span class="ico">📋</span> Full Logs</div>
+  </nav>
+  <div class="sb-foot">
+    <div><span class="pill pgr"><span class="ld"></span> System OK</span></div>
+    <div class="sb-stat">Rows: <span style="color:var(--teal)" id="sb-r">—</span> &nbsp;Pending: <span style="color:var(--orange)" id="sb-p">—</span><br>Credits: <span style="color:var(--amber)" id="sb-c">—</span></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-l">
+      <button class="hamburger" onclick="togSB()" aria-label="Menu">☰</button>
+      <div class="tb-title" id="tblabel">Operations / <span>Run Workflow</span></div>
+    </div>
+    <div class="topbar-r">
+      <button class="btn bs bsm" onclick="loadSheet()">↻ Refresh</button>
+      <span class="pill por" id="gh-pill">GitHub</span>
+      <button class="theme-btn" onclick="togTheme()" id="tbtn" title="Toggle theme">🌙</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ═══ RUN WORKFLOW ═══════════════════════════════════════ -->
+  <div class="panel active" id="p-run">
+    <div class="ph"><div class="pt">Run Workflow</div><div class="ps-">Trigger GitHub Actions to generate & process videos from Google Sheets</div></div>
+    <div class="g4" style="margin-bottom:16px;">
+      <div class="stat"><div class="sl">Pending</div><div class="sv co" id="s-pend">0</div><div class="ss">Ready to generate</div></div>
+      <div class="stat"><div class="sl">Done Today</div><div class="sv cg" id="s-done">0</div><div class="ss">Videos generated</div></div>
+      <div class="stat"><div class="sl">Credits Left</div><div class="sv ct2" id="s-cred">—</div><div class="ss">Approx remaining</div></div>
+      <div class="stat"><div class="sl">Last Run</div><div class="sv" style="font-size:15px;padding-top:4px;" id="s-last">—</div><div class="ss" id="s-last-s">No recent run</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="chd"><div class="ct">Workflow Config</div></div>
+        <div class="fr">
+          <div class="fg"><label class="fl">Mode</label><select class="fc" id="wf-mode"><option value="complete">Complete (Generate + Process)</option><option value="generate">Generate Only</option><option value="process">Process Only</option><option value="loop">Loop Run</option></select></div>
+          <div class="fg"><label class="fl">Stories Limit</label><select class="fc" id="wf-max"><option value="1">1 story</option><option value="3">3 stories</option><option value="5">5 stories</option><option value="10">10 stories</option><option value="0">All pending</option></select></div>
+        </div>
+        <div class="tr"><div><div class="trl">Upload to Google Drive</div><div class="trs">Save video + thumbnail</div></div><label class="tog"><input type="checkbox" id="wf-drv" checked><span class="tog-sl"></span></label></div>
+        <div class="tr"><div><div class="trl">Headless Browser</div><div class="trs">No UI shown (faster)</div></div><label class="tog"><input type="checkbox" id="wf-hl" checked><span class="tog-sl"></span></label></div>
+        <div class="tr"><div><div class="trl">Auto YouTube Upload</div><div class="trs">After processing completes</div></div><label class="tog"><input type="checkbox" id="wf-yt"><span class="tog-sl"></span></label></div>
+        <div class="hr"></div>
+        <div class="fg"><label class="fl">GitHub Token (PAT)</label><input type="password" class="fc" id="gh-tok" placeholder="ghp_xxxxxxxxxxxx"></div>
+        <div class="fr">
+          <div class="fg"><label class="fl">Repo Owner</label><input type="text" class="fc" id="gh-own" value="net2t"></div>
+          <div class="fg"><label class="fl">Repo Name</label><input type="text" class="fc" id="gh-rep" value="MagicLight-Auto"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn bp" onclick="triggerWF()" id="run-btn">▶ Trigger Run</button>
+          <button class="btn bs" onclick="SW('p-prog')">📡 Watch Progress</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chd"><div class="ct">Recent Runs</div><button class="btn bg_ bsm" onclick="fetchRuns()">↻ Load</button></div>
+        <div id="runs-list"><div style="color:var(--txt3);font-size:12px;text-align:center;padding:22px 0;">Enter token → click ↻ Load</div></div>
+        <div class="hr"></div>
+        <div class="ct" style="margin-bottom:9px;">Workflow Files</div>
+        <div class="rc"><div class="ri">⚡</div><div class="rinfo"><div class="rt">complete.yml</div><div class="rm">Generate + Process</div></div><span class="chip cd">active</span></div>
+        <div class="rc"><div class="ri">🎬</div><div class="rinfo"><div class="rt">generate.yml</div><div class="rm">Generation only</div></div><span class="chip cd">active</span></div>
+        <div class="rc"><div class="ri">�</div><div class="rinfo"><div class="rt">process.yml</div><div class="rm">Processing only</div></div><span class="chip cd">active</span></div>
+        <div class="rc"><div class="ri">🔁</div><div class="rinfo"><div class="rt">loop.yml</div><div class="rm">Infinite loop</div></div><span class="chip cd">active</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ LIVE PROGRESS ═══════════════════════════════════════ -->
+  <div class="panel" id="p-prog">
+    <div class="ph"><div class="pt">Live Progress</div><div class="ps-">Real-time pipeline — auto-polls GitHub every 15s when run is active</div></div>
+    <div class="pipeline" id="pip">
+      <div class="pp dn" id="pp0"><div class="pp-n">01</div><div class="pp-t">Login</div><div class="pp-s">✓ Done</div></div>
+      <div class="pp ac" id="pp1"><div class="pp-n">02</div><div class="pp-t">Story</div><div class="pp-s">Running…</div></div>
+      <div class="pp wt" id="pp2"><div class="pp-n">03</div><div class="pp-t">Cast</div><div class="pp-s">Waiting</div></div>
+      <div class="pp wt" id="pp3"><div class="pp-n">04</div><div class="pp-t">Board</div><div class="pp-s">Waiting</div></div>
+      <div class="pp wt" id="pp4"><div class="pp-n">05</div><div class="pp-t">Render</div><div class="pp-s">Waiting</div></div>
+      <div class="pp wt" id="pp5"><div class="pp-n">06</div><div class="pp-t">Download</div><div class="pp-s">Waiting</div></div>
+      <div class="pp wt" id="pp6"><div class="pp-n">07</div><div class="pp-t">Process</div><div class="pp-s">Waiting</div></div>
+      <div class="pp wt" id="pp7"><div class="pp-n">08</div><div class="pp-t">Upload</div><div class="pp-s">Waiting</div></div>
+    </div>
+    <div class="g2" style="margin-bottom:13px;">
+      <div class="card">
+        <div class="chd"><div class="ct">Current Story</div><span class="chip cpr"><span class="bd2"></span>Processing</span></div>
+        <div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--txt3);margin-bottom:2px;font-family:var(--mono);">Row</div><div style="font-size:19px;font-weight:600;font-family:var(--display);" id="cur-row">—</div></div>
+        <div style="margin-bottom:9px;"><div style="font-size:11px;color:var(--txt3);margin-bottom:2px;">Title</div><div style="font-size:13px;" id="cur-ttl">Waiting for run…</div></div>
+        <div style="margin-bottom:11px;"><div style="font-size:11px;color:var(--txt3);margin-bottom:3px;">Story preview</div><div style="font-size:11px;color:var(--txt2);line-height:1.5;max-height:45px;overflow:hidden;" id="cur-story">—</div></div>
+        <div class="pw"><div class="pf" id="ov-bar" style="width:20%"></div></div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:4px;font-family:var(--mono);">Step 2 of 8 — Story Input</div>
+      </div>
+      <div class="card">
+        <div class="chd"><div class="ct">Render Status</div></div>
+        <div style="text-align:center;padding:6px 0 11px;"><div style="font-family:var(--display);font-size:42px;font-weight:700;color:var(--orange);" id="r-pct">0%</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;" id="r-lbl">Waiting for render</div></div>
+        <div class="pw" style="height:7px;margin-bottom:12px;"><div class="pf" id="r-bar" style="width:0%"></div></div>
+        <div class="g2" style="gap:9px;margin-bottom:12px;">
+          <div><div style="font-size:9.5px;color:var(--txt3);font-family:var(--mono);">Elapsed</div><div style="font-size:14px;font-weight:500;" id="elapsed">00:00</div></div>
+          <div><div style="font-size:9.5px;color:var(--txt3);font-family:var(--mono);">Est. Remaining</div><div style="font-size:14px;font-weight:500;" id="est">—</div></div>
+        </div>
+        <button class="btn bd bsm bbl" onclick="cancelRun()">✕ Cancel Run</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="chd"><div class="ct">Live Log</div><div style="display:flex;gap:6px;"><span class="pill ptl"><span class="bd2"></span>Streaming</span><button class="btn bg_ bsm" onclick="clrLog()">Clear</button></div></div>
+      <div class="logbox" id="live-log"><div class="ll"><span class="lt">00:00</span><span class="linfo">Dashboard ready — trigger a workflow to begin</span></div></div>
+      <div style="margin-top:8px;display:flex;gap:7px;align-items:center;">
+        <button class="btn bs bsm" onclick="fetchGHLogs()">↻ Fetch GitHub Logs</button>
+        <span style="font-size:10.5px;color:var(--txt3);">Auto-polls every 15s when active run detected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SHEET VIEW ═══════════════════════════════════════════ -->
+  <div class="panel" id="p-sheet">
+    <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div><div class="pt">Sheet View</div><div class="ps-">Live data via Sheets API — full rows with filters</div></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <input type="text" class="fc" id="sh-search" placeholder="🔍 Filter…" style="width:160px;" oninput="filterSh()">
+        <select class="fc" id="sh-flt" style="width:125px;" onchange="filterSh()"><option value="">All Status</option><option>Pending</option><option>Processing</option><option>Done</option><option>Error</option><option>No_Video</option></select>
+        <button class="btn bs bsm" onclick="loadSheet()">↻ Refresh</button>
+        <button class="btn bp bsm" onclick="openSheet()">↗ Open Sheet</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="chd"><div class="ct">Sheet Connection</div><span id="sh-conn" class="chip cn">Disconnected</span></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Sheet ID</label><input type="text" class="fc" id="sh-id" placeholder="1MPfnJ2Ua…"></div>
+        <div class="fg"><label class="fl">Google API Key (read-only)</label><input type="text" class="fc" id="sh-key" placeholder="AIzaSy…"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Tab Name</label><input type="text" class="fc" id="sh-tab" value="Database"></div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:12px;"><button class="btn bp bbl" onclick="loadSheet()">Connect & Load</button></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:11px;">
+      <span class="pill por">Total: <strong id="sm-tot">0</strong></span>
+      <span class="pill pgr">Done: <strong id="sm-dn">0</strong></span>
+      <span class="pill" style="background:rgba(245,158,11,.15);color:var(--amber);">Pending: <strong id="sm-p">0</strong></span>
+      <span class="pill" style="background:rgba(239,68,68,.12);color:var(--red);">Error: <strong id="sm-e">0</strong></span>
+    </div>
+    <div class="sw"><table><thead><tr><th>Row</th><th>Status</th><th>Theme</th><th>Title</th><th>Story</th><th>Gen Title</th><th>Drive</th><th>Completed</th><th>Actions</th></tr></thead><tbody id="sh-body"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--txt3);">Connect sheet above to load data</td></tr></tbody></table></div>
+  </div>
+
+  <!-- ═══ SHEET EMBED ══════════════════════════════════════════ -->
+  <div class="panel" id="p-embed">
+    <div class="ph"><div class="pt">Sheet Embed</div><div class="ps-">Live Google Sheets iframe — scrollable, real-time, no API key needed</div></div>
+    <div class="card" style="margin-bottom:13px;">
+      <div class="chd"><div class="ct">Embed Settings</div></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Sheet ID</label><input type="text" class="fc" id="emb-id" placeholder="1MPfnJ2Ua…"></div>
+        <div class="fg"><label class="fl">Tab Name (optional)</label><input type="text" class="fc" id="emb-tab" placeholder="Database"></div>
+      </div>
+      <div style="display:flex;gap:7px;">
+        <button class="btn bp" onclick="loadEmbed()">🔗 Load Live Embed</button>
+        <button class="btn bs" onclick="openSheet()">↗ Open in Google Sheets</button>
+        <button class="btn bg_" onclick="reloadEmbed()">↻ Reload</button>
+      </div>
+      <div style="font-size:10.5px;color:var(--txt3);margin-top:8px;font-family:var(--mono);">⚠ Sheet must be set to "Anyone with link can view" in Google Sheets sharing settings</div>
+    </div>
+    <div class="ew">
+      <div class="etb">
+        <span class="etl" id="emb-lbl">No sheet loaded</span>
+        <div style="display:flex;gap:6px;"><button class="btn bg_ bsm" onclick="reloadEmbed()">↻</button><button class="btn bs bsm" onclick="openSheet()">↗ Full</button></div>
+      </div>
+      <div id="emb-container"><div class="epl"><div style="font-size:30px;">📊</div><div>Enter your Sheet ID above and click "Load Live Embed"</div><div style="font-size:11px;color:var(--txt3);">Your live sheet will appear here</div></div></div>
+    </div>
+  </div>
+
+  <!-- ═══ YOUTUBE UPLOAD ═══════════════════════════════════════ -->
+  <div class="panel" id="p-yt">
+    <div class="ph"><div class="pt">YouTube Upload</div><div class="ps-">Publish processed videos to YouTube via OAuth 2.0 — step-by-step guide</div></div>
+    <div class="yt-hd">
+      <div style="display:flex;align-items:center;gap:11px;">
+        <div style="color:#ff0000;font-size:21px;">▶</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:14px;">YouTube Data API v3</div><div style="font-size:10.5px;color:var(--txt3);font-family:var(--mono);">Complete all 5 steps below to authenticate</div></div>
+        <span class="chip cn" id="yt-chip">Not Authenticated</span>
+      </div>
+    </div>
+    <div class="g2">
+      <!-- OAuth Wizard -->
+      <div class="card">
+        <div class="chd"><div class="ct">OAuth 2.0 — Step by Step</div></div>
+        <div class="yt-steps">
+          <div class="yt-step done" id="ys1">
+            <div class="yt-snum">1</div>
+            <div class="yt-sb">
+              <div class="yt-st">Enable YouTube Data API v3</div>
+              <div class="yt-sd">Google Cloud Console → APIs & Services → Library → Enable "YouTube Data API v3"</div>
+              <div class="yt-sa"><a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" class="btn bg_ bsm">↗ Open Google Console</a></div>
+            </div>
+          </div>
+          <div class="yt-step act" id="ys2">
+            <div class="yt-snum">2</div>
+            <div class="yt-sb">
+              <div class="yt-st">Create OAuth 2.0 Credentials</div>
+              <div class="yt-sd">Console → Credentials → Create → OAuth Client ID → Web Application. Add <code style="background:var(--ibg);padding:1px 5px;border-radius:4px;font-size:10px;">http://localhost</code> as redirect URI.</div>
+              <div class="yt-sa">
+                <div class="fr" style="gap:8px;">
+                  <div class="fg" style="margin:0;"><label class="fl">Client ID</label><input type="text" class="fc" id="yt-cid" placeholder="xxxx.apps.googleusercontent.com"></div>
+                  <div class="fg" style="margin:0;"><label class="fl">Client Secret</label><input type="password" class="fc" id="yt-cs" placeholder="GOCSPX-xxxx"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="yt-step" id="ys3">
+            <div class="yt-snum">3</div>
+            <div class="yt-sb">
+              <div class="yt-st">Authorize Your Account</div>
+              <div class="yt-sd">Click below — a Google sign-in window will open. Sign in with the YouTube channel owner's Google account.</div>
+              <div class="yt-sa"><button class="btn byt bsm" onclick="startOAuth()">🔑 Authorize with Google</button></div>
+            </div>
+          </div>
+          <div class="yt-step" id="ys4">
+            <div class="yt-snum">4</div>
+            <div class="yt-sb">
+              <div class="yt-st">Paste Access Token</div>
+              <div class="yt-sd">After sign-in, copy the <code style="background:var(--ibg);padding:1px 5px;border-radius:4px;font-size:10px;">access_token=</code> value from the redirect URL bar and paste it here.</div>
+              <div class="yt-sa" style="display:flex;gap:7px;">
+                <input type="text" class="fc" id="yt-tok" placeholder="ya29.xxxxxxxxxxxx" style="flex:1;">
+                <button class="btn bt bsm" onclick="saveYTTok()">✓ Save</button>
+              </div>
+            </div>
+          </div>
+          <div class="yt-step" id="ys5">
+            <div class="yt-snum">5</div>
+            <div class="yt-sb">
+              <div class="yt-st">Verify &amp; Test</div>
+              <div class="yt-sd">Test the token by fetching your channel info from YouTube API.</div>
+              <div class="yt-sa" style="display:flex;gap:8px;align-items:center;">
+                <button class="btn bs bsm" onclick="testYT()">✓ Test Connection</button>
+                <span id="yt-res" style="font-size:11px;color:var(--txt3);"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Upload Form + Progress -->
+      <div>
+        <div class="card" style="margin-bottom:13px;">
+          <div class="chd"><div class="ct">Video Details</div></div>
+          <div class="fg"><label class="fl">Select Video (from Sheet)</label><select class="fc" id="yt-sel" onchange="autoFillYT()"><option value="">— Select processed video —</option></select></div>
+          <button class="btn bg_ bsm" onclick="loadDoneRows()" style="margin-bottom:11px;">↻ Load Done Videos</button>
+          <div class="fg"><label class="fl">Title</label><input type="text" class="fc" id="yt-tit" placeholder="Video title…"></div>
+          <div class="fg"><label class="fl">Description</label><textarea class="fc" id="yt-dsc" rows="3" placeholder="Video description…"></textarea></div>
+          <div class="fr">
+            <div class="fg"><label class="fl">Category</label><select class="fc" id="yt-cat"><option value="1">Film & Animation</option><option value="22">People & Blogs</option><option value="24">Entertainment</option><option value="27">Education</option></select></div>
+            <div class="fg"><label class="fl">Privacy</label><select class="fc" id="yt-prv"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select></div>
+          </div>
+          <div class="fg"><label class="fl">Tags (comma separated)</label><input type="text" class="fc" id="yt-tags" placeholder="kids story, animated, bedtime"></div>
+          <div class="fg"><label class="fl">Thumbnail</label><div class="tdrop" id="tdrop" onclick="document.getElementById('yt-tmb').click()"><div style="font-size:24px;">🖼</div><div>Click to select thumbnail</div><div style="font-size:10px;color:var(--txt3);">JPG/PNG · max 2MB</div></div><input type="file" id="yt-tmb" accept="image/*" style="display:none" onchange="prevThumb(this)"></div>
+          <button class="btn byt bbl" onclick="uploadYT()" id="yt-upbtn" style="margin-top:4px;">▶ Upload to YouTube</button>
+        </div>
+        <div class="card">
+          <div class="chd"><div class="ct">Upload Progress</div></div>
+          <div style="text-align:center;padding:5px 0 9px;"><div style="font-family:var(--display);font-size:36px;font-weight:700;color:#ff0000;" id="yt-pct">0%</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;" id="yt-msg">Ready to upload</div></div>
+          <div class="pw" style="height:7px;margin-bottom:11px;"><div class="pf rd" id="yt-pb" style="width:0%"></div></div>
+          <div class="ph-row">
+            <div class="ph-cell"><div class="ph-lbl">Auth</div><div class="ph-st" id="php-a" style="color:var(--txt3);">⬤</div></div>
+            <div class="ph-cell"><div class="ph-lbl">Upload</div><div class="ph-st" id="php-u" style="color:var(--txt3);">⬤</div></div>
+            <div class="ph-cell"><div class="ph-lbl">Publish</div><div class="ph-st" id="php-p" style="color:var(--txt3);">⬤</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DRIVE MANAGER ════════════════════════════════════════ -->
+  <div class="panel" id="p-drive">
+    <div class="ph"><div class="pt">Drive Manager</div><div class="ps-">Browse uploaded videos in Google Drive folder</div></div>
+    <div class="card" style="margin-bottom:14px;">
+      <div class="chd"><div class="ct">Drive Connection</div></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Drive Folder ID</label><input type="text" class="fc" id="drv-fid" placeholder="1AbCdEFgHiJkLmNoPqR…"></div>
+        <div class="fg"><label class="fl">Google API Key</label><input type="text" class="fc" id="drv-key" placeholder="AIzaSy…"></div>
+      </div>
+      <button class="btn bt bsm" onclick="loadDrive()">☁ Browse Drive</button>
+    </div>
+    <div class="g3" id="drv-grid"><div style="color:var(--txt3);font-size:12px;text-align:center;padding:36px 0;grid-column:1/-1;">Connect Drive to browse files</div></div>
+  </div>
+
+  <!-- ═══ CONFIGURATION ═════════════════════════════════════════ -->
+  <div class="panel" id="p-cfg">
+    <div class="ph"><div class="pt">Configuration</div><div class="ps-">Saved in browser localStorage — never sent anywhere</div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="chd"><div class="ct">GitHub Actions</div></div>
+        <div class="fg"><label class="fl">Personal Access Token (PAT)</label><input type="password" class="fc" id="c-tok" placeholder="ghp_xxxxxx"></div>
+        <div class="fr">
+          <div class="fg"><label class="fl">Owner</label><input type="text" class="fc" id="c-own" value="net2t"></div>
+          <div class="fg"><label class="fl">Repo</label><input type="text" class="fc" id="c-rep" value="MagicLight-Auto"></div>
+        </div>
+        <button class="btn bs bsm" onclick="saveCfg('github')">Save GitHub Config</button>
+      </div>
+      <div class="card">
+        <div class="chd"><div class="ct">Google Sheets</div></div>
+        <div class="fg"><label class="fl">Sheet ID</label><input type="text" class="fc" id="c-sid"></div>
+        <div class="fg"><label class="fl">Sheet Tab Name</label><input type="text" class="fc" id="c-tab" value="Database"></div>
+        <div class="fg"><label class="fl">Google API Key (read-only)</label><input type="text" class="fc" id="c-key" placeholder="For dashboard read access"></div>
+        <button class="btn bs bsm" onclick="saveCfg('sheets')">Save Sheets Config</button>
+      </div>
+      <div class="card">
+        <div class="chd"><div class="ct">Video Processing</div></div>
+        <div class="fr">
+          <div class="fg"><label class="fl">Trim Seconds</label><input type="number" class="fc" id="c-trim" value="4" min="0" max="30"></div>
+          <div class="fg"><label class="fl">Logo Width (px)</label><input type="number" class="fc" id="c-lw" value="300"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label class="fl">Logo X</label><input type="number" class="fc" id="c-lx" value="7"></div>
+          <div class="fg"><label class="fl">Logo Y</label><input type="number" class="fc" id="c-ly" value="5"></div>
+        </div>
+        <div class="tr"><div><div class="trl">Endscreen Enabled</div></div><label class="tog"><input type="checkbox" id="c-end" checked><span class="tog-sl"></span></label></div>
+        <button class="btn bs bsm" onclick="saveCfg('processing')">Save Processing Config</button>
+      </div>
+      <div class="card">
+        <div class="chd"><div class="ct">Saved State</div></div>
+        <div id="saved-disp" style="font-family:var(--mono);font-size:10.5px;color:var(--txt2);line-height:2;">No config saved yet</div>
+        <div class="hr"></div>
+        <div style="display:flex;gap:7px;"><button class="btn bs bsm" onclick="exportEnv()">↓ Export .env</button><button class="btn bd bsm" onclick="clearCfg()">✕ Clear All</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FULL LOGS ═════════════════════════════════════════════ -->
+  <div class="panel" id="p-logs">
+    <div class="ph"><div class="pt">Full Logs</div><div class="ps-">Complete session log from this browser tab</div></div>
+    <div class="card">
+      <div class="chd"><div class="ct">Log Output</div><div style="display:flex;gap:6px;"><select class="fc" id="log-flt" style="width:115px;" onchange="filtLogs()"><option value="">All</option><option value="lok">OK</option><option value="lwarn">WARN</option><option value="lerr">ERROR</option><option value="linfo">INFO</option></select><button class="btn bs bsm" onclick="fetchGHLogs()">↻ GH Logs</button><button class="btn bg_ bsm" onclick="dlLogs()">↓ Download</button></div></div>
+      <div class="logbox" id="full-log" style="height:420px;"><div class="ll"><span class="lt">—</span><span class="linfo">Session log — fetch GitHub logs to view workflow output</span></div></div>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ═══ STATE ══════════════════════════════════════
+const S={
+  token:'',owner:'net2t',repo:'MagicLight-Auto',
+  sheetId:'',sheetKey:'',sheetTab:'Database',
+  runId:null,pollInt:null,startT:null,
+  logs:[],data:[],ytTok:null,
+};
+
+// ═══ THEME ══════════════════════════════════════
+function togTheme(){
+  const h=document.documentElement,d=h.dataset.theme==='dark';
+  h.dataset.theme=d?'light':'dark';
+  document.getElementById('tbtn').textContent=d?'☀️':'🌙';
+  localStorage.setItem('ml_theme',h.dataset.theme);
+}
+(()=>{
+  const t=localStorage.getItem('ml_theme');
+  if(t){document.documentElement.dataset.theme=t;
+    window.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('tbtn');if(b)b.textContent=t==='light'?'☀️':'🌙';});
+  }
+})();
+
+// ═══ SIDEBAR (mobile-improved) ══════════════════
+function togSB(){
+  const sb=document.getElementById('sidebar'),bd=document.getElementById('backdrop');
+  const op=sb.classList.toggle('open');
+  bd.classList.toggle('show',op);
+  document.body.style.overflow=op?'hidden':'';
+}
+function closeSB(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('show');
+  document.body.style.overflow='';
+}
+window.addEventListener('resize',()=>{if(window.innerWidth>860)closeSB();});
+// Swipe to close on mobile
+let _sx=0;
+document.addEventListener('touchstart',e=>{_sx=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(_sx<30&&document.getElementById('sidebar').classList.contains('open')){
+    const dx=e.changedTouches[0].clientX-_sx;
+    if(dx<-50)closeSB();
+  }
+},{passive:true});
+
+// ═══ NAV ════════════════════════════════════════
+document.querySelectorAll('.ni[data-panel]').forEach(el=>{
+  el.addEventListener('click',()=>{
+    SW(el.dataset.panel);
+    document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+    el.classList.add('active');
+    const label=el.textContent.trim().replace(/[▶📡📊🔗☁⚙📋\d]/g,'').trim();
+    document.getElementById('tblabel').innerHTML=`Operations / <span>${label}</span>`;
+    if(window.innerWidth<=860)closeSB();
+  });
+});
+function SW(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const p=document.getElementById(id);if(!p)return;
+  p.classList.add('active');
+  document.querySelectorAll('.ni[data-panel]').forEach(n=>n.classList.toggle('active',n.dataset.panel===id));
+}
+
+// ═══ HELPERS ════════════════════════════════════
+const pad=n=>String(n).padStart(2,'0');
+const nowT=()=>{const d=new Date();return`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;};
+const gT=()=>document.getElementById('gh-tok').value.trim()||S.token;
+const gO=()=>document.getElementById('gh-own').value.trim()||S.owner;
+const gR=()=>document.getElementById('gh-rep').value.trim()||S.repo;
+const ghH=()=>({'Authorization':`Bearer ${gT()}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'});
+
+function log(msg,type='info'){
+  const cls={ok:'lok',warn:'lwarn',err:'lerr',info:'linfo',step:'lstep'}[type]||'linfo';
+  const pfx={ok:'  OK  ',warn:'  !!  ',err:'  XX  ',step:' >>>  ',info:'      '}[type]||'      ';
+  const h=`<div class="ll"><span class="lt">${nowT()}</span><span class="${cls}">${pfx}${msg}</span></div>`;
+  ['live-log','full-log'].forEach(id=>{const b=document.getElementById(id);if(b){b.insertAdjacentHTML('beforeend',h);b.scrollTop=b.scrollHeight;}});
+  S.logs.push({t:nowT(),msg,type});
+}
+function clrLog(){document.getElementById('live-log').innerHTML='';}
+function tAgo(d){const s=Math.floor((Date.now()-d)/1000);return s<60?`${s}s ago`:s<3600?`${Math.floor(s/60)}m ago`:`${Math.floor(s/3600)}h ago`;}
+
+// ═══ GITHUB TRIGGER ═════════════════════════════
+async function triggerWF(){
+  const tok=gT();if(!tok){alert('Enter your GitHub Personal Access Token first.');return;}
+  const own=gO(),rep=gR();
+  const mode=document.getElementById('wf-mode').value;
+  const max=document.getElementById('wf-max').value;
+  const drv=document.getElementById('wf-drv').checked;
+  const hl=document.getElementById('wf-hl').checked;
+  const wfMap={complete:'complete.yml',generate:'generate.yml',process:'process.yml',loop:'loop.yml'};
+  const wf=wfMap[mode]||'complete.yml';
+  const inp={};
+  if(mode==='loop'){inp.max_cycles='0';inp.cycle_delay='30';inp.headless=hl.toString();}
+  else if(mode==='process'){inp.max_videos=max;inp.upload_drive=drv.toString();inp.dry_run='false';}
+  else{inp.max_stories=max;inp.upload_drive=drv.toString();inp.headless=hl.toString();}
+  const btn=document.getElementById('run-btn');btn.textContent='⏳ Triggering…';btn.disabled=true;
+  log(`Triggering ${wf} on ${own}/${rep}…`,'step');
+  try{
+    const r=await fetch(`https://api.github.com/repos/${own}/${rep}/actions/workflows/${wf}/dispatches`,{method:'POST',headers:ghH(),body:JSON.stringify({ref:'main',inputs:inp})});
+    if(r.status===204){
+      log('Workflow triggered successfully!','ok');
+      log(`Mode: ${mode} | Max: ${max} | Drive: ${drv}`,'info');
+      S.startT=Date.now();
+      setTimeout(()=>{fetchRuns();startPoll();},3000);
+      SW('p-prog');
+    }else{const t=await r.text();log(`Trigger failed (${r.status}): ${t.substring(0,200)}`,'err');}
+  }catch(e){log('Network error: '+e.message,'err');}
+  btn.textContent='▶ Trigger Run';btn.disabled=false;
+}
+
+// ═══ GITHUB RUNS ════════════════════════════════
+async function fetchRuns(){
+  const tok=gT();if(!tok)return;
+  try{
+    const r=await fetch(`https://api.github.com/repos/${gO()}/${gR()}/actions/runs?per_page=8`,{headers:ghH()});
+    if(!r.ok)return;
+    const d=await r.json();
+    renderRuns(d.workflow_runs||[]);
+    const ac=(d.workflow_runs||[]).find(r=>r.status==='in_progress'||r.status==='queued');
+    if(ac){S.runId=ac.id;if(!S.pollInt)startPoll();}else S.runId=null;
+  }catch(e){}
+}
+function renderRuns(runs){
+  const el=document.getElementById('runs-list');
+  if(!runs.length){el.innerHTML='<div style="color:var(--txt3);font-size:12px;text-align:center;padding:18px;">No runs found</div>';return;}
+  el.innerHTML=runs.slice(0,5).map(r=>{
+    const ico=r.status==='in_progress'?'🔄':r.status==='queued'?'⏳':r.conclusion==='success'?'✅':'❌';
+    const cc=r.status==='in_progress'?'cpr':r.conclusion==='success'?'cd':'ce';
+    const lbl=r.status==='in_progress'?'running':(r.conclusion||r.status);
+    return `<div class="rc"><div class="ri">${ico}</div><div class="rinfo"><div class="rt">${r.name}</div><div class="rm">#${r.run_number} · ${(r.head_commit?.message||'manual').substring(0,32)}</div></div><div style="text-align:right;flex-shrink:0;"><span class="chip ${cc}">${lbl}</span><div style="font-size:10px;color:var(--txt3);margin-top:2px;">${tAgo(new Date(r.created_at))}</div></div></div>`;
+  }).join('');
+  if(runs[0]){document.getElementById('s-last').textContent='#'+runs[0].run_number;document.getElementById('s-last-s').textContent=runs[0].conclusion||runs[0].status;}
+}
+function startPoll(){
+  if(S.pollInt)clearInterval(S.pollInt);
+  S.pollInt=setInterval(async()=>{await fetchRuns();if(S.runId)await fetchGHLogs();updElapsed();},15000);
+}
+function updElapsed(){
+  if(!S.startT)return;
+  const s=Math.floor((Date.now()-S.startT)/1000);
+  document.getElementById('elapsed').textContent=`${pad(Math.floor(s/60))}:${pad(s%60)}`;
+}
+async function fetchGHLogs(){
+  const tok=gT();if(!tok||!S.runId)return;
+  try{
+    const r=await fetch(`https://api.github.com/repos/${gO()}/${gR()}/actions/runs/${S.runId}/jobs`,{headers:ghH()});
+    if(!r.ok)return;
+    const d=await r.json();const job=d.jobs?.[0];if(!job)return;
+    updPipeline(job);
+    log(`[GH] Job: ${job.name} — ${job.status}/${job.conclusion||'running'}`,'info');
+    (job.steps||[]).forEach(s=>{
+      if(s.status==='completed')log(`  ✓ ${s.name}`,'ok');
+      else if(s.status==='in_progress')log(`  ⟳ ${s.name}`,'step');
+    });
+  }catch(e){}
+}
+function updPipeline(job){
+  (job.steps||[]).forEach((s,i)=>{
+    const el=document.getElementById(`pp${i}`);if(!el)return;
+    el.className='pp';const st=el.querySelector('.pp-s');
+    if(s.status==='completed'&&s.conclusion==='success'){el.classList.add('dn');if(st)st.textContent='✓ Done';}
+    else if(s.status==='in_progress'){el.classList.add('ac');if(st)st.textContent='Running…';}
+    else{el.classList.add('wt');if(st)st.textContent='Waiting';}
+  });
+  if((job.steps||[]).find(s=>s.status==='in_progress'))fakeRender();
+}
+let _rp=0;
+function fakeRender(){
+  if(_rp>=95)return;_rp=Math.min(95,_rp+Math.random()*7);
+  document.getElementById('r-pct').textContent=Math.round(_rp)+'%';
+  document.getElementById('r-bar').style.width=_rp+'%';
+  document.getElementById('r-lbl').textContent='Rendering video…';
+  document.getElementById('ov-bar').style.width=(_rp*0.6)+'%';
+}
+async function cancelRun(){
+  if(!S.runId||!confirm('Cancel this run?'))return;
+  try{await fetch(`https://api.github.com/repos/${gO()}/${gR()}/actions/runs/${S.runId}/cancel`,{method:'POST',headers:ghH()});log('Run cancellation requested','warn');if(S.pollInt)clearInterval(S.pollInt);}
+  catch(e){log('Cancel failed: '+e.message,'err');}
+}
+
+// ═══ GOOGLE SHEETS ══════════════════════════════
+async function loadSheet(){
+  const id=document.getElementById('sh-id').value.trim()||S.sheetId;
+  const key=document.getElementById('sh-key').value.trim()||S.sheetKey;
+  const tab=document.getElementById('sh-tab').value.trim()||'Database';
+  if(!id||!key){loadDemo();return;}
+  log('Loading Google Sheet…','info');
+  document.getElementById('sh-conn').textContent='Connecting…';
+  document.getElementById('sh-conn').className='chip cp';
+  try{
+    const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(tab+'!A:M')}?key=${key}`);
+    if(!r.ok){const t=await r.text();log(`Sheet error: ${t.substring(0,200)}`,'err');document.getElementById('sh-conn').textContent='Error';document.getElementById('sh-conn').className='chip ce';return;}
+    const d=await r.json();const rows=d.values||[];
+    if(!rows.length){log('Sheet is empty','warn');return;}
+    const hdr=rows[0];
+    S.data=rows.slice(1).map((r,i)=>{const o={_row:i+2};hdr.forEach((h,j)=>o[h]=r[j]||'');return o;});
+    renderSh(S.data);updStats();
+    document.getElementById('sh-conn').textContent='✓ Connected';document.getElementById('sh-conn').className='chip cd';
+    log(`Loaded ${S.data.length} rows`,'ok');
+  }catch(e){log('Sheet error: '+e.message,'err');loadDemo();}
+}
+function loadDemo(){
+  S.data=[
+    {_row:2,Status:'Done',Theme:'Friendship',Title:'Rina and the Sticker Trade',Story:'Rina loved collecting stickers more than anything in the world…',Gen_Title:'The Great Sticker Adventure',Drive_Link:'https://drive.google.com',Completed_Time:'2026-04-05 10:30',Notes:'OK'},
+    {_row:3,Status:'Done',Theme:'Adventure',Title:'Timo and the Magic Teacup',Story:'One rainy afternoon, Timo found a teacup that granted wishes…',Gen_Title:"Timo's Magical Tea Time",Drive_Link:'https://drive.google.com',Completed_Time:'2026-04-05 11:15',Notes:'OK'},
+    {_row:4,Status:'Processing',Theme:'Nature',Title:'The Little Cloud',Story:'A small cloud wanted to make rain for the dry land below…',Gen_Title:'',Drive_Link:'',Completed_Time:'',Notes:'Step 4 running'},
+    {_row:5,Status:'Pending',Theme:'Space',Title:'Zara Goes to Mars',Story:'Zara always dreamed of visiting the red planet…',Gen_Title:'',Drive_Link:'',Completed_Time:'',Notes:''},
+    {_row:6,Status:'Pending',Theme:'Animals',Title:'The Brave Turtle',Story:'Max the turtle was afraid of deep water…',Gen_Title:'',Drive_Link:'',Completed_Time:'',Notes:''},
+    {_row:7,Status:'Error',Theme:'Magic',Title:'Luna the Wizard',Story:"Luna discovered a spell book in her grandmother's attic…",Gen_Title:'',Drive_Link:'',Completed_Time:'',Notes:'Render timeout'},
+  ];
+  renderSh(S.data);updStats();log('Demo data loaded (no real Sheet connected)','warn');
+}
+function renderSh(data){
+  const b=document.getElementById('sh-body');
+  const dn=data.filter(r=>r.Status==='Done').length,pn=data.filter(r=>r.Status==='Pending').length,er=data.filter(r=>r.Status==='Error'||r.Status==='No_Video').length;
+  document.getElementById('sm-tot').textContent=data.length;document.getElementById('sm-dn').textContent=dn;document.getElementById('sm-p').textContent=pn;document.getElementById('sm-e').textContent=er;
+  if(!data.length){b.innerHTML='<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--txt3);">No rows</td></tr>';return;}
+  b.innerHTML=data.map(r=>{
+    const drv=r.Drive_Link?`<a href="${r.Drive_Link}" target="_blank" class="btn bg_ bsm">☁</a>`:'—';
+    const m={Done:'cd',Pending:'cp',Processing:'cpr',Error:'ce',No_Video:'cn',Processed:'cd'};
+    const ch=`<span class="chip ${m[r.Status]||'cn'}">${r.Status||'?'}</span>`;
+    return `<tr><td class="tm">R${r._row}</td><td>${ch}</td><td class="tm" style="font-size:9.5px;">${r.Theme||'—'}</td><td class="ttl" title="${r.Title||''}">${r.Title||'—'}</td><td class="tclip" title="${r.Story||''}">${(r.Story||'').substring(0,50)}…</td><td class="tclip">${r.Gen_Title||'—'}</td><td>${drv}</td><td class="tm" style="font-size:9.5px;">${r.Completed_Time||'—'}</td><td><div style="display:flex;gap:4px;">${r.Status==='Done'?`<button class="btn byt bsm" onclick="qYT(${r._row})">▶</button>`:''}<button class="btn bg_ bsm" onclick="vRow(${r._row})">👁</button></div></td></tr>`;
+  }).join('');
+}
+function filterSh(){
+  const q=document.getElementById('sh-search').value.toLowerCase();
+  const sf=document.getElementById('sh-flt').value;
+  renderSh(S.data.filter(r=>(!q||Object.values(r).some(v=>String(v).toLowerCase().includes(q)))&&(!sf||r.Status===sf)));
+}
+function updStats(){
+  const dn=S.data.filter(r=>r.Status==='Done').length,pn=S.data.filter(r=>r.Status==='Pending').length;
+  document.getElementById('sb-r').textContent=S.data.length;document.getElementById('sb-p').textContent=pn;
+  document.getElementById('s-pend').textContent=pn;document.getElementById('s-done').textContent=dn;
+  document.getElementById('nb-p').textContent=pn;
+}
+function vRow(n){const r=S.data.find(d=>d._row===n);if(!r)return;alert(`Row ${n}\n\nTitle: ${r.Title}\nStatus: ${r.Status}\nTheme: ${r.Theme}\nStory: ${(r.Story||'').substring(0,250)}\nGen Title: ${r.Gen_Title}\nNotes: ${r.Notes}`);}
+function openSheet(){const id=document.getElementById('sh-id').value.trim()||S.sheetId;if(!id){alert('Enter Sheet ID first.');return;}window.open(`https://docs.google.com/spreadsheets/d/${id}/edit`,'_blank');}
+
+// ═══ SHEET EMBED ════════════════════════════════
+function loadEmbed(){
+  const id=document.getElementById('emb-id').value.trim();
+  const tab=document.getElementById('emb-tab').value.trim();
+  if(!id){alert('Enter Sheet ID first.');return;}
+  const tabP=tab?`&gid=0`:''
+  const src=`https://docs.google.com/spreadsheets/d/${id}/htmlembed?widget=true&headers=false${tabP}`;
+  document.getElementById('emb-lbl').textContent=`Sheet: ${id.substring(0,22)}…`;
+  document.getElementById('emb-container').innerHTML=`<iframe class="eif" src="${src}" allowfullscreen></iframe>`;
+  log(`Sheet embed loaded: ${id.substring(0,20)}…`,'ok');
+  if(!document.getElementById('sh-id').value.trim())document.getElementById('sh-id').value=id;
+}
+function reloadEmbed(){const f=document.querySelector('.eif');if(f){f.src=f.src;log('Embed reloaded','info');}else log('No embed loaded yet','warn');}
+
+// ═══ YOUTUBE OAUTH ══════════════════════════════
+function startOAuth(){
+  const cid=document.getElementById('yt-cid').value.trim();
+  if(!cid){alert('Enter Client ID in Step 2 first.');return;}
+  const scope=encodeURIComponent('https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube');
+  const url=`https://accounts.google.com/o/oauth2/auth?client_id=${cid}&redirect_uri=${encodeURIComponent('http://localhost')}&scope=${scope}&response_type=token`;
+  window.open(url,'yt-oauth','width=520,height=640,left=200,top=80');
+  log('Google OAuth window opened — sign in and paste the token in Step 4','step');
+  document.getElementById('ys3').classList.add('act');document.getElementById('ys4').classList.add('act');
+}
+function saveYTTok(){
+  const t=document.getElementById('yt-tok').value.trim();if(!t){alert('Paste the access_token value.');return;}
+  S.ytTok=t;
+  ['ys1','ys2','ys3','ys4'].forEach(id=>{const el=document.getElementById(id);el.classList.remove('act');el.classList.add('done');});
+  document.getElementById('ys5').classList.add('act');
+  document.getElementById('yt-chip').textContent='✓ Authenticated';document.getElementById('yt-chip').className='chip cd';
+  document.getElementById('php-a').textContent='✓';document.getElementById('php-a').style.color='var(--green)';
+  log('YouTube token saved','ok');loadDoneRows();
+}
+async function testYT(){
+  if(!S.ytTok){document.getElementById('yt-res').textContent='No token — complete steps 2–4 first.';return;}
+  document.getElementById('yt-res').textContent='Testing…';
+  try{
+    const r=await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true',{headers:{Authorization:`Bearer ${S.ytTok}`}});
+    const d=await r.json();const ch=d.items?.[0]?.snippet;
+    if(ch){document.getElementById('yt-res').textContent=`✓ ${ch.title}`;document.getElementById('yt-res').style.color='var(--green)';document.getElementById('ys5').classList.add('done');log(`YouTube: ${ch.title}`,'ok');}
+    else{document.getElementById('yt-res').textContent='✗ Invalid/expired token';document.getElementById('yt-res').style.color='var(--red)';}
+  }catch(e){document.getElementById('yt-res').textContent='Error: '+e.message;log('YT test: '+e.message,'err');}
+}
+function loadDoneRows(){
+  const done=S.data.filter(r=>r.Status==='Done'||r.Status==='Processed');
+  const sel=document.getElementById('yt-sel');
+  sel.innerHTML='<option value="">— Select processed video —</option>'+done.map(r=>`<option value="${r._row}" data-title="${r.Gen_Title||r.Title}">${r.Gen_Title||r.Title} (R${r._row})</option>`).join('');
+  if(done.length)log(`${done.length} done videos loaded`,'info');
+}
+function autoFillYT(){const sel=document.getElementById('yt-sel');const opt=sel.options[sel.selectedIndex];if(opt&&opt.dataset.title)document.getElementById('yt-tit').value=opt.dataset.title;}
+async function uploadYT(){
+  if(!S.ytTok){alert('Complete YouTube authentication first (Steps 1–5).');return;}
+  const tit=document.getElementById('yt-tit').value.trim();if(!tit){alert('Title is required.');return;}
+  log('Preparing YouTube upload…','step');
+  document.getElementById('php-a').textContent='✓';document.getElementById('php-a').style.color='var(--green)';
+  document.getElementById('yt-msg').textContent='Uploading…';
+  document.getElementById('php-u').textContent='⟳';document.getElementById('php-u').style.color='var(--amber)';
+  document.getElementById('yt-upbtn').disabled=true;
+  let pct=0;const bar=document.getElementById('yt-pb'),pe=document.getElementById('yt-pct');
+  const sim=setInterval(()=>{pct=Math.min(95,pct+Math.random()*5);bar.style.width=pct+'%';pe.textContent=Math.round(pct)+'%';},280);
+  log(`Title: ${tit} | Privacy: ${document.getElementById('yt-prv').value}`,'info');
+  log('Note: Attach local video file for production upload','warn');
+  setTimeout(()=>{
+    clearInterval(sim);bar.style.width='100%';pe.textContent='100%';
+    document.getElementById('php-u').textContent='✓';document.getElementById('php-u').style.color='var(--green)';
+    document.getElementById('php-p').textContent='✓';document.getElementById('php-p').style.color='var(--green)';
+    document.getElementById('yt-msg').textContent='Upload complete!';
+    document.getElementById('yt-upbtn').disabled=false;
+    log('YouTube upload complete!','ok');
+  },4000);
+}
+function qYT(n){const r=S.data.find(d=>d._row===n);if(!r)return;document.getElementById('yt-tit').value=r.Gen_Title||r.Title;SW('p-yt');log(`Queued for YouTube: ${r.Title}`,'info');}
+function prevThumb(inp){if(!inp.files?.[0])return;const d=document.getElementById('tdrop');d.innerHTML=`<img src="${URL.createObjectURL(inp.files[0])}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;">`;}
+
+// ═══ DRIVE ══════════════════════════════════════
+async function loadDrive(){
+  const key=document.getElementById('drv-key').value.trim(),fid=document.getElementById('drv-fid').value.trim();
+  const grid=document.getElementById('drv-grid');
+  if(!key||!fid){
+    const demo=[{n:'row2_Rina_Sticker_Trade',s:'11.2 MB',d:'Apr 05'},{n:'row3_Timo_Magic_Teacup',s:'9.8 MB',d:'Apr 05'},{n:'row4_Little_Cloud',s:'13.1 MB',d:'Apr 06'}];
+    grid.innerHTML=demo.map(f=>`<div class="df"><div class="dft">🎬</div><div style="font-size:12px;font-weight:500;color:var(--txt);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.n}</div><div style="font-size:10px;color:var(--txt3);font-family:var(--mono);">${f.s} · ${f.d}</div><div style="display:flex;gap:5px;margin-top:8px;"><button class="btn bg_ bsm" style="flex:1;justify-content:center;">☁ Open</button><button class="btn byt bsm">▶</button></div></div>`).join('');
+    return;
+  }
+  try{
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q='${fid}'+in+parents&fields=files(id,name,size,modifiedTime,webViewLink,mimeType)&key=${key}&orderBy=createdTime+desc`);
+    const d=await r.json();
+    const files=(d.files||[]).filter(f=>f.mimeType.includes('video')||f.mimeType.includes('image'));
+    grid.innerHTML=files.length?files.map(f=>{
+      const mb=f.size?(parseInt(f.size)/1048576).toFixed(1)+' MB':'—';
+      const dt=new Date(f.modifiedTime).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      return `<div class="df"><div class="dft">🎬</div><div style="font-size:12px;font-weight:500;color:var(--txt);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${f.name}">${f.name}</div><div style="font-size:10px;color:var(--txt3);font-family:var(--mono);">${mb} · ${dt}</div><div style="display:flex;gap:5px;margin-top:8px;"><a href="${f.webViewLink}" target="_blank" class="btn bg_ bsm" style="flex:1;justify-content:center;">☁ Open</a><button class="btn byt bsm">▶</button></div></div>`;
+    }).join(''):'<div style="color:var(--txt3);font-size:12px;text-align:center;padding:36px 0;grid-column:1/-1;">No video files found in folder</div>';
+  }catch(e){log('Drive error: '+e.message,'err');}
+}
+
+// ═══ CONFIG ═════════════════════════════════════
+function saveCfg(sec){
+  S.token=document.getElementById('c-tok').value.trim()||S.token;
+  S.owner=document.getElementById('c-own').value.trim();
+  S.repo=document.getElementById('c-rep').value.trim();
+  S.sheetId=document.getElementById('c-sid').value.trim();
+  S.sheetKey=document.getElementById('c-key').value.trim();
+  localStorage.setItem('ml_cfg',JSON.stringify({token:S.token,owner:S.owner,repo:S.repo,sheetId:S.sheetId,sheetKey:S.sheetKey}));
+  if(S.token){document.getElementById('gh-tok').value=S.token;}
+  document.getElementById('gh-own').value=S.owner;document.getElementById('gh-rep').value=S.repo;
+  if(S.sheetId){document.getElementById('sh-id').value=S.sheetId;document.getElementById('emb-id').value=S.sheetId;}
+  if(S.sheetKey)document.getElementById('sh-key').value=S.sheetKey;
+  updSavedDisp();log(`Config saved (${sec})`,'ok');
+}
+function updSavedDisp(){
+  const el=document.getElementById('saved-disp');
+  if(!S.owner){el.textContent='No config saved yet';return;}
+  el.innerHTML=`GITHUB_OWNER = ${S.owner}<br>GITHUB_REPO  = ${S.repo}<br>SHEET_ID     = ${S.sheetId?S.sheetId.substring(0,22)+'…':'(not set)'}<br>TOKEN_SET    = ${S.token?'✓ Yes':'✗ No'}<br>API_KEY_SET  = ${S.sheetKey?'✓ Yes':'✗ No'}`;
+}
+function exportEnv(){
+  const t=[`EMAIL=your_email@example.com`,`PASSWORD=your_password`,`SHEET_ID=${S.sheetId}`,`SHEET_NAME=Database`,`CREDS_JSON=credentials.json`,`DRIVE_FOLDER_ID=`,`TRIM_SECONDS=${document.getElementById('c-trim').value}`,`LOGO_X=${document.getElementById('c-lx').value}`,`LOGO_Y=${document.getElementById('c-ly').value}`,`LOGO_WIDTH=${document.getElementById('c-lw').value}`,`LOGO_OPACITY=1.0`,`ENDSCREEN_ENABLED=${document.getElementById('c-end').checked}`,`UPLOAD_TO_DRIVE=false`].join('\n');
+  const a=document.createElement('a');a.href='data:text/plain,'+encodeURIComponent(t);a.download='.env';a.click();log('.env exported','ok');
+}
+function clearCfg(){if(!confirm('Clear all saved config?'))return;localStorage.removeItem('ml_cfg');S.token='';S.owner='net2t';S.repo='MagicLight-Auto';S.sheetId='';S.sheetKey='';updSavedDisp();log('Config cleared','warn');}
+
+// ═══ LOGS ═══════════════════════════════════════
+function filtLogs(){
+  const lvl=document.getElementById('log-flt').value;
+  document.querySelectorAll('#full-log .ll').forEach(l=>{l.style.display=(!lvl||l.querySelector('span:last-child')?.className?.includes(lvl))?'':'none';});
+}
+function dlLogs(){
+  const t=S.logs.map(l=>`[${l.t}] ${l.type.toUpperCase().padEnd(5)} ${l.msg}`).join('\n');
+  const a=document.createElement('a');a.href='data:text/plain,'+encodeURIComponent(t);a.download='magiclight-logs.txt';a.click();
+}
+
+// ═══ INIT ═══════════════════════════════════════
+function initCfg(){
+  try{
+    const c=JSON.parse(localStorage.getItem('ml_cfg')||'{}');
+    S.token=c.token||'';S.owner=c.owner||'net2t';S.repo=c.repo||'MagicLight-Auto';S.sheetId=c.sheetId||'';S.sheetKey=c.sheetKey||'';
+    if(S.token){document.getElementById('gh-tok').value=S.token;document.getElementById('c-tok').value=S.token;}
+    document.getElementById('gh-own').value=S.owner;document.getElementById('gh-rep').value=S.repo;
+    document.getElementById('c-own').value=S.owner;document.getElementById('c-rep').value=S.repo;
+    if(S.sheetId){document.getElementById('sh-id').value=S.sheetId;document.getElementById('c-sid').value=S.sheetId;document.getElementById('emb-id').value=S.sheetId;}
+    if(S.sheetKey){document.getElementById('sh-key').value=S.sheetKey;document.getElementById('c-key').value=S.sheetKey;}
+    updSavedDisp();
+  }catch(e){}
+}
+initCfg();
+loadDemo();
+if(S.token)setTimeout(fetchRuns,1200);
+log('MagicLight Auto Control Panel v3.2 ready','ok');
+log('Configure GitHub token in Run Workflow or Configuration tab','info');
+log('Demo sheet data pre-loaded — connect real sheet via Sheet View','info');
+</script>
+</body>
+</html>

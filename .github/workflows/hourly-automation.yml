@@ -1,0 +1,84 @@
+name: Main Runner
+
+on:
+  schedule:
+    # Run every hour at minute 0
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Mode selection'
+        required: true
+        type: choice
+        options:
+          - 'combined'  # Generate + Process + Upload
+          - 'generate'   # Generate only
+          - 'process'    # Process only
+        default: 'combined'
+      quantity:
+        description: 'Number of stories per cycle (0=all)'
+        required: true
+        type: string
+        default: '1'
+      upload_drive:
+        description: 'Upload to Google Drive'
+        required: true
+        type: boolean
+        default: true
+      loop:
+        description: 'Run in loop mode (infinite cycles)'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  generate-and-process:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright gspread google-auth-oauthlib google-api-python-client python-dotenv requests rich
+          playwright install chromium
+      
+      - name: Decode credentials.json
+        run: |
+          echo "${{ secrets.CREDS_JSON }}" | base64 -d > credentials.json
+      
+      - name: Decode accounts.txt (if provided)
+        if: ${{ secrets.ACCOUNTS_TXT != '' }}
+        run: |
+          echo "${{ secrets.ACCOUNTS_TXT }}" | base64 -d > accounts.txt
+      
+      - name: Create .env file
+        run: |
+          echo "EMAIL=${{ secrets.EMAIL }}" >> .env
+          echo "PASSWORD=${{ secrets.PASSWORD }}" >> .env
+          echo "SHEET_ID=${{ secrets.SHEET_ID }}" >> .env
+          echo "SHEET_NAME=${{ secrets.SHEET_NAME }}" >> .env
+          echo "CREDS_JSON=credentials.json" >> .env
+          echo "DRIVE_FOLDER_ID=${{ secrets.DRIVE_FOLDER_ID }}" >> .env
+      
+      - name: Run MagicLight Auto
+        run: |
+          MODE=${{ github.event.inputs.mode || 'combined' }}
+          QUANTITY=${{ github.event.inputs.quantity || '1' }}
+          UPLOAD=${{ github.event.inputs.upload_drive || 'true' }}
+          LOOP=${{ github.event.inputs.loop || 'true' }}
+          LOOP_FLAG=""
+          if [ "$LOOP" = "true" ]; then
+            LOOP_FLAG="--loop"
+          fi
+          python main.py --mode $MODE --max $QUANTITY --headless --upload-drive $LOOP_FLAG --debug
+        env:
+          GITHUB_ACTIONS: true
+          RUN_PROCESS_INLINE: "1"
