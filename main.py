@@ -1092,8 +1092,56 @@ def step3(page):
         except: pass
     if not clicked:
         clicked = dom_click_text(page, ["Next", "Next Step"], timeout=15)
-    sleep_log(4)
-    _dismiss_animation_modal(page)
+    
+    sleep_log(3, "checking for Animate All popup")
+    # Do NOT blindly dismiss here. Check for 'Animate All' first!
+    js_animate = """() => {
+        const btns = Array.from(document.querySelectorAll('button, div[class*="btn"]'));
+        for (let b of btns) {
+            const t = (b.innerText || '').trim();
+             if (t === 'Animate All') {
+                const r = b.getBoundingClientRect();
+                if (r.width > 0) { b.click(); return true; }
+             }
+        }
+        return false;
+    }"""
+    if page.evaluate(js_animate):
+        _info("[Step 3] Clicked 'Animate All' for scenes. Waiting for scenes to animate...")
+        start = time.time()
+        last_pct = ""
+        while time.time() - start < RENDER_TIMEOUT:
+            if _shutdown: break
+            prog_js = """() => {
+                const prog = Array.from(document.querySelectorAll('[class*="progress"],[class*="Progress"],[class*="render-progress"],[class*="generating"]'))
+                    .find(el => el.getBoundingClientRect().width > 0 && (el.innerText || '').match(/[0-9]+\\s*%/));
+                if (prog) {
+                    const m = (prog.innerText || '').match(/(\\d+)\\s*%/);
+                    return m ? m[1] : null;
+                }
+                const chk = document.body.innerText || '';
+                if (chk.includes('have been generated') || !chk.includes('generating')) return 'DONE';
+                return null;
+            }"""
+            res = page.evaluate(prog_js)
+            if res and res != "DONE" and res != last_pct:
+                console.print(f"  [cyan]>[/cyan] Scenes Animating... [bold]{res}%[/bold]")
+                last_pct = res
+            elif res == "DONE" or (not res and last_pct == "100"):
+                break
+            time.sleep(POLL_INTERVAL)
+            # Carefully clear popups but don't close important windows
+            try: page.evaluate(_POPUP_JS)
+            except: pass
+            
+        sleep_log(3, "scenes animated")
+        _info("Clicking Next to proceed to Edit stage...")
+        for _ in range(3):
+            if dom_click_text(page, ["Next"], timeout=5): break
+            time.sleep(2)
+    else:
+        _dismiss_animation_modal(page)
+        
     sleep_log(3)
     _ok("[Step 3] Done")
 
@@ -1152,7 +1200,7 @@ def step4(page, safe_name, sheet_row_num=None):
 }"""
     js_has_gen = """\
 () => {
-    const texts = ["Generate","Create Video","Export","Create now","Render","Animate","Animate All"];
+    const texts = ["Generate","Create Video","Export","Create now","Render"];
     const all = Array.from(document.querySelectorAll(
         'button,div[class*="btn"],span[class*="btn"],div[class*="footer-btn"],' +
         'div[class*="header-shiny-action__btn"],[class*="animation-modal__tab"]'
@@ -1190,7 +1238,7 @@ def step4(page, safe_name, sheet_row_num=None):
     else:
         raise Exception("Could not reach Generate button after max attempts")
     if not dom_click_text(page, ["Generate", "Create Video", "Export",
-                                  "Create now", "Animate", "Animate All"], timeout=20):
+                                  "Create now"], timeout=20):
         raise Exception("Generate click failed")
     sleep_log(3)
     dom_click_text(page, ["OK", "Ok", "Confirm"], timeout=5)
@@ -2279,7 +2327,6 @@ def _run_pipeline_core(limit, source_type="auto"):
     except: pass
     console.rule(style="cyan")
     _ok("Generation sequence complete.")
-    close_browser()
 
 # ── MENU ──────────────────────────────────────────────────────────────────────
 def menu():
