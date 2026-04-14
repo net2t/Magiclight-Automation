@@ -1,0 +1,82 @@
+name: MagicLight Generation Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run Mode'
+        required: true
+        default: 'combined'
+        type: choice
+        options:
+          - combined
+          - generate
+          - process
+      quantity:
+        description: 'Quantity Limit (0 = All Pending)'
+        required: true
+        default: '1'
+        type: string
+      upload_drive:
+        description: 'Upload matching videos to Google Drive?'
+        required: true
+        default: true
+        type: boolean
+      loop:
+        description: 'Run on continuous Loop Mode until manually cancelled?'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  run-pipeline:
+    runs-on: windows-latest
+    timeout-minutes: 360  # Allow loop mode to run for up to 6 hours natively
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+        
+      - name: Install Playwright Browsers
+        run: playwright install chromium
+
+      - name: Set up FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v2
+        with:
+          architecture: x64
+
+      - name: Decode API Credentials
+        run: |
+          if ("${{ secrets.GCP_CREDENTIALS }}".Trim() -ne "") {
+              Set-Content -Path credentials.json -Value "${{ secrets.GCP_CREDENTIALS }}"
+          }
+          if ("${{ secrets.ENV_FILE }}".Trim() -ne "") {
+              Set-Content -Path .env -Value "${{ secrets.ENV_FILE }}"
+          }
+          if ("${{ secrets.ACCOUNTS_TXT }}".Trim() -ne "") {
+              Set-Content -Path accounts.txt -Value "${{ secrets.ACCOUNTS_TXT }}"
+          }
+
+      - name: Run MagicLight Pipeline
+        shell: pwsh
+        env:
+          GITHUB_ACTIONS: "true"
+        run: |
+          $argsStr = "--mode ${{ github.event.inputs.mode }} --max ${{ github.event.inputs.quantity }} --headless"
+          if ("${{ github.event.inputs.upload_drive }}" -eq "true") {
+              $argsStr += " --upload-drive"
+          }
+          if ("${{ github.event.inputs.loop }}" -eq "true") {
+              $argsStr += " --loop"
+          }
+          
+          Invoke-Expression "python main.py $argsStr"

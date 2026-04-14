@@ -1,45 +1,35 @@
-# 📊 Google Sheet Structure
+# MagicLight Auto — Google Sheets Structure
 
-## Tab Name: `Database`
-## Total Columns: 18 (A through R)
+The Google Sheet acts as the database for the entire automation pipeline. 
+The script automatically reads the column matching below. 
 
-| Col | Name | Written By | Description |
-|-----|------|-----------|-------------|
-| A | `Status` | Both | `Pending` → `Processing` → `Generated` → `Done` / `Error` |
-| B | `Theme` | You | Story theme (Friendship, Adventure, etc.) |
-| C | `Title` | You | Story title |
-| D | `Story` | You | Full story text |
-| E | `Moral` | You | Story moral / lesson |
-| F | `Gen_Title` | Generate | AI-generated title from MagicLight |
-| G | `Gen_Summary` | Generate | AI-generated summary |
-| H | `Gen_Tags` | Generate | AI-generated hashtags |
-| I | `Drive_Link` | Generate | Raw video Drive link — written after Mode 1 |
-| J | `DriveImg_Link` | Generate | Thumbnail Drive link |
-| K | `Project_URL` | Generate | MagicLight project URL |
-| L | `Credit_Before` | Generate | Credits before generation |
-| M | `Credit_After` | Generate | Credits after generation |
-| N | `Email_Used` | Generate | Which account was used |
-| O | `Notes` | Both | Status notes / error messages |
-| P | `Created_Time` | Generate | Generation start timestamp |
-| Q | `Completed_Time` | Both | Last completion timestamp |
-| R | `Process_D_Link` | Process | Processed video Drive link — written after Mode 2/3 |
+### Columns Structure (Exactly 21 Columns)
 
-## Status Lifecycle
+| Column | Name             | Description                                                                                     |
+|:------:|:-----------------|:------------------------------------------------------------------------------------------------|
+| **A**  | `Status`         | The current status. Set to `Pending` to queue it. The script changes this to `Done` or `Error`. |
+| **B**  | `Theme`          | (Optional) Theme of the story.                                                                  |
+| **C**  | `Title`          | (Optional) The folder name and video will be derived from this.                                 |
+| **D**  | `Story`          | **(Required)** The main story text to be generated into a video.                                |
+| **E**  | `Moral`          | (Optional) A moral constraint to provide to the generator.                                      |
+| **F**  | `Gen_Title`      | Output field: The AI-generated title downloaded from MagicLight.                                |
+| **G**  | `Gen_Summary`    | Output field: The short summary generated for the video description.                            |
+| **H**  | `Gen_Tags`       | Output field: AI-generated hashtags.                                                            |
+| **I**  | `Project_URL`    | Output field: URL pointing back to the project on MagicLight.                                   |
+| **J**  | `Created_Time`   | Output field: Timestamp when the script started processing the story.                           |
+| **K**  | `Completed_Time` | Output field: Timestamp when the video generation finally completed.                            |
+| **L**  | `Notes`          | Output field: Detailed logs, tracebacks, or credit usage reports.                               |
+| **M**  | `Drive_Link`     | Output field: The Google Drive preview link for the un-processed original render.               |
+| **N**  | `DriveImg_Link`  | Output field: Preview link for the extracted thumbnail image.                                   |
+| **O**  | `Credit_Before`  | Output field: The user's credit balance before generating.                                      |
+| **P**  | `Credit_After`   | Output field: The user's credit balance after generation completing.                            |
+| **Q**  | `Email_Used`     | Output field: Which account from `accounts.txt` was used for processing.                        |
+| **R**  | `Credit_Acct`    | Extra field                                                                                     |
+| **S**  | `Credit_Total`   | Extra field                                                                                     |
+| **T**  | `Credit_Used`    | Extra field                                                                                     |
+| **U**  | `Credit_Remaining` | Extra field                                                                                   |
 
-```
-Pending
-  └─► Processing
-        ├─► Generated  (video downloaded, Drive_Link written)
-        │     └─► Done  (processed, Process_D_Link written)
-        ├─► No_Video   (render done, download failed)
-        ├─► Error      (unexpected failure)
-        └─► Low Credit (account ran out of credits)
-```
-
-## Setup
-
-Run once to write correct headers to your sheet:
-
-```bash
-python main.py --migrate-schema
-```
+## How to Initialize
+1. Open your specified Google Sheet.
+2. In `main.py`, you can run `python main.py --migrate-schema` in your terminal to automatically place these exact 21 headers directly into row 1.
+3. Paste a story in column `D` and set column `A` to `Pending`. 

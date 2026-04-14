@@ -1976,22 +1976,6 @@ def run_health_check():
         _err(f"Found {issues} issue(s)")
     return issues
 
-def run_cleanup():
-    console.rule("[bold cyan]Cleanup Output[/bold cyan]")
-    out_dir = Path(OUT_BASE)
-    count = 0
-    if out_dir.exists():
-        for item in out_dir.iterdir():
-            try:
-                if item.is_file(): item.unlink()
-                elif item.is_dir(): shutil.rmtree(item)
-                count += 1
-            except Exception as e:
-                _warn(f"Could not remove {item}: {e}")
-        _ok(f"Deleted {count} items from output/")
-    else:
-        _info("Output directory empty/missing.")
-
 # ── Menu State ────────────────────────────────────────────────────────────────
 MENU_STATE_FILE = ".menu_state.json"
 
@@ -2343,48 +2327,65 @@ def menu():
     show_pending_table()
     console.print()
 
-    choice = console.input("  [bold cyan]Run Generation Pipeline (Y/N/Cleanup/Health)?[/bold cyan] [Y]: ").strip().upper()
-    if choice == "N": return
-    if choice == "CLEANUP": run_cleanup(); return
-    if choice == "HEALTH": run_health_check(); return
-
+    mt = Table(show_header=False, box=None, padding=(0, 2))
+    mt.add_column("num",  style="bold cyan", width=4)
+    mt.add_column("name", style="bold white", width=25)
+    mt.add_row("1", "Full Pipeline")
+    mt.add_row("2", "Just Video Story Making")
+    mt.add_row("3", "Video Encoding Process")
+    mt.add_row("4", "Exit")
+    console.print(mt)
     console.print()
-    
-    amount = ask_amount("Generate")
+
+    choice = console.input("  [bold cyan]Select Mode [1-4]: [/bold cyan]").strip()
+    if choice not in ["1", "2", "3"]: return
+
+    mode_map = {"1": "combined", "2": "generate", "3": "process"}
+    mode = mode_map[choice]
+
+    amount = ask_amount("Stories")
     upload_drive = ask_drive()
     args.upload_drive = upload_drive
     
-    loop_choice = console.input(f"  [bold cyan]🔄 Run on loop (Y/N)? [/bold cyan]").strip().upper()
-    loop_mode = (loop_choice == "Y")
-    if loop_mode:
-        _ok("[loop] Loop mode enabled")
-        if not DRIVE_FOLDER_ID:
-            _err("DRIVE_FOLDER_ID required for Loop mode!"); return
+    loop_mode = False
+    if mode in ["combined", "generate"]:
+        loop_choice = console.input(f"  [bold cyan]🔄 Run on loop (Y/N)? [/bold cyan]").strip().upper()
+        loop_mode = (loop_choice == "Y")
+        if loop_mode:
+            _ok("[loop] Loop mode enabled")
+            if not DRIVE_FOLDER_ID:
+                _err("DRIVE_FOLDER_ID required for Loop mode!"); return
 
     console.print()
+    cfg = load_process_cfg()
 
-    pw_manager = sync_playwright().start()
-    global _browser
-    _browser = pw_manager.chromium.launch(
-        headless=getattr(args, "headless", True),
-        args=["--start-maximized"]
-    )
-    try:
-        while True:
-            os.environ["RUN_PROCESS_INLINE"] = "1"
-            _credits_used = 0
-            _run_pipeline_core(limit=amount, source_type="auto")
-            
-            if not loop_mode:
-                break
-            else:
-                sleep_log(30, "Loop cooldown...")
-    finally:
+    if mode in ["combined", "generate"]:
+        pw_manager = sync_playwright().start()
+        global _browser
+        _browser = pw_manager.chromium.launch(
+            headless=getattr(args, "headless", True),
+            args=["--start-maximized"]
+        )
         try:
-            if _browser: _browser.close()
-        except: pass
-        try: pw_manager.stop()
-        except: pass
+            while True:
+                os.environ["RUN_PROCESS_INLINE"] = "1" if mode == "combined" else "0"
+                _credits_used = 0
+                _run_pipeline_core(limit=amount, source_type="auto")
+                
+                if not loop_mode:
+                    break
+                else:
+                    sleep_log(30, "Loop cooldown...")
+        finally:
+            try:
+                if _browser: _browser.close()
+            except: pass
+            try: pw_manager.stop()
+            except: pass
+    elif mode == "process":
+        vids = scan_videos(Path(OUT_BASE))
+        vids = vids[:amount] if amount > 0 else vids
+        process_all(cfg, videos=vids, upload=args.upload_drive)
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 def parse_args():
