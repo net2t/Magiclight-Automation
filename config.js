@@ -14,25 +14,9 @@ const CONFIG = {
   DEFAULT_ACCOUNTS: [
     {
       theme: 'Teamwork',
-      channel: 'Magic Stories HQ',
-      channelId: 'UCxxxxxx',
-      email: 'kakife5916@nyspring.com',
-      category: '27',
-      privacy: 'public'
-    },
-    {
-      theme: 'Adventure',
-      channel: 'Adventure Tales',
-      channelId: 'UCyyyyyy',
-      email: 'noyisad279@parsitv.com',
-      category: '27',
-      privacy: 'public'
-    },
-    {
-      theme: 'Animals',
-      channel: 'Animal Friends',
-      channelId: 'UCzzzzzz',
-      email: 'rokak74566@parsitv.com',
+      channel: 'Bright Little Stories',
+      channelId: 'UC2FdFOP-XrLFlWN9VJWmYWQ',
+      email: 'net2tara@gmail.com',
       category: '27',
       privacy: 'public'
     }
