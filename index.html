@@ -121,7 +121,7 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?output=csv';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzo7_7y9DH5rMGWdsbCFmuEqzwYKkSpUpDmgJnaH6HEJ-8GLl_fli0dQf8PDjIg99-JJw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIb22Qo_3BxI73PgD5PbaDu6ocMXQu7T_FV7kBKZztcJvcOMKuTERZVg1AKAAnV7f3qg/exec';
 const YT_CHANNEL_ID   = 'UC2FdFOP-XrLFlWN9VJWmYWQ';
 
 // ── STATE ────────────────────────────────────────────────────────────────────
@@ -161,6 +161,10 @@ function parseCSV(txt) {
     vals.push(cur);
     const obj = {};
     headers.forEach((h,i) => obj[h] = (vals[i]||'').replace(/"/g,'').trim());
+    if(!obj.driveimg_link && !obj.drive_img_link) {
+      const imgKey = Object.keys(obj).find(k => /driveimg|drive_img|thumb|thumbnail|image|img/.test(k));
+      if(imgKey && obj[imgKey]) obj.driveimg_link = obj[imgKey];
+    }
     return obj;
   }).filter(r => r.title || r.gen_title || r.story);
 }
