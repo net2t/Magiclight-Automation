@@ -120,9 +120,9 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
-// Paste your published Google Sheets CSV URL here:
-// Sheet → File → Share → Publish to web → CSV format
-const SHEET_CSV_URL = 'YOUR_SHEET_CSV_URL_HERE';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?output=csv';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8mnQv6sx5pwt72TOxan6KzeY8xwPj9Zir2SJ7rP4aZkmed-S1pUcc2caGaSuH4StGUQ/exec';
+const YT_CHANNEL_ID   = 'UC2FdFOP-XrLFlWN9VJWmYWQ';
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let allStories = [];
@@ -248,6 +248,29 @@ function openModal(i) {
   const autoNotice = isDone
     ? `<div class="autopost-notice">✅ Auto-post triggered — processed video was uploaded and Drive_Link updated in sheet.</div>`
     : '';
+  const videoUrl = s.drive_link || s.process_d_link || '';
+  const ytBtn = (isDone && videoUrl)
+    ? `<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">📺 Post to YouTube</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Title</label>
+            <input id="yt-title" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;border-radius:4px;font-size:12px" value="${(s.gen_title||s.title||'').replace(/'/g,'&#39;')}"></div>
+          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Privacy</label>
+            <select id="yt-privacy" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;border-radius:4px;font-size:12px">
+              <option value="public">🌐 Public</option>
+              <option value="unlisted">🔗 Unlisted</option>
+              <option value="private">🔒 Private</option>
+            </select></div>
+        </div>
+        <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Description</label>
+          <textarea id="yt-desc" rows="3" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;border-radius:4px;font-size:12px;resize:none">${(s.gen_summary||s.moral||'').replace(/'/g,'&#39;')}</textarea></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-success" onclick="postToYouTube('${videoUrl}', '${i}')" style="flex:1">▶ POST TO YOUTUBE NOW</button>
+          <a class="btn btn-ghost" href="https://studio.youtube.com" target="_blank">Open Studio ↗</a>
+        </div>
+        <div id="yt-status" style="font-size:12px;margin-top:8px;color:var(--muted)"></div>
+      </div>`
+    : '';
 
   document.getElementById('modal-body').innerHTML = `
     ${thumbEl}
@@ -266,6 +289,7 @@ function openModal(i) {
     ${row('Project', s.project_url ? link(s.project_url,'Open MagicLight') : '—')}
     ${s.notes ? row('Notes', s.notes) : ''}
     ${autoNotice}
+    ${ytBtn}
   `;
   document.getElementById('overlay').classList.add('open');
 }
@@ -286,6 +310,44 @@ function statusColor(s) {
 function closeModal(e) {
   if(e.target === document.getElementById('overlay'))
     document.getElementById('overlay').classList.remove('open');
+}
+
+// ── YOUTUBE UPLOAD ───────────────────────────────────────────────────────────
+async function postToYouTube(driveUrl, storyIdx) {
+  const statusEl = document.getElementById('yt-status');
+  const title    = document.getElementById('yt-title')?.value || 'Story Video';
+  const desc     = document.getElementById('yt-desc')?.value  || '';
+  const privacy  = document.getElementById('yt-privacy')?.value || 'public';
+
+  if(!driveUrl){ statusEl.innerHTML='<span style="color:var(--red)">⚠ No video Drive link available</span>'; return; }
+  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_')){ 
+    statusEl.innerHTML='<span style="color:var(--red)">⚠ Set APPS_SCRIPT_URL in config.js first</span>'; return; 
+  }
+
+  statusEl.innerHTML='<span style="color:var(--accent)">⏳ Sending to Apps Script…</span>';
+  try {
+    const payload = {
+      action:    'uploadToYouTube',
+      driveUrl:  driveUrl,
+      title:     title,
+      description: desc,
+      privacy:   privacy,
+      channelId: YT_CHANNEL_ID,
+      tags:      filtered[storyIdx]?.gen_tags || ''
+    };
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(data.success) {
+      statusEl.innerHTML=`<span style="color:var(--accent2)">✅ Uploaded! <a style="color:var(--accent)" href="https://youtu.be/${data.videoId}" target="_blank">View on YouTube ↗</a></span>`;
+    } else {
+      statusEl.innerHTML=`<span style="color:var(--red)">❌ Error: ${data.error||'Unknown error'}</span>`;
+    }
+  } catch(e) {
+    statusEl.innerHTML=`<span style="color:var(--red)">❌ Request failed: ${e.message}</span>`;
+  }
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────────────

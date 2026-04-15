@@ -82,7 +82,7 @@ def _dbg(msg):
     if DEBUG: console.print(f"  [dim magenta][DBG] {msg}[/dim magenta]")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-load_dotenv()
+load_dotenv(override=True)
 
 EMAIL    = os.getenv("EMAIL", "")
 PASSWORD = os.getenv("PASSWORD", "")
