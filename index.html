@@ -132,8 +132,31 @@
         <button onclick="filterStories()">SEARCH</button>
       </div>
       <div class="filter-bar" id="theme-filters"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+        <button class="btn btn-sm" id="view-btn-cards" onclick="setStoriesView('cards')" style="background:var(--black);color:var(--yellow)">CARDS VIEW</button>
+        <button class="btn btn-sm" id="view-btn-table" onclick="setStoriesView('table')">TABLE VIEW</button>
+      </div>
       <div class="loading-bar" id="loading-bar"><div class="loading-bar-fill"></div></div>
       <div id="stories-container" class="story-grid"></div>
+      <div id="stories-table-wrap" style="display:none;overflow-x:auto">
+        <table class="log-table" id="stories-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Theme</th>
+              <th>Title</th>
+              <th>Gen Title</th>
+              <th>Created</th>
+              <th>Completed</th>
+              <th>Drive</th>
+              <th>Thumb</th>
+              <th>Email Used</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="stories-table-body"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- SCHEDULE TAB -->
@@ -432,6 +455,7 @@ let accounts = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.ACCOUNTS)||JS
 let currentStory = null;
 let activeTheme = 'All';
 let publishMode = 'now';
+let storiesView = 'cards';
 
 // Initialize configuration values
 function initializeConfig() {
@@ -555,10 +579,19 @@ function filterStories(){
     return matchTheme&&matchQ;
   });
   renderStories();
+  renderStoriesTable();
 }
 
 function renderStories(){
   const c=document.getElementById('stories-container');
+  const wrap=document.getElementById('stories-table-wrap');
+  if(storiesView==='table'){
+    c.style.display='none';
+    wrap.style.display='block';
+    return;
+  }
+  c.style.display='grid';
+  wrap.style.display='none';
   if(!filteredStories.length){c.innerHTML='<div class="notice">No stories found. Click REFRESH DATA to load from sheet.</div>';return}
   c.innerHTML=filteredStories.map((s,i)=>{
     const title=s.gen_title||s.title||'Untitled';
@@ -578,6 +611,59 @@ function renderStories(){
       </div>
     </div>`;
   }).join('');
+}
+
+function renderStoriesTable(){
+  const tbody=document.getElementById('stories-table-body');
+  if(!tbody) return;
+  if(!filteredStories.length){
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:#888;padding:20px">No stories found</td></tr>';
+    return;
+  }
+  const normUrl=(u)=>{
+    if(!u) return '';
+    return u.replace('view?usp=drivesdk','preview').replace('view?usp=sharing','preview');
+  };
+  tbody.innerHTML=filteredStories.map((s,i)=>{
+    const status=s.status||'';
+    const theme=s.theme||'';
+    const title=s.title||'';
+    const genTitle=s.gen_title||'';
+    const created=s.created_time||'';
+    const completed=s.completed_time||'';
+    const drive=s.drive_link||'';
+    const thumb=s.driveimg_link||s.drive_img_link||'';
+    const email=s.email_used||s.email||'';
+    const notes=s.notes||'';
+    const driveHtml=drive?`<a href="${normUrl(drive)}" target="_blank" style="font-weight:700;color:var(--black)">OPEN</a>`:'—';
+    const thumbHtml=thumb?`<a href="${normUrl(thumb)}" target="_blank" style="font-weight:700;color:var(--black)">OPEN</a>`:'—';
+    return `<tr onclick="openUploadModal(${i})" style="cursor:pointer">
+      <td>${status||'—'}</td>
+      <td>${theme||'—'}</td>
+      <td style="max-width:220px">${title||'—'}</td>
+      <td style="max-width:240px">${genTitle||'—'}</td>
+      <td style="font-size:11px">${created||'—'}</td>
+      <td style="font-size:11px">${completed||'—'}</td>
+      <td>${driveHtml}</td>
+      <td>${thumbHtml}</td>
+      <td style="font-size:11px">${email||'—'}</td>
+      <td style="font-size:11px;max-width:240px">${notes||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function setStoriesView(view){
+  storiesView=view;
+  const btnCards=document.getElementById('view-btn-cards');
+  const btnTable=document.getElementById('view-btn-table');
+  if(btnCards&&btnTable){
+    btnCards.style.background=view==='cards'?'var(--black)':'var(--white)';
+    btnCards.style.color=view==='cards'?'var(--yellow)':'var(--black)';
+    btnTable.style.background=view==='table'?'var(--black)':'var(--white)';
+    btnTable.style.color=view==='table'?'var(--yellow)':'var(--black)';
+  }
+  renderStories();
+  renderStoriesTable();
 }
 
 function openUploadModal(i){
