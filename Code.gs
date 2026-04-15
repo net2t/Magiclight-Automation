@@ -24,7 +24,6 @@ const COL = {
   CREDIT_BEFORE: 14, // O
   CREDIT_AFTER: 15,  // P
   EMAIL_USED: 16,    // Q - Email_Used
-  DONE: 17,          // R - Done
 };
 
 // ─── THEME → CHANNEL MAPPING ─────────────────────────────────
@@ -38,6 +37,7 @@ function getThemeConfig(theme) {
     category: props.getProperty('CATEGORY_' + theme) || '27',
     privacy: props.getProperty('PRIVACY_' + theme) || 'public',
     email: props.getProperty('EMAIL_' + theme) || '',
+    playlistId: props.getProperty('PLAYLIST_ID_' + theme) || '',
   };
 }
 
@@ -72,15 +72,24 @@ function getSheetData() {
     status: row[COL.STATUS],
     theme: row[COL.THEME],
     title: row[COL.TITLE],
+    story: row[COL.STORY],
+    moral: row[COL.MORAL],
     genTitle: row[COL.GEN_TITLE],
     genSummary: row[COL.GEN_SUMMARY],
     genTags: row[COL.GEN_TAGS],
+    projectUrl: row[COL.PROJECT_URL],
+    createdTime: row[COL.CREATED],
+    completedTime: row[COL.COMPLETED],
     driveLink: row[COL.DRIVE_LINK],
     driveImgLink: row[COL.DRIVEIMG_LINK],
     emailUsed: row[COL.EMAIL_USED],
-    done: row[COL.DONE],
     notes: row[COL.NOTES],
   }));
+}
+
+function isRowDone(row) {
+  const v = (row && row.status != null) ? String(row.status).trim().toLowerCase() : '';
+  return v === 'done' || v === 'completed' || v === 'uploaded';
 }
 
 // ─── EXTRACT DRIVE FILE ID ───────────────────────────────────
@@ -186,11 +195,17 @@ function logUpload(rowIndex, videoId, status, notes) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheets()[0];
 
+  const rowVals = sheet.getRange(rowIndex, 1, 1, COL.EMAIL_USED + 1).getValues()[0];
+  const title = rowVals[COL.GEN_TITLE] || rowVals[COL.TITLE] || '';
+  const theme = rowVals[COL.THEME] || '';
+
   // Mark as Done
   if (status === 'success') {
-    sheet.getRange(rowIndex, COL.DONE + 1).setValue('TRUE');
+    sheet.getRange(rowIndex, COL.STATUS + 1).setValue('Done');
     sheet.getRange(rowIndex, COL.COMPLETED + 1).setValue(new Date().toISOString());
     sheet.getRange(rowIndex, COL.PROJECT_URL + 1).setValue('https://youtube.com/watch?v=' + videoId);
+  } else if (status === 'failed') {
+    sheet.getRange(rowIndex, COL.STATUS + 1).setValue('Error');
   }
   sheet.getRange(rowIndex, COL.NOTES + 1).setValue(notes || '');
 
@@ -202,7 +217,7 @@ function logUpload(rowIndex, videoId, status, notes) {
     logSheet.getRange(1, 1, 1, 8).setFontWeight('bold').setBackground('#0a0a0a').setFontColor('#FFE500');
   }
   logSheet.appendRow([
-    new Date(), rowIndex, '', '', status,
+    new Date(), rowIndex, title, theme, status,
     videoId || '', videoId ? 'https://youtube.com/watch?v=' + videoId : '', notes || ''
   ]);
 }
@@ -212,7 +227,7 @@ function uploadSingleRow(rowIndex) {
   const data = getSheetData();
   const row = data.find(r => r.rowIndex === rowIndex);
   if (!row) { Logger.log('Row not found: ' + rowIndex); return; }
-  if (row.done === 'TRUE') { Logger.log('Already uploaded, skipping row ' + rowIndex); return; }
+  if (isRowDone(row)) { Logger.log('Already uploaded, skipping row ' + rowIndex); return; }
 
   try {
     const result = uploadVideoToYouTube({
@@ -237,7 +252,7 @@ function uploadSingleRow(rowIndex) {
 // ─── AUTO-UPLOAD TRIGGER FUNCTION ────────────────────────────
 function autoUpload() {
   const data = getSheetData();
-  const pending = data.filter(r => r.done !== 'TRUE' && r.driveLink);
+  const pending = data.filter(r => !isRowDone(r) && r.driveLink);
   const maxPerRun = 2; // Upload max 2 per trigger run
   let count = 0;
 
@@ -343,8 +358,13 @@ function syncConfigFromSheet() {
   if (!config) { Logger.log('No YT_Config sheet found. Run setupConfigSheet() first.'); return; }
   const data = config.getDataRange().getValues().slice(1);
   data.forEach(row => {
-    const [theme, , channelId, email, category, privacy] = row;
-    if (theme) setThemeConfig(theme, channelId, email, category, privacy);
+    const [theme, , channelId, email, category, privacy, playlistId, status] = row;
+    if (!theme) return;
+    if (status && String(status).trim().toLowerCase() !== 'active') return;
+    setThemeConfig(theme, channelId, email, category, privacy);
+    if (playlistId) {
+      PropertiesService.getScriptProperties().setProperty('PLAYLIST_ID_' + theme, playlistId);
+    }
   });
   Logger.log('Config synced from sheet!');
 }
@@ -377,6 +397,7 @@ function uploadFromWebApp(rowIndex, overrides) {
   const row = data.find(r => r.rowIndex === rowIndex);
   if (!row) return { error: 'Row not found' };
   try {
+    const cfg = getThemeConfig(row.theme);
     const result = uploadVideoToYouTube({
       theme: row.theme,
       title: overrides.title || row.genTitle || row.title,
@@ -390,7 +411,7 @@ function uploadFromWebApp(rowIndex, overrides) {
       notifySubscribers: overrides.notifySubscribers !== false,
       publishAt: overrides.publishAt || null,
       license: overrides.license || 'youtube',
-      playlistId: overrides.playlistId || null,
+      playlistId: overrides.playlistId || cfg.playlistId || null,
       driveVideoUrl: row.driveLink,
       driveThumbnailUrl: row.driveImgLink,
     });

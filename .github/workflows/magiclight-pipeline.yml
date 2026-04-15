@@ -35,10 +35,10 @@ jobs:
     
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
@@ -50,22 +50,25 @@ jobs:
         run: playwright install chromium
 
       - name: Set up FFmpeg
-        uses: FedericoCarboni/setup-ffmpeg@v2
+        uses: FedericoCarboni/setup-ffmpeg@v3
         with:
           architecture: x64
 
       - name: Decode API Credentials
+        env:
+          GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+          ACCOUNTS_TXT: ${{ secrets.ACCOUNTS_TXT }}
         run: |
-          if ("${{ secrets.GCP_CREDENTIALS }}".Trim() -ne "") {
-              Set-Content -Path credentials.json -Value "${{ secrets.GCP_CREDENTIALS }}"
+          if ($env:GCP_CREDENTIALS -ne $null -and $env:GCP_CREDENTIALS.Trim() -ne "") {
+              Set-Content -Path credentials.json -Value $env:GCP_CREDENTIALS
           }
-          if ("${{ secrets.ENV_FILE }}".Trim() -ne "") {
-              Set-Content -Path .env -Value "${{ secrets.ENV_FILE }}"
+          if ($env:ENV_FILE -ne $null -and $env:ENV_FILE.Trim() -ne "") {
+              Set-Content -Path .env -Value $env:ENV_FILE
           }
-          if ("${{ secrets.ACCOUNTS_TXT }}".Trim() -ne "") {
-              Set-Content -Path accounts.txt -Value "${{ secrets.ACCOUNTS_TXT }}"
+          if ($env:ACCOUNTS_TXT -ne $null -and $env:ACCOUNTS_TXT.Trim() -ne "") {
+              Set-Content -Path accounts.txt -Value $env:ACCOUNTS_TXT
           }
-
       - name: Run MagicLight Pipeline
         shell: pwsh
         env:
