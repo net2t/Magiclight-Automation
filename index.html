@@ -121,7 +121,7 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?output=csv';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8mnQv6sx5pwt72TOxan6KzeY8xwPj9Zir2SJ7rP4aZkmed-S1pUcc2caGaSuH4StGUQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzo7_7y9DH5rMGWdsbCFmuEqzwYKkSpUpDmgJnaH6HEJ-8GLl_fli0dQf8PDjIg99-JJw/exec';
 const YT_CHANNEL_ID   = 'UC2FdFOP-XrLFlWN9VJWmYWQ';
 
 // ── STATE ────────────────────────────────────────────────────────────────────
@@ -216,13 +216,14 @@ function renderGrid() {
   }
   grid.innerHTML = filtered.map((s, i) => {
     const title = s.gen_title || s.title || 'Untitled';
-    const thumb = normalizeUrl(s.driveimg_link || s.drive_img_link || '');
+    const thumb = driveImageUrl(s.driveimg_link || s.drive_img_link || '');
     const thumbHtml = thumb
       ? `<img class="thumb-img" src="${thumb}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="">`
       + `<div class="thumb-fallback" style="display:none">${(s.theme||'?')[0]||'?'}</div>`
       : `<div class="thumb-fallback">${(s.theme||'?')[0]||'?'}</div>`;
-    const driveHtml = s.drive_link
-      ? `<a class="drive-link" href="${normalizeUrl(s.drive_link)}" target="_blank" onclick="event.stopPropagation()">▶ Open Video</a>`
+    const bestVideoUrl = s.process_d_link || s.drive_link || '';
+    const driveHtml = bestVideoUrl
+      ? `<a class="drive-link" href="${normalizeUrl(bestVideoUrl)}" target="_blank" onclick="event.stopPropagation()">▶ Open Video</a>`
       : `<span style="font-size:11px;color:var(--muted)">No video yet</span>`;
     return `<div class="card" onclick="openModal(${i})">
       <div class="thumb-wrap">${thumbHtml}${statusPill(s.status)}</div>
@@ -239,7 +240,7 @@ function renderGrid() {
 function openModal(i) {
   const s = filtered[i];
   document.getElementById('modal-title').textContent = s.gen_title || s.title || 'Story Detail';
-  const thumb = normalizeUrl(s.driveimg_link || s.drive_img_link || '');
+  const thumb = driveImageUrl(s.driveimg_link || s.drive_img_link || '');
   const thumbEl = thumb
     ? `<img class="modal-thumb" src="${thumb}" onerror="this.src=''" alt="Thumbnail">`
     : `<div class="modal-thumb-ph">${(s.theme||'?')[0]||'?'}</div>`;
@@ -285,7 +286,7 @@ function openModal(i) {
     ${row('Completed', s.completed_time||'—')}
     ${row('Raw Video', s.drive_link ? link(s.drive_link,'Open Drive') : '—')}
     ${row('Proc. Video', (s.process_d_link||s.drive_link) ? link(s.process_d_link||s.drive_link,'Open Drive') : '—')}
-    ${row('Thumbnail', s.driveimg_link ? link(s.driveimg_link,'Open Drive') : '—')}
+    ${row('Thumbnail', (s.driveimg_link||s.drive_img_link) ? link(s.driveimg_link||s.drive_img_link,'Open Drive') : '—')}
     ${row('Project', s.project_url ? link(s.project_url,'Open MagicLight') : '—')}
     ${s.notes ? row('Notes', s.notes) : ''}
     ${autoNotice}
@@ -354,6 +355,15 @@ async function postToYouTube(driveUrl, storyIdx) {
 function normalizeUrl(u) {
   if(!u) return '';
   return u.replace('view?usp=drivesdk','preview').replace('view?usp=sharing','preview');
+}
+
+function driveImageUrl(u) {
+  if(!u) return '';
+  const m1 = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = u.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const id = (m1 && m1[1]) || (m2 && m2[1]) || '';
+  if(id) return `https://drive.google.com/uc?export=view&id=${id}`;
+  return normalizeUrl(u);
 }
 
 // ── DEMO DATA ─────────────────────────────────────────────────────────────────
