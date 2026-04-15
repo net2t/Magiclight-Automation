@@ -105,7 +105,7 @@
   <div class="topbar">
     <div class="topbar-logo">BLS <span>▶</span> UPLOADER</div>
     <div style="display:flex;gap:10px;align-items:center">
-      <span id="quota-badge" style="background:var(--yellow);color:var(--black);padding:4px 10px;font-size:11px;font-weight:700;border:2px solid rgba(255,255,255,.3)">QUOTA: 10,000/day</span>
+      <span id="quota-badge" style="background:var(--yellow);color:var(--black);padding:4px 10px;font-size:11px;font-weight:700;border:2px solid rgba(255,255,255,.3)">QUOTA: <span id="quota-value">10,000</span>/day</span>
       <button class="btn btn-yellow btn-sm" onclick="loadSheet()">↻ REFRESH DATA</button>
     </div>
   </div>
@@ -422,20 +422,69 @@
   </div>
 </div>
 
+<script src="config.js"></script>
+<script src="demo-data.js"></script>
 <script>
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?gid=2087344095&single=true&output=csv';
-
 let allStories = [];
 let filteredStories = [];
-let uploadLog = JSON.parse(localStorage.getItem('bls_log')||'[]');
-let accounts = JSON.parse(localStorage.getItem('bls_accounts')||JSON.stringify([
-  {theme:'Teamwork',channel:'Magic Stories HQ',channelId:'UCxxxxxx',email:'kakife5916@nyspring.com',category:'27',privacy:'public'},
-  {theme:'Adventure',channel:'Adventure Tales',channelId:'UCyyyyyy',email:'noyisad279@parsitv.com',category:'27',privacy:'public'},
-  {theme:'Animals',channel:'Animal Friends',channelId:'UCzzzzzz',email:'rokak74566@parsitv.com',category:'27',privacy:'public'},
-]));
+let uploadLog = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LOG)||'[]');
+let accounts = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.ACCOUNTS)||JSON.stringify(CONFIG.DEFAULT_ACCOUNTS));
 let currentStory = null;
 let activeTheme = 'All';
 let publishMode = 'now';
+
+// Initialize configuration values
+function initializeConfig() {
+  // Set quota value
+  document.getElementById('quota-value').textContent = CONFIG.QUOTA_PER_DAY.toLocaleString();
+  
+  // Populate category dropdowns
+  const categorySelects = document.querySelectorAll('#up-cat, #acc-cat');
+  categorySelects.forEach(select => {
+    select.innerHTML = CONFIG.YOUTUBE_CATEGORIES.map(cat => 
+      `<option value="${cat.value}">${cat.label}</option>`
+    ).join('');
+  });
+  
+  // Populate language dropdown
+  const langSelect = document.getElementById('up-lang');
+  if (langSelect) {
+    langSelect.innerHTML = CONFIG.LANGUAGES.map(lang => 
+      `<option value="${lang.value}">${lang.label}</option>`
+    ).join('');
+  }
+  
+  // Populate privacy dropdowns
+  const privacySelects = document.querySelectorAll('#up-privacy, #acc-privacy');
+  privacySelects.forEach(select => {
+    select.innerHTML = CONFIG.PRIVACY_OPTIONS.map(privacy => 
+      `<option value="${privacy.value}">${privacy.label}</option>`
+    ).join('');
+  });
+  
+  // Populate license dropdown
+  const licenseSelect = document.getElementById('up-license');
+  if (licenseSelect) {
+    licenseSelect.innerHTML = CONFIG.LICENSE_OPTIONS.map(license => 
+      `<option value="${license.value}">${license.label}</option>`
+    ).join('');
+  }
+  
+  // Populate timezone dropdown
+  const tzSelect = document.getElementById('sched-tz');
+  if (tzSelect) {
+    tzSelect.innerHTML = CONFIG.TIMEZONES.map(tz => 
+      `<option>${tz}</option>`
+    ).join('');
+  }
+  
+  // Set default schedule values
+  const schedTime = document.getElementById('sched-time');
+  if (schedTime) schedTime.value = CONFIG.DEFAULT_SCHEDULE_TIME;
+  
+  const schedMax = document.getElementById('sched-max');
+  if (schedMax) schedMax.value = CONFIG.DEFAULT_MAX_VIDEOS_PER_DAY.toString();
+}
 
 function switchTab(name, el){
   document.querySelectorAll('[id^="tab-"]').forEach(t=>t.style.display='none');
@@ -449,7 +498,7 @@ function switchTab(name, el){
 async function loadSheet(){
   document.getElementById('loading-bar').classList.add('active');
   try{
-    const r = await fetch(SHEET_URL);
+    const r = await fetch(CONFIG.SHEET_URL);
     const txt = await r.text();
     allStories = parseCSV(txt);
     filteredStories = [...allStories];
@@ -458,7 +507,7 @@ async function loadSheet(){
     renderStories();
     populateManualStory();
   }catch(e){
-    allStories=[{title:'Demo: Raya and the Kite',theme:'Teamwork',gen_title:'Raya and the Kite That Would Not Lift',gen_summary:'Raya the red panda brought a star kite to the hill...',gen_tags:'teamwork,friendship,kids story,animated',status:'Done',drive_link:'',driveimg_link:'',email:'kakife5916@nyspring.com'},{title:'Demo: Zeke Pinecone Parade',theme:'Adventure',gen_title:'Zeke and the Porcupine Pinecone Parade',gen_summary:'A brave little hedgehog embarks on an adventure...',gen_tags:'adventure,brave,kids,animated',status:'Completed',drive_link:'',driveimg_link:'',email:'noyisad279@parsitv.com'}];
+    allStories = DEMO_STORIES;
     filteredStories=[...allStories];
     updateStats();buildThemeFilters();renderStories();populateManualStory();
   }
@@ -574,7 +623,7 @@ function uploadNow(){
   if(!s.drive_link&&!s.drive_link_col){notice.innerHTML='⚠ No video Drive link found (Col M). Cannot upload.';notice.className='notice error';notice.style.display='block';return}
   const entry={time:new Date().toLocaleString(),title,theme:s.theme,account:accounts.find(a=>a.theme===s.theme)?.email||'—',status:'success',ytId:'DEMO_'+Math.random().toString(36).substr(2,8).toUpperCase(),notes:publishMode==='scheduled'?'Scheduled: '+document.getElementById('up-scheddt').value:'Direct upload'};
   uploadLog.unshift(entry);
-  localStorage.setItem('bls_log',JSON.stringify(uploadLog));
+  localStorage.setItem(CONFIG.STORAGE_KEYS.LOG,JSON.stringify(uploadLog));
   updateStats();
   notice.innerHTML=`✅ Logged! In production, Apps Script will upload to YouTube. Video ID: ${entry.ytId}`;
   notice.className='notice';notice.style.display='block';
@@ -592,7 +641,7 @@ function exportLog(){
   const a=document.createElement('a');a.href='data:text/csv,'+encodeURIComponent(csv);a.download='bls_upload_log.csv';a.click();
 }
 
-function clearLog(){if(confirm('Clear all log entries?')){uploadLog=[];localStorage.setItem('bls_log','[]');renderLog();updateStats();}}
+function clearLog(){if(confirm('Clear all log entries?')){uploadLog=[];localStorage.setItem(CONFIG.STORAGE_KEYS.LOG,'[]');renderLog();updateStats();}}
 
 function renderAccounts(){
   const el=document.getElementById('accounts-list');
@@ -616,13 +665,13 @@ function saveAccount(){
   if(!acc.theme){alert('Theme required');return}
   const idx=accounts.findIndex(a=>a.theme===acc.theme);
   if(idx>-1)accounts[idx]=acc;else accounts.push(acc);
-  localStorage.setItem('bls_accounts',JSON.stringify(accounts));
+  localStorage.setItem(CONFIG.STORAGE_KEYS.ACCOUNTS,JSON.stringify(accounts));
   renderAccounts();
   ['acc-theme','acc-channel','acc-channelid','acc-email'].forEach(id=>document.getElementById(id).value='');
 }
 
 function editAccount(i){const a=accounts[i];document.getElementById('acc-theme').value=a.theme;document.getElementById('acc-channel').value=a.channel;document.getElementById('acc-channelid').value=a.channelId;document.getElementById('acc-email').value=a.email;document.getElementById('acc-cat').value=a.category||'27';document.getElementById('acc-privacy').value=a.privacy||'public';}
-function removeAccount(i){if(confirm('Remove this account?')){accounts.splice(i,1);localStorage.setItem('bls_accounts',JSON.stringify(accounts));renderAccounts();}}
+function removeAccount(i){if(confirm('Remove this account?')){accounts.splice(i,1);localStorage.setItem(CONFIG.STORAGE_KEYS.ACCOUNTS,JSON.stringify(accounts));renderAccounts();}}
 
 function selectSlot(el,slot){document.querySelectorAll('.time-slot').forEach(s=>s.classList.remove('selected'));el.classList.add('selected');const times={Morning:'08:00',Afternoon:'14:00',Evening:'18:00',Night:'22:00'};document.getElementById('sched-time').value=times[slot]||'10:00';}
 
@@ -641,9 +690,11 @@ function scheduleManual(){
   const s=allStories[i];
   const entry={time:new Date().toLocaleString(),title:s.gen_title||s.title,theme:s.theme,account:accounts.find(a=>a.theme===s.theme)?.email||'—',status:'scheduled',ytId:'',notes:'Scheduled for: '+dt};
   uploadLog.unshift(entry);
-  localStorage.setItem('bls_log',JSON.stringify(uploadLog));
+  localStorage.setItem(CONFIG.STORAGE_KEYS.LOG,JSON.stringify(uploadLog));
   alert('📅 Video queued for: '+dt+'\nSwitch to Apps Script trigger to execute.');
 }
 
+// Initialize app
+initializeConfig();
 loadSheet();
 </script>

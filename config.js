@@ -1,0 +1,90 @@
+// Configuration file for YouTube Uploader Web App
+const CONFIG = {
+  // Google Sheet URL for story data
+  SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?gid=2087344095&single=true&output=csv',
+  
+  // API Quota settings
+  QUOTA_PER_DAY: 10000,
+  QUOTA_UNITS_PER_UPLOAD: 1600,
+  
+  // Default theme to channel mappings
+  DEFAULT_ACCOUNTS: [
+    {
+      theme: 'Teamwork',
+      channel: 'Magic Stories HQ',
+      channelId: 'UCxxxxxx',
+      email: 'kakife5916@nyspring.com',
+      category: '27',
+      privacy: 'public'
+    },
+    {
+      theme: 'Adventure',
+      channel: 'Adventure Tales',
+      channelId: 'UCyyyyyy',
+      email: 'noyisad279@parsitv.com',
+      category: '27',
+      privacy: 'public'
+    },
+    {
+      theme: 'Animals',
+      channel: 'Animal Friends',
+      channelId: 'UCzzzzzz',
+      email: 'rokak74566@parsitv.com',
+      category: '27',
+      privacy: 'public'
+    }
+  ],
+  
+  // YouTube categories
+  YOUTUBE_CATEGORIES: [
+    { value: '1', label: 'Film & Animation' },
+    { value: '10', label: 'Music' },
+    { value: '13', label: 'How-to & Style' },
+    { value: '20', label: 'Gaming' },
+    { value: '22', label: 'People & Blogs' },
+    { value: '23', label: 'Comedy' },
+    { value: '24', label: 'Entertainment' },
+    { value: '27', label: 'Education' },
+    { value: '28', label: 'Science & Technology' }
+  ],
+  
+  // Language options
+  LANGUAGES: [
+    { value: 'en', label: 'English' },
+    { value: 'ur', label: 'Urdu' },
+    { value: 'hi', label: 'Hindi' },
+    { value: 'ar', label: 'Arabic' },
+    { value: 'es', label: 'Spanish' }
+  ],
+  
+  // Privacy options
+  PRIVACY_OPTIONS: [
+    { value: 'public', label: '🌐 Public' },
+    { value: 'unlisted', label: '🔗 Unlisted' },
+    { value: 'private', label: '🔒 Private' }
+  ],
+  
+  // License options
+  LICENSE_OPTIONS: [
+    { value: 'youtube', label: 'Standard YouTube' },
+    { value: 'creativeCommon', label: 'Creative Commons' }
+  ],
+  
+  // Timezone options
+  TIMEZONES: [
+    'Asia/Karachi (PKT)',
+    'UTC',
+    'America/New_York',
+    'Europe/London'
+  ],
+  
+  // Upload schedule settings
+  DEFAULT_SCHEDULE_TIME: '10:00',
+  DEFAULT_MAX_VIDEOS_PER_DAY: 2,
+  
+  // Local storage keys
+  STORAGE_KEYS: {
+    LOG: 'bls_log',
+    ACCOUNTS: 'bls_accounts'
+  }
+};
