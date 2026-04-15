@@ -3,6 +3,9 @@ const CONFIG = {
   // Google Sheet URL for story data
   SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?gid=2087344095&single=true&output=csv',
   
+  // Apps Script Web App URL (replace after deployment)
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby8mnQv6sx5pwt72TOxan6KzeY8xwPj9Zir2SJ7rP4aZkmed-S1pUcc2caGaSuH4StGUQ/exec',
+  
   // API Quota settings
   QUOTA_PER_DAY: 10000,
   QUOTA_UNITS_PER_UPLOAD: 1600,
