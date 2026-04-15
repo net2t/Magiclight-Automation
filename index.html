@@ -1,786 +1,309 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MagicLight Auto — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bebas+Neue&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --black:#0a0a0a;--white:#f5f0e8;--yellow:#FFE500;--red:#FF3B3B;--blue:#2D5BFF;--green:#00CC66;
-    --border:3px solid var(--black);--shadow:4px 4px 0 var(--black);--shadow-lg:6px 6px 0 var(--black);
-  }
-  body{font-family:'Space Grotesk',sans-serif;background:var(--white);color:var(--black);min-height:100vh}
-  .app{display:flex;flex-direction:column;min-height:100vh}
-  .topbar{background:var(--black);color:var(--yellow);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:var(--border)}
-  .topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px}
-  .topbar-logo span{color:var(--red)}
-  .topbar-meta{font-size:12px;opacity:.7}
-  .tabs{display:flex;background:var(--yellow);border-bottom:var(--border)}
-  .tab{padding:12px 20px;cursor:pointer;font-weight:700;font-size:13px;letter-spacing:.5px;border-right:2px solid var(--black);transition:.15s;text-transform:uppercase;white-space:nowrap}
-  .tab:hover{background:var(--black);color:var(--yellow)}
-  .tab.active{background:var(--black);color:var(--yellow)}
-  .content{flex:1;padding:20px;background:var(--white)}
-  .section-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;border-bottom:var(--border);padding-bottom:8px;margin-bottom:16px}
-  .card{background:var(--white);border:var(--border);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
-  .card:hover{box-shadow:var(--shadow-lg);transform:translate(-2px,-2px);transition:.15s}
-  .story-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
-  .story-card{background:var(--white);border:var(--border);box-shadow:var(--shadow);padding:0;overflow:hidden;cursor:pointer;transition:.15s}
-  .story-card:hover{box-shadow:var(--shadow-lg);transform:translate(-2px,-2px)}
-  .story-thumb{width:100%;height:160px;object-fit:cover;display:block;border-bottom:var(--border);background:#ddd}
-  .story-thumb-ph{width:100%;height:160px;background:var(--yellow);border-bottom:var(--border);display:flex;align-items:center;justify-content:center;font-size:40px;font-family:'Bebas Neue',sans-serif;color:var(--black)}
-  .story-body{padding:14px}
-  .story-theme{display:inline-block;background:var(--black);color:var(--yellow);font-size:10px;font-weight:700;padding:2px 8px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
-  .story-title{font-weight:700;font-size:14px;line-height:1.4;margin-bottom:6px}
-  .story-meta{font-size:11px;color:#555;margin-bottom:10px}
-  .story-status{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border:2px solid var(--black);text-transform:uppercase;letter-spacing:.5px}
-  .status-done{background:var(--green);color:var(--black)}
-  .status-pending{background:var(--yellow);color:var(--black)}
-  .status-failed{background:var(--red);color:var(--white)}
-  .btn{display:inline-block;padding:10px 18px;font-weight:700;font-size:13px;cursor:pointer;border:var(--border);box-shadow:var(--shadow);text-transform:uppercase;letter-spacing:.5px;font-family:'Space Grotesk',sans-serif;transition:.1s;background:var(--white);color:var(--black)}
-  .btn:hover{box-shadow:none;transform:translate(3px,3px)}
-  .btn-primary{background:var(--black);color:var(--yellow)}
-  .btn-danger{background:var(--red);color:var(--white)}
-  .btn-success{background:var(--green);color:var(--black)}
-  .btn-yellow{background:var(--yellow);color:var(--black)}
-  .btn-sm{padding:6px 12px;font-size:11px}
-  input,select,textarea{width:100%;padding:10px 12px;border:var(--border);font-family:'Space Grotesk',sans-serif;font-size:13px;background:var(--white);color:var(--black);outline:none;margin-bottom:10px}
-  input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:4px 4px 0 var(--blue)}
-  label{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-  .modal-bg{display:none;position:fixed;inset:0;background:rgba(10,10,10,.7);z-index:100;align-items:center;justify-content:center;padding:20px}
-  .modal-bg.open{display:flex}
-  .modal{background:var(--white);border:var(--border);box-shadow:8px 8px 0 var(--black);width:100%;max-width:700px;max-height:90vh;overflow-y:auto}
-  .modal-header{background:var(--black);color:var(--yellow);padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
-  .modal-header h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px}
-  .modal-body{padding:20px}
-  .modal-footer{padding:14px 20px;border-top:var(--border);display:flex;gap:10px;justify-content:flex-end;background:#f9f4ec}
-  .close-btn{background:var(--red);border:none;color:var(--white);width:28px;height:28px;cursor:pointer;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center}
-  .search-bar{display:flex;gap:0;margin-bottom:16px}
-  .search-bar input{margin:0;border-right:none}
-  .search-bar button{flex-shrink:0;border:var(--border);background:var(--black);color:var(--yellow);padding:0 16px;font-weight:700;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:13px}
-  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-  .filter-chip{padding:6px 14px;border:2px solid var(--black);cursor:pointer;font-size:12px;font-weight:700;text-transform:uppercase;background:var(--white);transition:.1s}
-  .filter-chip.active,.filter-chip:hover{background:var(--black);color:var(--yellow)}
-  .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-  .stat-box{background:var(--black);color:var(--yellow);padding:14px;border:var(--border)}
-  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1}
-  .stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.5px;opacity:.7;margin-top:4px}
-  .log-table{width:100%;border-collapse:collapse}
-  .log-table th{background:var(--black);color:var(--yellow);padding:10px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;border:1px solid var(--black)}
-  .log-table td{padding:10px 12px;border:1px solid #ccc;font-size:12px;vertical-align:top}
-  .log-table tr:nth-child(even) td{background:#f0ebe3}
-  .account-card{display:flex;align-items:center;gap:14px;padding:14px;border:var(--border);box-shadow:var(--shadow);margin-bottom:12px;background:var(--white)}
-  .account-avatar{width:48px;height:48px;background:var(--blue);color:var(--white);border:3px solid var(--black);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;flex-shrink:0}
-  .account-info{flex:1}
-  .account-name{font-weight:700;font-size:14px}
-  .account-theme{font-size:12px;color:#555}
-  .account-status{font-size:11px;font-weight:700;padding:3px 8px;border:2px solid var(--black);text-transform:uppercase}
-  .tip-card{border:var(--border);padding:16px;margin-bottom:12px;border-left:6px solid var(--yellow);background:var(--white)}
-  .tip-card h3{font-weight:700;font-size:14px;margin-bottom:6px}
-  .tip-card p{font-size:13px;color:#333;line-height:1.6}
-  .schedule-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .time-slot{padding:14px;border:var(--border);box-shadow:var(--shadow);cursor:pointer;transition:.1s;background:var(--white)}
-  .time-slot:hover,.time-slot.selected{background:var(--yellow);box-shadow:none;transform:translate(3px,3px)}
-  .time-slot h4{font-weight:700;font-size:14px;margin-bottom:4px}
-  .time-slot p{font-size:12px;color:#555}
-  .loading-bar{width:100%;height:6px;background:#ddd;border:2px solid var(--black);overflow:hidden;display:none}
-  .loading-bar-fill{height:100%;background:var(--yellow);animation:load 2s ease-in-out infinite}
-  @keyframes load{0%{width:0%}100%{width:100%}}
-  .loading-bar.active{display:block}
-  .toggle-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .toggle{position:relative;width:42px;height:22px;flex-shrink:0}
-  .toggle input{opacity:0;width:0;height:0}
-  .toggle-slider{position:absolute;inset:0;cursor:pointer;background:#ccc;border:2px solid var(--black);transition:.2s}
-  .toggle input:checked+.toggle-slider{background:var(--green)}
-  .toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:2px;bottom:2px;background:var(--black);transition:.2s}
-  .toggle input:checked+.toggle-slider:before{transform:translateX(20px)}
-  .pagination{display:flex;gap:6px;margin-top:16px}
-  .page-btn{width:32px;height:32px;border:2px solid var(--black);cursor:pointer;font-weight:700;font-size:12px;background:var(--white);display:flex;align-items:center;justify-content:center}
-  .page-btn.active,.page-btn:hover{background:var(--black);color:var(--yellow)}
-  .thumb-preview{width:100%;height:120px;object-fit:cover;border:var(--border);margin-bottom:10px;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:12px;color:#888}
-  .notice{background:var(--yellow);border:var(--border);padding:12px 16px;margin-bottom:16px;font-size:13px;font-weight:600}
-  .notice.error{background:var(--red);color:var(--white)}
-  .char-count{font-size:11px;color:#888;text-align:right;margin-top:-8px;margin-bottom:8px}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d0d;--panel:#161616;--border:#2a2a2a;--accent:#FFE500;--accent2:#00CC66;--red:#ff3b3b;
+  --blue:#2D5BFF;--text:#f0f0f0;--muted:#888;--card:#1c1c1c;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--accent)}
+.logo span{color:var(--red)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.badge{background:#1f1f1f;border:1px solid var(--border);padding:6px 14px;font-size:12px;font-weight:600;border-radius:4px;color:var(--muted)}
+.badge b{color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-weight:700;font-size:12px;cursor:pointer;border:none;border-radius:4px;font-family:'Space Grotesk',sans-serif;transition:.15s;letter-spacing:.5px}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#ffe94d}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--border);color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-success{background:var(--accent2);color:#000}
+.container{max-width:1400px;margin:0 auto;padding:24px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 20px}
+.stat-n{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1}
+.stat-l{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px}
+.stat.done .stat-n{color:var(--accent2)}
+.stat.pending .stat-n{color:var(--accent)}
+.stat.error .stat-n{color:var(--red)}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.search{flex:1;min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:9px 14px;color:var(--text);font-size:13px;font-family:'Space Grotesk',sans-serif;outline:none}
+.search:focus{border-color:var(--accent)}
+.filter-chip{padding:6px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--muted);transition:.1s;white-space:nowrap}
+.filter-chip.active,.filter-chip:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:.15s}
+.card:hover{border-color:#444;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.thumb-wrap{position:relative;width:100%;height:150px;background:#111;overflow:hidden}
+.thumb-img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:48px;color:#333}
+.status-pill{position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px}
+.pill-done{background:var(--accent2);color:#000}
+.pill-generated{background:var(--accent);color:#000}
+.pill-pending{background:#333;color:var(--muted)}
+.pill-error{background:var(--red);color:#fff}
+.pill-processing{background:var(--blue);color:#fff}
+.card-body{padding:12px}
+.card-title{font-size:13px;font-weight:700;line-height:1.4;margin-bottom:6px;color:var(--text)}
+.card-meta{font-size:11px;color:var(--muted);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-footer{display:flex;align-items:center;justify-content:space-between}
+.drive-link{font-size:11px;font-weight:600;color:var(--accent);text-decoration:none}
+.drive-link:hover{text-decoration:underline}
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-head h2{font-size:16px;font-weight:700}
+.modal-body{padding:20px 24px}
+.modal-thumb{width:100%;height:200px;object-fit:cover;border-radius:6px;display:block;margin-bottom:16px;background:#111}
+.modal-thumb-ph{width:100%;height:200px;background:#111;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:60px;color:#333;margin-bottom:16px}
+.detail-row{display:flex;gap:8px;margin-bottom:8px;font-size:13px}
+.detail-label{color:var(--muted);min-width:100px;flex-shrink:0}
+.detail-value{color:var(--text);word-break:break-all}
+.detail-link{color:var(--accent);text-decoration:none}
+.detail-link:hover{text-decoration:underline}
+.autopost-notice{background:#0a1f0a;border:1px solid var(--accent2);border-radius:6px;padding:12px 16px;font-size:12px;color:var(--accent2);margin-top:16px;display:flex;align-items:center;gap:8px}
+.close-x{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:4px}
+.close-x:hover{color:var(--text)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty h3{font-size:16px;margin-bottom:8px}
+.loading-shimmer{background:linear-gradient(90deg,var(--card) 25%,#1f1f1f 50%,var(--card) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px;height:220px}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
 </style>
+</head>
+<body>
 
-<div class="app">
-  <div class="topbar">
-    <div class="topbar-logo">BLS <span>▶</span> UPLOADER</div>
-    <div style="display:flex;gap:10px;align-items:center">
-      <span id="quota-badge" style="background:var(--yellow);color:var(--black);padding:4px 10px;font-size:11px;font-weight:700;border:2px solid rgba(255,255,255,.3)">QUOTA: <span id="quota-value">10,000</span>/day</span>
-      <button class="btn btn-yellow btn-sm" onclick="loadSheet()">↻ REFRESH DATA</button>
-    </div>
-  </div>
-
-  <div class="tabs">
-    <div class="tab active" onclick="switchTab('stories',this)">📋 Stories</div>
-    <div class="tab" onclick="switchTab('schedule',this)">📅 Schedule</div>
-    <div class="tab" onclick="switchTab('log',this)">📊 Upload Log</div>
-    <div class="tab" onclick="switchTab('accounts',this)">🔑 Accounts</div>
-    <div class="tab" onclick="switchTab('tips',this)">💡 Tips & Guide</div>
-  </div>
-
-  <div class="content">
-    <!-- STORIES TAB -->
-    <div id="tab-stories">
-      <div class="stats-bar">
-        <div class="stat-box"><div class="stat-num" id="st-total">0</div><div class="stat-label">Total Stories</div></div>
-        <div class="stat-box" style="background:var(--green)"><div class="stat-num" id="st-done">0</div><div class="stat-label">Uploaded</div></div>
-        <div class="stat-box" style="background:var(--yellow)"><div class="stat-num" id="st-pending" style="color:var(--black)">0</div><div class="stat-label" style="color:var(--black)">Pending</div></div>
-        <div class="stat-box" style="background:var(--red)"><div class="stat-num" id="st-failed">0</div><div class="stat-label">Failed</div></div>
-      </div>
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Search stories by title or theme..." oninput="filterStories()">
-        <button onclick="filterStories()">SEARCH</button>
-      </div>
-      <div class="filter-bar" id="theme-filters"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-        <button class="btn btn-sm" id="view-btn-cards" onclick="setStoriesView('cards')" style="background:var(--black);color:var(--yellow)">CARDS VIEW</button>
-        <button class="btn btn-sm" id="view-btn-table" onclick="setStoriesView('table')">TABLE VIEW</button>
-      </div>
-      <div class="loading-bar" id="loading-bar"><div class="loading-bar-fill"></div></div>
-      <div id="stories-container" class="story-grid"></div>
-      <div id="stories-table-wrap" style="display:none;overflow-x:auto">
-        <table class="log-table" id="stories-table">
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Theme</th>
-              <th>Title</th>
-              <th>Gen Title</th>
-              <th>Created</th>
-              <th>Completed</th>
-              <th>Drive</th>
-              <th>Thumb</th>
-              <th>Email Used</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody id="stories-table-body"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SCHEDULE TAB -->
-    <div id="tab-schedule" style="display:none">
-      <div class="section-title">Schedule Uploads</div>
-      <div class="notice">⚡ Set a daily auto-upload time. Script will run automatically via Apps Script trigger.</div>
-      <div class="card">
-        <label>Daily Auto-Upload Time</label>
-        <div class="form-row">
-          <div>
-            <input type="time" id="sched-time" value="10:00">
-            <div style="font-size:11px;color:#666">PKT (UTC+5) — best times: 8-10 AM or 6-8 PM</div>
-          </div>
-          <div>
-            <label>Timezone</label>
-            <select id="sched-tz"><option>Asia/Karachi (PKT)</option><option>UTC</option><option>America/New_York</option><option>Europe/London</option></select>
-          </div>
-        </div>
-        <label>Max Videos Per Day (per account)</label>
-        <select id="sched-max"><option>1</option><option selected>2</option><option>3</option><option>5</option></select>
-        <div style="display:flex;gap:10px;margin-top:8px">
-          <button class="btn btn-primary" onclick="saveTrigger()">▶ ACTIVATE TRIGGER</button>
-          <button class="btn btn-danger" onclick="deleteTrigger()">✕ DELETE TRIGGER</button>
-        </div>
-      </div>
-      <div class="section-title" style="margin-top:20px">Best Upload Windows</div>
-      <div class="schedule-grid">
-        <div class="time-slot selected" onclick="selectSlot(this,'Morning')">
-          <h4>🌅 Morning Rush</h4>
-          <p>8:00 AM – 10:00 AM PKT</p>
-          <p style="font-size:11px;margin-top:6px;font-weight:600">HIGH engagement • Kids/Family content</p>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'Afternoon')">
-          <h4>☀️ Afternoon Peak</h4>
-          <p>2:00 PM – 4:00 PM PKT</p>
-          <p style="font-size:11px;margin-top:6px;font-weight:600">MEDIUM engagement • General audience</p>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'Evening')">
-          <h4>🌆 Evening Prime</h4>
-          <p>6:00 PM – 8:00 PM PKT</p>
-          <p style="font-size:11px;margin-top:6px;font-weight:600">HIGHEST engagement • All content types</p>
-        </div>
-        <div class="time-slot" onclick="selectSlot(this,'Night')">
-          <h4>🌙 Night Owl</h4>
-          <p>10:00 PM – 12:00 AM PKT</p>
-          <p style="font-size:11px;margin-top:6px;font-weight:600">LOW-MEDIUM • International viewers</p>
-        </div>
-      </div>
-      <div class="card" style="margin-top:16px">
-        <label>Manual Schedule: Upload specific video at specific time</label>
-        <div class="form-row">
-          <div>
-            <label>Story / Video</label>
-            <select id="manual-story"><option value="">— Select from sheet —</option></select>
-          </div>
-          <div>
-            <label>Scheduled Date & Time</label>
-            <input type="datetime-local" id="manual-dt">
-          </div>
-        </div>
-        <button class="btn btn-yellow" onclick="scheduleManual()">📅 QUEUE THIS VIDEO</button>
-      </div>
-    </div>
-
-    <!-- LOG TAB -->
-    <div id="tab-log" style="display:none">
-      <div class="section-title">Upload Log</div>
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        <button class="btn btn-sm btn-primary" onclick="exportLog()">⬇ EXPORT CSV</button>
-        <button class="btn btn-sm" onclick="clearLog()">🗑 CLEAR LOG</button>
-        <select id="log-filter" onchange="renderLog()" style="width:auto;margin:0;padding:8px 12px">
-          <option value="all">All Status</option>
-          <option value="success">✅ Success</option>
-          <option value="failed">❌ Failed</option>
-          <option value="scheduled">📅 Scheduled</option>
-        </select>
-      </div>
-      <div style="overflow-x:auto">
-        <table class="log-table" id="log-table">
-          <thead><tr><th>Time</th><th>Title</th><th>Theme</th><th>Account</th><th>Status</th><th>YouTube ID</th><th>Notes</th></tr></thead>
-          <tbody id="log-body"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ACCOUNTS TAB -->
-    <div id="tab-accounts" style="display:none">
-      <div class="section-title">Channel Accounts</div>
-      <div class="notice">💡 Each theme maps to one YouTube channel. Add OAuth tokens via Apps Script Properties.</div>
-      <div id="accounts-list"></div>
-      <div class="card" style="margin-top:16px">
-        <div class="section-title" style="font-size:22px">Add / Edit Channel Mapping</div>
-        <div class="form-row">
-          <div>
-            <label>Theme Name</label>
-            <input type="text" id="acc-theme" placeholder="e.g. Teamwork">
-          </div>
-          <div>
-            <label>YouTube Channel Name</label>
-            <input type="text" id="acc-channel" placeholder="e.g. Magic Stories HQ">
-          </div>
-        </div>
-        <div class="form-row">
-          <div>
-            <label>YouTube Channel ID</label>
-            <input type="text" id="acc-channelid" placeholder="UCxxxxxxxxxxxxxxxxxxxxxx">
-          </div>
-          <div>
-            <label>Email Account</label>
-            <input type="text" id="acc-email" placeholder="example@gmail.com">
-          </div>
-        </div>
-        <div class="form-row">
-          <div>
-            <label>Default Category</label>
-            <select id="acc-cat">
-              <option value="1">Film & Animation</option>
-              <option value="10">Music</option>
-              <option value="13">How-to & Style</option>
-              <option value="20">Gaming</option>
-              <option value="22">People & Blogs</option>
-              <option value="23">Comedy</option>
-              <option value="24">Entertainment</option>
-              <option value="27" selected>Education</option>
-              <option value="28">Science & Technology</option>
-            </select>
-          </div>
-          <div>
-            <label>Default Privacy</label>
-            <select id="acc-privacy">
-              <option value="public">Public</option>
-              <option value="unlisted">Unlisted</option>
-              <option value="private">Private</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="saveAccount()">💾 SAVE MAPPING</button>
-      </div>
-    </div>
-
-    <!-- TIPS TAB -->
-    <div id="tab-tips" style="display:none">
-      <div class="section-title">Tips & YouTube Guide</div>
-      <div class="tip-card">
-        <h3>📋 Title Best Practices</h3>
-        <p>Keep titles under 60 characters. Front-load your keyword. Avoid ALL CAPS. Example: "Raya and the Kite — A Story About Friendship" is better than "AMAZING KITE STORY FOR KIDS!!!"</p>
-      </div>
-      <div class="tip-card">
-        <h3>🏷️ Tags Strategy</h3>
-        <p>Use 10-15 tags. Mix broad (kids story, animated story) and specific (teamwork story, friendship lesson). Add your channel name as a tag. Don't keyword stuff — YouTube's algorithm ignores spam tags.</p>
-      </div>
-      <div class="tip-card">
-        <h3>📸 Thumbnail Rules</h3>
-        <p>Optimal size: 1280×720px (16:9). File under 2MB. JPG or PNG. Your Drive thumbnail link (Col N) will be auto-used. Make sure file is shared as "Anyone with link."</p>
-      </div>
-      <div class="tip-card">
-        <h3>⚠️ API Quota Limits</h3>
-        <p>YouTube Data API v3 gives 10,000 units/day per project. One video upload costs ~1,600 units. That means ~6 uploads/day per Google Cloud project. Use separate projects for each account to avoid quota hits.</p>
-      </div>
-      <div class="tip-card">
-        <h3>📅 Best Upload Schedule (Pakistan)</h3>
-        <p>8-10 AM PKT: Great for kids/family content (school morning). 6-8 PM PKT: Prime time for all ages. Friday and Saturday evenings get 30-40% more views. Avoid 2-5 AM uploads.</p>
-      </div>
-      <div class="tip-card">
-        <h3>🔑 OAuth Setup (Multi-Account)</h3>
-        <p>1. Go to console.cloud.google.com — create ONE project per YouTube account. 2. Enable YouTube Data API v3. 3. Create OAuth 2.0 credentials (Desktop App). 4. In Apps Script → Project Settings → Script Properties, add: OAUTH_TOKEN_Teamwork, OAUTH_TOKEN_Adventure, etc. 5. Run authorizeAccount() function once per account to get tokens.</p>
-      </div>
-      <div class="tip-card">
-        <h3>✅ Pre-Upload Checklist</h3>
-        <p>□ Video is MP4 (H.264 codec) □ Drive file is "Anyone with link — Viewer" □ Thumbnail is 1280×720 □ Title under 100 chars □ Description under 5000 chars □ Tags comma-separated □ Category selected □ Privacy set □ "Made for Kids" toggle set correctly</p>
-      </div>
-      <div class="card" style="margin-top:16px;background:var(--black);color:var(--yellow)">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;margin-bottom:10px;letter-spacing:2px">Apps Script Code Snippets</div>
-        <div style="background:#1a1a1a;padding:12px;font-family:monospace;font-size:11px;line-height:1.8;color:#00CC66">
-          // Set daily trigger<br>
-          ScriptApp.newTrigger('autoUpload')<br>
-          &nbsp;&nbsp;.timeBased().everyDays(1)<br>
-          &nbsp;&nbsp;.atHour(10).create();<br><br>
-          // Get Drive file as blob<br>
-          var file = DriveApp.getFileById(fileId);<br>
-          var blob = file.getBlob();<br><br>
-          // Upload to YouTube<br>
-          YouTube.Videos.insert(resource,<br>
-          &nbsp;&nbsp;'snippet,status', blob);
-        </div>
-      </div>
-    </div>
+<div class="topbar">
+  <div class="logo">Magic<span>▶</span>Light Dashboard</div>
+  <div class="topbar-right">
+    <div class="badge">Sheet: <b id="hdr-sheet">—</b></div>
+    <div class="badge" id="hdr-status">Loading...</div>
+    <button class="btn btn-primary" onclick="loadData()">↻ Refresh</button>
   </div>
 </div>
 
-<!-- UPLOAD MODAL -->
-<div class="modal-bg" id="upload-modal">
+<div class="container">
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="st-total">0</div><div class="stat-l">Total Stories</div></div>
+    <div class="stat done"><div class="stat-n" id="st-done">0</div><div class="stat-l">Done</div></div>
+    <div class="stat pending"><div class="stat-n" id="st-pending">0</div><div class="stat-l">Pending</div></div>
+    <div class="stat error"><div class="stat-n" id="st-error">0</div><div class="stat-l">Errors</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input class="search" id="search" type="text" placeholder="Search by title, theme, notes…" oninput="applyFilter()">
+    <div id="status-filters" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Detail Modal -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
   <div class="modal">
-    <div class="modal-header">
-      <h2>📤 UPLOAD TO YOUTUBE</h2>
-      <button class="close-btn" onclick="closeModal()">✕</button>
+    <div class="modal-head">
+      <h2 id="modal-title">Story Detail</h2>
+      <button class="close-x" onclick="document.getElementById('overlay').classList.remove('open')">✕</button>
     </div>
-    <div class="modal-body">
-      <div id="thumb-preview-wrap">
-        <div class="thumb-preview" id="thumb-preview" style="display:flex">Loading thumbnail...</div>
-      </div>
-      <label>Video Title</label>
-      <input type="text" id="up-title" maxlength="100" oninput="countChars('up-title','title-count',100)">
-      <div class="char-count"><span id="title-count">0</span>/100</div>
-      <label>Description</label>
-      <textarea id="up-desc" rows="4" maxlength="5000" oninput="countChars('up-desc','desc-count',5000)" style="margin-bottom:4px"></textarea>
-      <div class="char-count"><span id="desc-count">0</span>/5000</div>
-      <label>Tags (comma separated)</label>
-      <input type="text" id="up-tags" placeholder="kids story, teamwork, animated, moral story">
-      <div class="form-row-3">
-        <div>
-          <label>Category</label>
-          <select id="up-cat">
-            <option value="1">Film & Animation</option>
-            <option value="10">Music</option>
-            <option value="13">How-to & Style</option>
-            <option value="20">Gaming</option>
-            <option value="22">People & Blogs</option>
-            <option value="23">Comedy</option>
-            <option value="24">Entertainment</option>
-            <option value="27" selected>Education</option>
-            <option value="28">Science & Technology</option>
-          </select>
-        </div>
-        <div>
-          <label>Privacy</label>
-          <select id="up-privacy">
-            <option value="public">🌐 Public</option>
-            <option value="unlisted">🔗 Unlisted</option>
-            <option value="private">🔒 Private</option>
-          </select>
-        </div>
-        <div>
-          <label>Language</label>
-          <select id="up-lang">
-            <option value="en">English</option>
-            <option value="ur">Urdu</option>
-            <option value="hi">Hindi</option>
-            <option value="ar">Arabic</option>
-            <option value="es">Spanish</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div>
-          <label>Playlist (optional)</label>
-          <input type="text" id="up-playlist" placeholder="Playlist ID or leave blank">
-        </div>
-        <div>
-          <label>License</label>
-          <select id="up-license">
-            <option value="youtube">Standard YouTube</option>
-            <option value="creativeCommon">Creative Commons</option>
-          </select>
-        </div>
-      </div>
-      <div class="toggle-wrap">
-        <label class="toggle"><input type="checkbox" id="up-kids"><span class="toggle-slider"></span></label>
-        <span style="font-size:13px;font-weight:600">Made for Kids</span>
-      </div>
-      <div class="toggle-wrap">
-        <label class="toggle"><input type="checkbox" id="up-embeddable" checked><span class="toggle-slider"></span></label>
-        <span style="font-size:13px;font-weight:600">Allow Embedding</span>
-      </div>
-      <div class="toggle-wrap">
-        <label class="toggle"><input type="checkbox" id="up-notifysubscribers" checked><span class="toggle-slider"></span></label>
-        <span style="font-size:13px;font-weight:600">Notify Subscribers</span>
-      </div>
-      <div style="border-top:var(--border);padding-top:14px;margin-top:6px">
-        <label>Publish Mode</label>
-        <div style="display:flex;gap:10px;margin-bottom:12px">
-          <button class="btn btn-sm" id="mode-now" onclick="setMode('now')" style="background:var(--black);color:var(--yellow)">⚡ PUBLISH NOW</button>
-          <button class="btn btn-sm" id="mode-sched" onclick="setMode('scheduled')">📅 SCHEDULE</button>
-        </div>
-        <div id="sched-dt-wrap" style="display:none">
-          <label>Publish Date & Time</label>
-          <input type="datetime-local" id="up-scheddt">
-        </div>
-      </div>
-      <div id="up-notice" style="display:none;margin-top:10px"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal()">CANCEL</button>
-      <button class="btn btn-success" onclick="uploadNow()">▶ UPLOAD TO YOUTUBE</button>
-    </div>
+    <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
 
-<script src="config.js"></script>
-<script src="demo-data.js"></script>
 <script>
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+// Paste your published Google Sheets CSV URL here:
+// Sheet → File → Share → Publish to web → CSV format
+const SHEET_CSV_URL = 'YOUR_SHEET_CSV_URL_HERE';
+
+// ── STATE ────────────────────────────────────────────────────────────────────
 let allStories = [];
-let filteredStories = [];
-let uploadLog = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.LOG)||'[]');
-let accounts = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.ACCOUNTS)||JSON.stringify(CONFIG.DEFAULT_ACCOUNTS));
-let currentStory = null;
-let activeTheme = 'All';
-let publishMode = 'now';
-let storiesView = 'cards';
+let filtered   = [];
+let activeFilter = 'All';
 
-// Initialize configuration values
-function initializeConfig() {
-  // Set quota value
-  document.getElementById('quota-value').textContent = CONFIG.QUOTA_PER_DAY.toLocaleString();
-  
-  // Populate category dropdowns
-  const categorySelects = document.querySelectorAll('#up-cat, #acc-cat');
-  categorySelects.forEach(select => {
-    select.innerHTML = CONFIG.YOUTUBE_CATEGORIES.map(cat => 
-      `<option value="${cat.value}">${cat.label}</option>`
-    ).join('');
-  });
-  
-  // Populate language dropdown
-  const langSelect = document.getElementById('up-lang');
-  if (langSelect) {
-    langSelect.innerHTML = CONFIG.LANGUAGES.map(lang => 
-      `<option value="${lang.value}">${lang.label}</option>`
-    ).join('');
-  }
-  
-  // Populate privacy dropdowns
-  const privacySelects = document.querySelectorAll('#up-privacy, #acc-privacy');
-  privacySelects.forEach(select => {
-    select.innerHTML = CONFIG.PRIVACY_OPTIONS.map(privacy => 
-      `<option value="${privacy.value}">${privacy.label}</option>`
-    ).join('');
-  });
-  
-  // Populate license dropdown
-  const licenseSelect = document.getElementById('up-license');
-  if (licenseSelect) {
-    licenseSelect.innerHTML = CONFIG.LICENSE_OPTIONS.map(license => 
-      `<option value="${license.value}">${license.label}</option>`
-    ).join('');
-  }
-  
-  // Populate timezone dropdown
-  const tzSelect = document.getElementById('sched-tz');
-  if (tzSelect) {
-    tzSelect.innerHTML = CONFIG.TIMEZONES.map(tz => 
-      `<option>${tz}</option>`
-    ).join('');
-  }
-  
-  // Set default schedule values
-  const schedTime = document.getElementById('sched-time');
-  if (schedTime) schedTime.value = CONFIG.DEFAULT_SCHEDULE_TIME;
-  
-  const schedMax = document.getElementById('sched-max');
-  if (schedMax) schedMax.value = CONFIG.DEFAULT_MAX_VIDEOS_PER_DAY.toString();
-}
+// ── LOAD DATA ────────────────────────────────────────────────────────────────
+async function loadData() {
+  document.getElementById('hdr-status').textContent = 'Loading…';
+  document.getElementById('grid').innerHTML = Array(8).fill(
+    '<div class="loading-shimmer"></div>'
+  ).join('');
 
-function switchTab(name, el){
-  document.querySelectorAll('[id^="tab-"]').forEach(t=>t.style.display='none');
-  document.getElementById('tab-'+name).style.display='block';
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  if(name==='accounts') renderAccounts();
-  if(name==='log') renderLog();
-}
-
-async function loadSheet(){
-  document.getElementById('loading-bar').classList.add('active');
-  try{
-    const r = await fetch(CONFIG.SHEET_URL);
+  try {
+    const r   = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
     const txt = await r.text();
     allStories = parseCSV(txt);
-    filteredStories = [...allStories];
-    updateStats();
-    buildThemeFilters();
-    renderStories();
-    populateManualStory();
-  }catch(e){
-    allStories = DEMO_STORIES;
-    filteredStories=[...allStories];
-    updateStats();buildThemeFilters();renderStories();populateManualStory();
+    document.getElementById('hdr-sheet').textContent = 'Connected';
+    document.getElementById('hdr-status').textContent = allStories.length + ' stories';
+  } catch(e) {
+    document.getElementById('hdr-status').textContent = 'Offline — demo data';
+    allStories = DEMO;
   }
-  document.getElementById('loading-bar').classList.remove('active');
+  applyFilter();
+  updateStats();
+  buildFilters();
 }
 
-function parseCSV(txt){
-  const lines=txt.trim().split('\n');
-  const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim().toLowerCase().replace(/ /g,'_'));
-  return lines.slice(1).map(line=>{
-    const vals=[];let cur='',inQ=false;
-    for(let c of line){if(c==='"'){inQ=!inQ}else if(c===','&&!inQ){vals.push(cur);cur=''}else{cur+=c}}
+// ── CSV PARSER ────────────────────────────────────────────────────────────────
+function parseCSV(txt) {
+  const lines   = txt.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase().replace(/ /g,'_'));
+  return lines.slice(1).map(line => {
+    const vals = []; let cur = '', inQ = false;
+    for(let c of line){ if(c==='"'){inQ=!inQ} else if(c===','&&!inQ){vals.push(cur);cur=''}else{cur+=c} }
     vals.push(cur);
-    const obj={};
-    headers.forEach((h,i)=>obj[h]=(vals[i]||'').replace(/"/g,'').trim());
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = (vals[i]||'').replace(/"/g,'').trim());
     return obj;
-  }).filter(r=>r.title||r.gen_title);
+  }).filter(r => r.title || r.gen_title || r.story);
 }
 
-function updateStats(){
-  document.getElementById('st-total').textContent=allStories.length;
-  document.getElementById('st-done').textContent=allStories.filter(s=>s.done==='TRUE'||s.status==='Done'||s.status==='Completed').length;
-  document.getElementById('st-pending').textContent=allStories.filter(s=>!s.done||s.done==='FALSE').length;
-  document.getElementById('st-failed').textContent=uploadLog.filter(l=>l.status==='failed').length;
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('st-total').textContent   = allStories.length;
+  document.getElementById('st-done').textContent    = allStories.filter(s => s.status==='Done').length;
+  document.getElementById('st-pending').textContent = allStories.filter(s => s.status==='Pending'||!s.status).length;
+  document.getElementById('st-error').textContent   = allStories.filter(s => s.status==='Error'||s.status==='No_Video').length;
 }
 
-function buildThemeFilters(){
-  const themes=['All',...new Set(allStories.map(s=>s.theme).filter(Boolean))];
-  const bar=document.getElementById('theme-filters');
-  bar.innerHTML=themes.map(t=>`<div class="filter-chip ${t==='All'?'active':''}" onclick="filterByTheme('${t}',this)">${t}</div>`).join('');
+// ── STATUS FILTERS ────────────────────────────────────────────────────────────
+function buildFilters() {
+  const statuses = ['All', ...new Set(allStories.map(s => s.status||'Pending').filter(Boolean))];
+  document.getElementById('status-filters').innerHTML = statuses.map(s =>
+    `<div class="filter-chip ${s===activeFilter?'active':''}" onclick="setFilter('${s}',this)">${s}</div>`
+  ).join('');
 }
 
-function filterByTheme(t,el){
-  activeTheme=t;
-  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+function setFilter(s, el) {
+  activeFilter = s;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
-  filterStories();
+  applyFilter();
 }
 
-function filterStories(){
-  const q=document.getElementById('search-input').value.toLowerCase();
-  filteredStories=allStories.filter(s=>{
-    const matchTheme=activeTheme==='All'||s.theme===activeTheme;
-    const matchQ=!q||(s.gen_title||s.title||'').toLowerCase().includes(q)||s.theme.toLowerCase().includes(q);
-    return matchTheme&&matchQ;
+// ── FILTER + RENDER ──────────────────────────────────────────────────────────
+function applyFilter() {
+  const q = document.getElementById('search').value.toLowerCase();
+  filtered = allStories.filter(s => {
+    const matchF = activeFilter === 'All' || (s.status||'Pending') === activeFilter;
+    const matchQ = !q || [s.gen_title,s.title,s.theme,s.notes].join(' ').toLowerCase().includes(q);
+    return matchF && matchQ;
   });
-  renderStories();
-  renderStoriesTable();
+  renderGrid();
 }
 
-function renderStories(){
-  const c=document.getElementById('stories-container');
-  const wrap=document.getElementById('stories-table-wrap');
-  if(storiesView==='table'){
-    c.style.display='none';
-    wrap.style.display='block';
+function statusPill(st) {
+  if(!st || st==='Pending') return '<span class="status-pill pill-pending">Pending</span>';
+  if(st==='Done')           return '<span class="status-pill pill-done">✓ Done</span>';
+  if(st==='Generated')      return '<span class="status-pill pill-generated">Generated</span>';
+  if(st==='Processing')     return '<span class="status-pill pill-processing">Processing</span>';
+  if(st==='Error'||st==='No_Video') return '<span class="status-pill pill-error">Error</span>';
+  return `<span class="status-pill pill-pending">${st}</span>`;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  if(!filtered.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>No stories found</h3><p style="font-size:13px;margin-top:6px">Try changing the filter or refreshing the data.</p></div>`;
     return;
   }
-  c.style.display='grid';
-  wrap.style.display='none';
-  if(!filteredStories.length){c.innerHTML='<div class="notice">No stories found. Click REFRESH DATA to load from sheet.</div>';return}
-  c.innerHTML=filteredStories.map((s,i)=>{
-    const title=s.gen_title||s.title||'Untitled';
-    const isDone=s.done==='TRUE'||s.status==='Done'||s.status==='Completed';
-    const thumb=s.driveimg_link||s.drive_img_link||'';
-    const thumbHtml=thumb?`<img class="story-thumb" src="${thumb.replace('view?usp=drivesdk','preview').replace('view?usp=sharing','preview')}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="thumb"><div class="story-thumb-ph" style="display:none">${(s.theme||'?')[0]}</div>`:`<div class="story-thumb-ph">${(s.theme||'?')[0]}</div>`;
-    return`<div class="story-card" onclick="openUploadModal(${i})">
-      ${thumbHtml}
-      <div class="story-body">
-        <div class="story-theme">${s.theme||'—'}</div>
-        <div class="story-title">${title}</div>
-        <div class="story-meta">${s.moral||s.gen_summary?.substring(0,80)||''}...</div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span class="story-status ${isDone?'status-done':'status-pending'}">${isDone?'✓ UPLOADED':'PENDING'}</span>
-          <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openUploadModal(${i})">▶ UPLOAD</button>
-        </div>
+  grid.innerHTML = filtered.map((s, i) => {
+    const title = s.gen_title || s.title || 'Untitled';
+    const thumb = normalizeUrl(s.driveimg_link || s.drive_img_link || '');
+    const thumbHtml = thumb
+      ? `<img class="thumb-img" src="${thumb}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="">`
+      + `<div class="thumb-fallback" style="display:none">${(s.theme||'?')[0]||'?'}</div>`
+      : `<div class="thumb-fallback">${(s.theme||'?')[0]||'?'}</div>`;
+    const driveHtml = s.drive_link
+      ? `<a class="drive-link" href="${normalizeUrl(s.drive_link)}" target="_blank" onclick="event.stopPropagation()">▶ Open Video</a>`
+      : `<span style="font-size:11px;color:var(--muted)">No video yet</span>`;
+    return `<div class="card" onclick="openModal(${i})">
+      <div class="thumb-wrap">${thumbHtml}${statusPill(s.status)}</div>
+      <div class="card-body">
+        <div class="card-title">${title}</div>
+        <div class="card-meta">${s.theme||''} ${s.completed_time ? '· '+s.completed_time.substring(0,10) : ''}</div>
+        <div class="card-footer">${driveHtml}</div>
       </div>
     </div>`;
   }).join('');
 }
 
-function renderStoriesTable(){
-  const tbody=document.getElementById('stories-table-body');
-  if(!tbody) return;
-  if(!filteredStories.length){
-    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:#888;padding:20px">No stories found</td></tr>';
-    return;
-  }
-  const normUrl=(u)=>{
-    if(!u) return '';
-    return u.replace('view?usp=drivesdk','preview').replace('view?usp=sharing','preview');
-  };
-  tbody.innerHTML=filteredStories.map((s,i)=>{
-    const status=s.status||'';
-    const theme=s.theme||'';
-    const title=s.title||'';
-    const genTitle=s.gen_title||'';
-    const created=s.created_time||'';
-    const completed=s.completed_time||'';
-    const drive=s.drive_link||'';
-    const thumb=s.driveimg_link||s.drive_img_link||'';
-    const email=s.email_used||s.email||'';
-    const notes=s.notes||'';
-    const driveHtml=drive?`<a href="${normUrl(drive)}" target="_blank" style="font-weight:700;color:var(--black)">OPEN</a>`:'—';
-    const thumbHtml=thumb?`<a href="${normUrl(thumb)}" target="_blank" style="font-weight:700;color:var(--black)">OPEN</a>`:'—';
-    return `<tr onclick="openUploadModal(${i})" style="cursor:pointer">
-      <td>${status||'—'}</td>
-      <td>${theme||'—'}</td>
-      <td style="max-width:220px">${title||'—'}</td>
-      <td style="max-width:240px">${genTitle||'—'}</td>
-      <td style="font-size:11px">${created||'—'}</td>
-      <td style="font-size:11px">${completed||'—'}</td>
-      <td>${driveHtml}</td>
-      <td>${thumbHtml}</td>
-      <td style="font-size:11px">${email||'—'}</td>
-      <td style="font-size:11px;max-width:240px">${notes||''}</td>
-    </tr>`;
-  }).join('');
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal(i) {
+  const s = filtered[i];
+  document.getElementById('modal-title').textContent = s.gen_title || s.title || 'Story Detail';
+  const thumb = normalizeUrl(s.driveimg_link || s.drive_img_link || '');
+  const thumbEl = thumb
+    ? `<img class="modal-thumb" src="${thumb}" onerror="this.src=''" alt="Thumbnail">`
+    : `<div class="modal-thumb-ph">${(s.theme||'?')[0]||'?'}</div>`;
+
+  const isDone = s.status === 'Done';
+  const autoNotice = isDone
+    ? `<div class="autopost-notice">✅ Auto-post triggered — processed video was uploaded and Drive_Link updated in sheet.</div>`
+    : '';
+
+  document.getElementById('modal-body').innerHTML = `
+    ${thumbEl}
+    ${row('Status', `<b style="color:${statusColor(s.status)}">${s.status||'Pending'}</b>`)}
+    ${row('Title', s.title||'—')}
+    ${row('Gen Title', s.gen_title||'—')}
+    ${row('Theme', s.theme||'—')}
+    ${row('Moral', s.moral||'—')}
+    ${row('Account', s.email_used||'—')}
+    ${row('Credits', s.credit_before ? s.credit_before+'→'+s.credit_after : '—')}
+    ${row('Created', s.created_time||'—')}
+    ${row('Completed', s.completed_time||'—')}
+    ${row('Raw Video', s.drive_link ? link(s.drive_link,'Open Drive') : '—')}
+    ${row('Proc. Video', (s.process_d_link||s.drive_link) ? link(s.process_d_link||s.drive_link,'Open Drive') : '—')}
+    ${row('Thumbnail', s.driveimg_link ? link(s.driveimg_link,'Open Drive') : '—')}
+    ${row('Project', s.project_url ? link(s.project_url,'Open MagicLight') : '—')}
+    ${s.notes ? row('Notes', s.notes) : ''}
+    ${autoNotice}
+  `;
+  document.getElementById('overlay').classList.add('open');
 }
 
-function setStoriesView(view){
-  storiesView=view;
-  const btnCards=document.getElementById('view-btn-cards');
-  const btnTable=document.getElementById('view-btn-table');
-  if(btnCards&&btnTable){
-    btnCards.style.background=view==='cards'?'var(--black)':'var(--white)';
-    btnCards.style.color=view==='cards'?'var(--yellow)':'var(--black)';
-    btnTable.style.background=view==='table'?'var(--black)':'var(--white)';
-    btnTable.style.color=view==='table'?'var(--yellow)':'var(--black)';
-  }
-  renderStories();
-  renderStoriesTable();
+function row(label, val) {
+  return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${val}</span></div>`;
+}
+function link(url, text) {
+  return `<a class="detail-link" href="${normalizeUrl(url)}" target="_blank">${text} ↗</a>`;
+}
+function statusColor(s) {
+  if(s==='Done')      return 'var(--accent2)';
+  if(s==='Generated') return 'var(--accent)';
+  if(s==='Error')     return 'var(--red)';
+  return 'var(--muted)';
 }
 
-function openUploadModal(i){
-  currentStory=filteredStories[i];
-  const s=currentStory;
-  document.getElementById('up-title').value=s.gen_title||s.title||'';
-  document.getElementById('up-desc').value=s.gen_summary||s.moral||'';
-  document.getElementById('up-tags').value=s.gen_tags||s.theme||'';
-  countChars('up-title','title-count',100);
-  countChars('up-desc','desc-count',5000);
-  const acc=accounts.find(a=>a.theme===s.theme);
-  if(acc){document.getElementById('up-cat').value=acc.category||'27';document.getElementById('up-privacy').value=acc.privacy||'public';}
-  const thumb=s.driveimg_link||s.drive_img_link||'';
-  const tp=document.getElementById('thumb-preview');
-  if(thumb){tp.innerHTML=`<img src="${thumb.replace('view?usp=drivesdk','preview')}" style="width:100%;height:100%;object-fit:cover">`;tp.style.display='block'}
-  else{tp.innerHTML='No thumbnail in sheet (Col N)';tp.style.display='flex'}
-  document.getElementById('up-notice').style.display='none';
-  document.getElementById('upload-modal').classList.add('open');
+function closeModal(e) {
+  if(e.target === document.getElementById('overlay'))
+    document.getElementById('overlay').classList.remove('open');
 }
 
-function closeModal(){document.getElementById('upload-modal').classList.remove('open')}
-
-function setMode(m){
-  publishMode=m;
-  document.getElementById('mode-now').style.background=m==='now'?'var(--black)':'var(--white)';
-  document.getElementById('mode-now').style.color=m==='now'?'var(--yellow)':'var(--black)';
-  document.getElementById('mode-sched').style.background=m==='scheduled'?'var(--black)':'var(--white)';
-  document.getElementById('mode-sched').style.color=m==='scheduled'?'var(--yellow)':'var(--black)';
-  document.getElementById('sched-dt-wrap').style.display=m==='scheduled'?'block':'none';
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function normalizeUrl(u) {
+  if(!u) return '';
+  return u.replace('view?usp=drivesdk','preview').replace('view?usp=sharing','preview');
 }
 
-function countChars(inId,outId,max){
-  const v=document.getElementById(inId).value.length;
-  document.getElementById(outId).textContent=v;
-  document.getElementById(outId).style.color=v>max*0.9?'var(--red)':'#888';
-}
+// ── DEMO DATA ─────────────────────────────────────────────────────────────────
+const DEMO = [
+  {status:'Done',title:'Sample Story 1',gen_title:'The Glowing Lantern',theme:'Courage',moral:'Be brave',drive_link:'https://drive.google.com',driveimg_link:'',email_used:'demo@example.com',credit_before:'800',credit_after:'740',created_time:'2026-04-15 01:00',completed_time:'2026-04-15 02:30',notes:'Generated OK'},
+  {status:'Generated',title:'Sample Story 2',gen_title:'The Bouncing Cloud',theme:'Friendship',moral:'Share and care',drive_link:'',driveimg_link:'',email_used:'demo@example.com',credit_before:'740',credit_after:'680',created_time:'2026-04-15 03:00',completed_time:'',notes:''},
+  {status:'Pending',title:'Sample Story 3',gen_title:'',theme:'Teamwork',moral:'Work together',drive_link:'',driveimg_link:'',email_used:'',credit_before:'',credit_after:'',created_time:'',completed_time:'',notes:''},
+  {status:'Error',title:'Sample Story 4',gen_title:'',theme:'Kindness',moral:'Be kind',drive_link:'',driveimg_link:'',email_used:'demo@example.com',credit_before:'680',credit_after:'',created_time:'2026-04-15 04:00',completed_time:'',notes:'Render timeout'},
+];
 
-function uploadNow(){
-  const s=currentStory;
-  const title=document.getElementById('up-title').value;
-  const notice=document.getElementById('up-notice');
-  if(!title){notice.innerHTML='⚠ Title is required!';notice.className='notice error';notice.style.display='block';return}
-  if(!s.drive_link&&!s.drive_link_col){notice.innerHTML='⚠ No video Drive link found (Col M). Cannot upload.';notice.className='notice error';notice.style.display='block';return}
-  const entry={time:new Date().toLocaleString(),title,theme:s.theme,account:accounts.find(a=>a.theme===s.theme)?.email||'—',status:'success',ytId:'DEMO_'+Math.random().toString(36).substr(2,8).toUpperCase(),notes:publishMode==='scheduled'?'Scheduled: '+document.getElementById('up-scheddt').value:'Direct upload'};
-  uploadLog.unshift(entry);
-  localStorage.setItem(CONFIG.STORAGE_KEYS.LOG,JSON.stringify(uploadLog));
-  updateStats();
-  notice.innerHTML=`✅ Logged! In production, Apps Script will upload to YouTube. Video ID: ${entry.ytId}`;
-  notice.className='notice';notice.style.display='block';
-}
-
-function renderLog(){
-  const f=document.getElementById('log-filter').value;
-  const rows=uploadLog.filter(l=>f==='all'||l.status===f);
-  const tbody=document.getElementById('log-body');
-  tbody.innerHTML=rows.length?rows.map(l=>`<tr><td>${l.time}</td><td style="max-width:160px">${l.title}</td><td>${l.theme}</td><td style="font-size:11px">${l.account}</td><td><span class="story-status ${l.status==='success'?'status-done':l.status==='scheduled'?'status-pending':'status-failed'}">${l.status}</span></td><td style="font-family:monospace;font-size:11px">${l.ytId||'—'}</td><td style="font-size:11px;max-width:120px">${l.notes||''}</td></tr>`).join(''):'<tr><td colspan="7" style="text-align:center;color:#888;padding:20px">No log entries yet</td></tr>';
-}
-
-function exportLog(){
-  const csv=['Time,Title,Theme,Account,Status,YouTube ID,Notes',...uploadLog.map(l=>`"${l.time}","${l.title}","${l.theme}","${l.account}","${l.status}","${l.ytId||''}","${l.notes||''}"`)].join('\n');
-  const a=document.createElement('a');a.href='data:text/csv,'+encodeURIComponent(csv);a.download='bls_upload_log.csv';a.click();
-}
-
-function clearLog(){if(confirm('Clear all log entries?')){uploadLog=[];localStorage.setItem(CONFIG.STORAGE_KEYS.LOG,'[]');renderLog();updateStats();}}
-
-function renderAccounts(){
-  const el=document.getElementById('accounts-list');
-  el.innerHTML=accounts.map((a,i)=>`<div class="account-card">
-    <div class="account-avatar" style="background:${['var(--blue)','var(--red)','var(--green)','var(--yellow)'][i%4]}">${a.theme[0]}</div>
-    <div class="account-info">
-      <div class="account-name">${a.channel}</div>
-      <div class="account-theme">Theme: <b>${a.theme}</b> — ${a.email}</div>
-      <div style="font-size:11px;margin-top:4px;font-family:monospace;color:#666">${a.channelId}</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:6px">
-      <span class="account-status" style="background:var(--green)">ACTIVE</span>
-      <button class="btn btn-sm" onclick="editAccount(${i})">EDIT</button>
-      <button class="btn btn-sm btn-danger" onclick="removeAccount(${i})">DEL</button>
-    </div>
-  </div>`).join('');
-}
-
-function saveAccount(){
-  const acc={theme:document.getElementById('acc-theme').value,channel:document.getElementById('acc-channel').value,channelId:document.getElementById('acc-channelid').value,email:document.getElementById('acc-email').value,category:document.getElementById('acc-cat').value,privacy:document.getElementById('acc-privacy').value};
-  if(!acc.theme){alert('Theme required');return}
-  const idx=accounts.findIndex(a=>a.theme===acc.theme);
-  if(idx>-1)accounts[idx]=acc;else accounts.push(acc);
-  localStorage.setItem(CONFIG.STORAGE_KEYS.ACCOUNTS,JSON.stringify(accounts));
-  renderAccounts();
-  ['acc-theme','acc-channel','acc-channelid','acc-email'].forEach(id=>document.getElementById(id).value='');
-}
-
-function editAccount(i){const a=accounts[i];document.getElementById('acc-theme').value=a.theme;document.getElementById('acc-channel').value=a.channel;document.getElementById('acc-channelid').value=a.channelId;document.getElementById('acc-email').value=a.email;document.getElementById('acc-cat').value=a.category||'27';document.getElementById('acc-privacy').value=a.privacy||'public';}
-function removeAccount(i){if(confirm('Remove this account?')){accounts.splice(i,1);localStorage.setItem(CONFIG.STORAGE_KEYS.ACCOUNTS,JSON.stringify(accounts));renderAccounts();}}
-
-function selectSlot(el,slot){document.querySelectorAll('.time-slot').forEach(s=>s.classList.remove('selected'));el.classList.add('selected');const times={Morning:'08:00',Afternoon:'14:00',Evening:'18:00',Night:'22:00'};document.getElementById('sched-time').value=times[slot]||'10:00';}
-
-function saveTrigger(){alert('✅ Trigger settings saved!\n\nIn Apps Script, run:\nsetDailyTrigger(\"'+document.getElementById('sched-time').value+'\")\n\nThis will set the daily auto-upload trigger.')}
-function deleteTrigger(){alert('⚠ Run deleteTrigger() in Apps Script to remove the daily trigger.')}
-
-function populateManualStory(){
-  const sel=document.getElementById('manual-story');
-  sel.innerHTML='<option value="">— Select story —</option>'+allStories.map((s,i)=>`<option value="${i}">${s.gen_title||s.title}</option>`).join('');
-}
-
-function scheduleManual(){
-  const i=document.getElementById('manual-story').value;
-  const dt=document.getElementById('manual-dt').value;
-  if(!i||!dt){alert('Select a story and set date/time');return}
-  const s=allStories[i];
-  const entry={time:new Date().toLocaleString(),title:s.gen_title||s.title,theme:s.theme,account:accounts.find(a=>a.theme===s.theme)?.email||'—',status:'scheduled',ytId:'',notes:'Scheduled for: '+dt};
-  uploadLog.unshift(entry);
-  localStorage.setItem(CONFIG.STORAGE_KEYS.LOG,JSON.stringify(uploadLog));
-  alert('📅 Video queued for: '+dt+'\nSwitch to Apps Script trigger to execute.');
-}
-
-// Initialize app
-initializeConfig();
-loadSheet();
+// ── BOOT ──────────────────────────────────────────────────────────────────────
+loadData();
 </script>
+</body>
+</html>

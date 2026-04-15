@@ -342,12 +342,25 @@ def read_sheet():
     ws = _get_sheet()
     return ws.get_all_records(head=1)
 
+def _actual_sheet_cols() -> set:
+    """Return set of column names that actually exist in row 1 of the sheet."""
+    try:
+        ws = _get_sheet()
+        return set(h.strip() for h in _hdr if h.strip())
+    except:
+        return set(SHEET_SCHEMA.keys())
+
 def update_sheet_row(sheet_row_num: int, layer: str | None = None, **kw):
     ws = _get_sheet()
+    actual_cols = _actual_sheet_cols()
     for col_name, value in kw.items():
         col_idx = _col(col_name)
         if col_idx is None:
             _dbg(f"[sheet] IGNORED unknown column '{col_name}'")
+            continue
+        # Only write if the column header exists in the actual sheet
+        if col_name not in actual_cols:
+            _dbg(f"[sheet] SKIPPED '{col_name}' — not in sheet headers")
             continue
         try:
             ws.update_cell(sheet_row_num, col_idx, str(value) if value is not None else "")
@@ -2249,8 +2262,9 @@ def _run_pipeline_core(limit, source_type="auto"):
                 _warn(f"[sheet] No_Video write failed: {se}")
             _warn(f"Row {row_num} -> No_Video")
             continue
-        # Inline processing (combined mode)
-        if os.environ.get("RUN_PROCESS_INLINE") == "1":
+        # Inline processing: only in combined mode, not generate-only
+        mode_env = os.environ.get("PIPELINE_MODE", "generate")
+        if os.environ.get("RUN_PROCESS_INLINE") == "1" and mode_env == "combined":
             _info("[pipeline] Starting inline video processing...")
             video_path = result.get("video", "")
             if video_path and os.path.exists(video_path):
@@ -2275,13 +2289,24 @@ def _run_pipeline_core(limit, source_type="auto"):
                                 folder_name    = os.path.basename(os.path.dirname(str(proc_path)))
                                 processed_link = upload_to_drive(str(proc_path), folder_name)
                             try:
-                                update_sheet_row(row_num,
-                                    Status         = "Done",
-                                    Process_D_Link = processed_link,
-                                    Completed_Time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                    Notes          = f"Done | Account: {curr_email}"
-                                )
-                                _ok(f"[sheet] Row {row_num} -> Done  Process_D_Link written")
+                                # Write Process_D_Link if column exists, else overwrite Drive_Link
+                                actual = _actual_sheet_cols()
+                                if "Process_D_Link" in actual:
+                                    update_sheet_row(row_num,
+                                        Status         = "Done",
+                                        Process_D_Link = processed_link,
+                                        Completed_Time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        Notes          = f"Done | Account: {curr_email}"
+                                    )
+                                else:
+                                    # No Process_D_Link column — update Drive_Link with processed video
+                                    update_sheet_row(row_num,
+                                        Status         = "Done",
+                                        Drive_Link     = processed_link if processed_link else result.get("drive_link", ""),
+                                        Completed_Time = datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        Notes          = f"Done | Account: {curr_email}"
+                                    )
+                                _ok(f"[sheet] Row {row_num} -> Done")
                             except Exception as se:
                                 _warn(f"[sheet] Done write failed: {se}")
                         else:
@@ -2368,6 +2393,7 @@ def menu():
         )
         try:
             while True:
+                os.environ["PIPELINE_MODE"]      = mode
                 os.environ["RUN_PROCESS_INLINE"] = "1" if mode == "combined" else "0"
                 _credits_used = 0
                 _run_pipeline_core(limit=amount, source_type="auto")
@@ -2438,7 +2464,8 @@ def run_cli_mode(args):
         process_all(cfg, videos=vids, dry_run=args.dry_run, upload=args.upload_drive)
         return True
     elif mode in ["combined", "generate"]:
-        os.environ["RUN_PROCESS_INLINE"] = "1"  # Enable inline processing for all generate modes
+        os.environ["PIPELINE_MODE"] = mode  # track mode for inline processing guard
+        os.environ["RUN_PROCESS_INLINE"] = "1" if mode == "combined" else "0"
         run_once = False
         if loop_mode:
             args.upload_drive = True

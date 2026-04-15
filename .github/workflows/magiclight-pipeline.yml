@@ -61,13 +61,13 @@ jobs:
           ACCOUNTS_TXT: ${{ secrets.ACCOUNTS_TXT }}
         run: |
           if ($env:GCP_CREDENTIALS -ne $null -and $env:GCP_CREDENTIALS.Trim() -ne "") {
-              Set-Content -Path credentials.json -Value $env:GCP_CREDENTIALS -Encoding utf8
+              Set-Content -Path credentials.json -Value $env:GCP_CREDENTIALS
           }
           if ($env:ENV_FILE -ne $null -and $env:ENV_FILE.Trim() -ne "") {
-              Set-Content -Path .env -Value $env:ENV_FILE -Encoding utf8
+              Set-Content -Path .env -Value $env:ENV_FILE
           }
           if ($env:ACCOUNTS_TXT -ne $null -and $env:ACCOUNTS_TXT.Trim() -ne "") {
-              Set-Content -Path accounts.txt -Value $env:ACCOUNTS_TXT -Encoding utf8
+              Set-Content -Path accounts.txt -Value $env:ACCOUNTS_TXT
           }
       - name: Run MagicLight Pipeline
         shell: pwsh
