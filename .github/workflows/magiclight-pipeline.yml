@@ -76,6 +76,62 @@ jobs:
               $env:ACCOUNTS_TXT | Out-File -FilePath accounts.txt -Encoding utf8 -NoNewline
           }
 
+      - name: "Preflight: Ensure .env has SHEET_ID"
+        shell: pwsh
+        env:
+          SHEET_ID: ${{ vars.SHEET_ID }}
+          SHEET_NAME: ${{ vars.SHEET_NAME }}
+          DRIVE_FOLDER_ID: ${{ vars.DRIVE_FOLDER_ID }}
+          SHEET_ID_SECRET: ${{ secrets.SHEET_ID }}
+          SHEET_NAME_SECRET: ${{ secrets.SHEET_NAME }}
+          DRIVE_FOLDER_ID_SECRET: ${{ secrets.DRIVE_FOLDER_ID }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          function Append-Or-Replace-EnvLine([string]$path, [string]$key, [string]$value) {
+            if (-not $value) { return }
+            $escapedKey = [regex]::Escape($key)
+            $lines = @()
+            if (Test-Path $path) {
+              $lines = Get-Content -LiteralPath $path -ErrorAction SilentlyContinue
+            }
+            if ($lines -match "^$escapedKey=") {
+              $lines = $lines | ForEach-Object { if ($_ -match "^$escapedKey=") { "$key=$value" } else { $_ } }
+            } else {
+              $lines += "$key=$value"
+            }
+            Set-Content -LiteralPath $path -Value $lines -Encoding utf8
+          }
+
+          # Ensure the file exists (dotenv loader expects it next to main.py)
+          if (-not (Test-Path .env)) {
+            '' | Out-File -FilePath .env -Encoding utf8
+          }
+
+          # Prefer repo variables, but allow secrets fallback
+          $sheetId = if ($env:SHEET_ID) { $env:SHEET_ID } else { $env:SHEET_ID_SECRET }
+          $sheetName = if ($env:SHEET_NAME) { $env:SHEET_NAME } else { $env:SHEET_NAME_SECRET }
+          $driveFolderId = if ($env:DRIVE_FOLDER_ID) { $env:DRIVE_FOLDER_ID } else { $env:DRIVE_FOLDER_ID_SECRET }
+
+          Append-Or-Replace-EnvLine -path .env -key 'SHEET_ID' -value $sheetId
+          Append-Or-Replace-EnvLine -path .env -key 'SHEET_NAME' -value $sheetName
+          Append-Or-Replace-EnvLine -path .env -key 'DRIVE_FOLDER_ID' -value $driveFolderId
+
+          $envText = Get-Content -LiteralPath .env -Raw -ErrorAction SilentlyContinue
+          $hasSheetId = $false
+          if ($envText) {
+            $hasSheetId = [regex]::IsMatch($envText, '(?m)^\s*SHEET_ID\s*=\s*.+\s*$')
+          }
+
+          $envSize = (Get-Item .env).Length
+          Write-Host "[preflight] .env exists: $true"
+          Write-Host "[preflight] .env size: $envSize bytes"
+          Write-Host "[preflight] SHEET_ID present: $hasSheetId"
+
+          if (-not $hasSheetId) {
+            throw "SHEET_ID is missing. Set repo Variable SHEET_ID (recommended) or Secrets ENV_FILE / SHEET_ID to include it."
+          }
+
       - name: Run MagicLight Pipeline
         shell: pwsh
         env:
@@ -100,8 +156,11 @@ jobs:
           if ($loop -eq "true") {
               $argsStr += " --loop"
           }
-          
-          Invoke-Expression "python main.py $argsStr"
+
+          # Always produce a log artifact, and preserve the python exit code
+          "[run] python main.py $argsStr" | Out-File -FilePath pipeline.log -Encoding utf8
+          & python main.py $argsStr 2>&1 | Tee-Object -FilePath pipeline.log -Append
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Upload Pipeline Artifacts
         if: always()
