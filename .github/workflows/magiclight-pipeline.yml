@@ -27,6 +27,12 @@ on:
         required: true
         default: false
         type: boolean
+  schedule:
+    - cron: "*/15 * * * *"
+
+concurrency:
+  group: magiclight-pipeline
+  cancel-in-progress: true
 
 jobs:
   run-pipeline:
@@ -75,12 +81,33 @@ jobs:
         env:
           GITHUB_ACTIONS: "true"
         run: |
-          $argsStr = "--mode ${{ github.event.inputs.mode }} --max ${{ github.event.inputs.quantity }} --headless"
-          if ("${{ github.event.inputs.upload_drive }}" -eq "true") {
+          $mode = "${{ github.event.inputs.mode }}"
+          if (-not $mode) { $mode = "combined" }
+
+          $qty = "${{ github.event.inputs.quantity }}"
+          if (-not $qty) { $qty = "1" }
+
+          $uploadDrive = "${{ github.event.inputs.upload_drive }}"
+          if (-not $uploadDrive) { $uploadDrive = "true" }
+
+          $loop = "${{ github.event.inputs.loop }}"
+          if (-not $loop) { $loop = "false" }
+
+          $argsStr = "--mode $mode --max $qty --headless"
+          if ($uploadDrive -eq "true") {
               $argsStr += " --upload-drive"
           }
-          if ("${{ github.event.inputs.loop }}" -eq "true") {
+          if ($loop -eq "true") {
               $argsStr += " --loop"
           }
           
           Invoke-Expression "python main.py $argsStr"
+
+      - name: Upload Pipeline Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: magiclight-output
+          path: |
+            output/**
+            *.log

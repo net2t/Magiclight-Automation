@@ -82,7 +82,8 @@ def _dbg(msg):
     if DEBUG: console.print(f"  [dim magenta][DBG] {msg}[/dim magenta]")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-load_dotenv(override=True)
+_ENV_PATH = Path(__file__).resolve().with_name(".env")
+load_dotenv(dotenv_path=_ENV_PATH, override=True)
 
 EMAIL    = os.getenv("EMAIL", "")
 PASSWORD = os.getenv("PASSWORD", "")
@@ -241,7 +242,7 @@ def _get_sheet():
     if _ws is not None:
         return _ws
     if not SHEET_ID:
-        raise ValueError("SHEET_ID not set in .env")
+        raise ValueError(f"SHEET_ID not set in .env (cwd={os.getcwd()}, env_path={_ENV_PATH})")
     creds = _get_credentials()
     _gc = gspread.authorize(creds)
     sh = _gc.open_by_key(SHEET_ID)
