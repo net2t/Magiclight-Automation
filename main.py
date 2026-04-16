@@ -125,17 +125,28 @@ def close_browser():
     if _browser:
         try:
             _info("[browser] Closing browser...")
-            for context in _browser.contexts:
+            // Fixed: Ensure all contexts are properly closed
+            contexts_to_close = list(_browser.contexts)  // Copy list to avoid modification during iteration
+            for context in contexts_to_close:
                 try:
-                    for page in context.pages:
-                        page.close()
-                except: pass
-                context.close()
-            _browser.close()
+                    pages_to_close = list(context.pages)  // Copy list
+                    for page in pages_to_close:
+                        try:
+                            if not page.is_closed():
+                                page.close()
+                        except Exception as page_e:
+                            _dbg(f"[browser] Error closing page: {page_e}")
+                    if not context.is_closed():
+                        context.close()
+                except Exception as ctx_e:
+                    _dbg(f"[browser] Error closing context: {ctx_e}")
+            if not _browser.is_connected():
+                _browser.close()
             _browser = None
             _ok("[browser] Browser closed")
         except Exception as e:
             _warn(f"[browser] Error closing browser: {e}")
+            _browser = None  // Force reset even on error
 
 def _sig(sig, frame):
     global _shutdown, _browser
@@ -315,26 +326,69 @@ def _update_credits_login(email, total):
         return 0
 
 def _update_credits_completion(email, total, used, row_num, action, status):
-    try:
-        ws = ensure_credits_sheet()
-        remaining = max(0, total - used)
-        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        rows = ws.get_all_values()
-        found_row = None
-        for i, row in enumerate(rows[1:], start=2):
-            if row and row[0].strip().lower() == email.strip().lower():
-                found_row = i
+    // Fixed: Add thread safety and validation
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            with _sheet_update_lock:  // Prevent concurrent credit updates
+                ws = ensure_credits_sheet()
+                remaining = max(0, total - used)
+                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                // Validate inputs
+                if not email or not isinstance(email, str):
+                    _warn(f"[credits] Invalid email: {email}")
+                    return
+                
+                if not isinstance(total, (int, float)) or total < 0:
+                    _warn(f"[credits] Invalid total credits: {total}")
+                    return
+                
+                if not isinstance(used, (int, float)) or used < 0:
+                    _warn(f"[credits] Invalid used credits: {used}")
+                    return
+                
+                rows = ws.get_all_values()
+                found_row = None
+                
+                // Search for existing email row
+                for i, row in enumerate(rows[1:], start=2):
+                    if row and len(row) > 0 and row[0].strip().lower() == email.strip().lower():
+                        found_row = i
+                        break
+                
+                detail = f"{action} | Row:{row_num} | Status:{status}"
+                
+                if found_row:
+                    // Update existing row
+                    try:
+                        ws.update(f"C{found_row}:G{found_row}",
+                                  [[str(used), str(remaining), now_str, detail]])
+                        _dbg(f"[credits] Updated existing row {found_row} for {email}")
+                    except Exception as update_e:
+                        raise Exception(f"Failed to update row {found_row}: {update_e}")
+                else:
+                    // Append new row
+                    try:
+                        data = [email, str(total), str(used), str(remaining), now_str, now_str, detail]
+                        ws.append_row(data)
+                        _dbg(f"[credits] Added new row for {email}")
+                    except Exception as append_e:
+                        raise Exception(f"Failed to append row: {append_e}")
+                
+                return  // Success, exit retry loop
+                
+        except Exception as e:
+            if attempt < max_retries - 1:
+                _warn(f"[credits] Update attempt {attempt + 1} failed: {e}, retrying...")
+                sleep_log(2 ** attempt, f"credits retry {attempt + 1}")
+                // Force reconnection
+                global _cws, _gc
+                _cws = None
+                _gc = None
+            else:
+                _err(f"[credits] All update attempts failed for {email}: {e}")
                 break
-        if found_row:
-            detail = f"{action} | Row:{row_num} | Status:{status}"
-            ws.update(f"C{found_row}:G{found_row}",
-                      [[str(used), str(remaining), now_str, detail]])
-        else:
-            data = [email, str(total), str(used), str(remaining), now_str, now_str,
-                    f"{action} | Row:{row_num} | Status:{status}"]
-            ws.append_row(data)
-    except Exception as e:
-        _warn(f"[credits] Completion update error: {e}")
 
 def _col(name: str) -> int | None:
     return SHEET_SCHEMA.get(name)
@@ -351,23 +405,59 @@ def _actual_sheet_cols() -> set:
     except:
         return set(SHEET_SCHEMA.keys())
 
+import threading
+_sheet_update_lock = threading.Lock()
+
 def update_sheet_row(sheet_row_num: int, layer: str | None = None, **kw):
-    ws = _get_sheet()
-    actual_cols = _actual_sheet_cols()
-    for col_name, value in kw.items():
-        col_idx = _col(col_name)
-        if col_idx is None:
-            _dbg(f"[sheet] IGNORED unknown column '{col_name}'")
-            continue
-        # Only write if the column header exists in the actual sheet
-        if col_name not in actual_cols:
-            _dbg(f"[sheet] SKIPPED '{col_name}' — not in sheet headers")
-            continue
+    // Fixed: Add thread safety and retry logic
+    if not kw:
+        return
+    
+    max_retries = 3
+    for attempt in range(max_retries):
         try:
-            ws.update_cell(sheet_row_num, col_idx, str(value) if value is not None else "")
-            _dbg(f"[sheet] Row {sheet_row_num} col '{col_name}'({col_idx}) = '{str(value)[:40]}'")
+            with _sheet_update_lock:  // Prevent concurrent writes
+                ws = _get_sheet()
+                actual_cols = _actual_sheet_cols()
+                
+                // Validate all columns before writing
+                valid_updates = []
+                for col_name, value in kw.items():
+                    col_idx = _col(col_name)
+                    if col_idx is None:
+                        _dbg(f"[sheet] IGNORED unknown column '{col_name}'")
+                        continue
+                    if col_name not in actual_cols:
+                        _dbg(f"[sheet] SKIPPED '{col_name}' — not in sheet headers")
+                        continue
+                    valid_updates.append((col_name, col_idx, value))
+                
+                if not valid_updates:
+                    _warn(f"[sheet] No valid columns to update for row {sheet_row_num}")
+                    return
+                
+                // Batch update all valid columns
+                for col_name, col_idx, value in valid_updates:
+                    try:
+                        ws.update_cell(sheet_row_num, col_idx, str(value) if value is not None else "")
+                        _dbg(f"[sheet] Row {sheet_row_num} col '{col_name}'({col_idx}) = '{str(value)[:40]}'")
+                    except Exception as cell_e:
+                        _warn(f"[sheet] Cell update failed for {col_name}: {cell_e}")
+                        continue
+                
+                return  // Success, exit retry loop
+                
         except Exception as e:
-            _warn(f"[sheet] update_cell({col_name} → col {col_idx}): {e}")
+            if attempt < max_retries - 1:
+                _warn(f"[sheet] Update attempt {attempt + 1} failed: {e}, retrying...")
+                sleep_log(2 ** attempt, f"sheet retry {attempt + 1}")
+                // Force reconnection on retry
+                global _ws, _gc
+                _ws = None
+                _gc = None
+            else:
+                _err(f"[sheet] All update attempts failed for row {sheet_row_num}: {e}")
+                break
 
 def ensure_sheet_schema():
     ws = _get_sheet()
@@ -378,7 +468,8 @@ def ensure_sheet_schema():
     ws.update(f"A1:{end_col}1", [headers])
     _ok(f"[schema] Headers written to row 1 (A–{end_col})")
 
-def upload_to_drive(file_path, folder_name=None):
+def upload_to_drive(file_path, folder_name=None, max_retries=3):
+    // Fixed: Add comprehensive error handling and retry logic
     file_path = str(file_path)
     if not file_path or not os.path.exists(file_path):
         _warn(f"[drive] File not found: {file_path}")
@@ -386,38 +477,93 @@ def upload_to_drive(file_path, folder_name=None):
     if not DRIVE_FOLDER_ID:
         _warn("[drive] DRIVE_FOLDER_ID not set — skipping upload")
         return ""
+    
+    file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
+    if file_size_mb > 5000:  // 5GB limit
+        _warn(f"[drive] File too large ({file_size_mb:.1f}MB): {file_path}")
+        return ""
+    
     if not folder_name:
         folder_name = Path(file_path).stem.replace('_processed', '').replace('_thumb', '')
-    _info(f"[drive] Uploading {os.path.basename(file_path)}...")
-    try:
-        from googleapiclient.discovery import build
-        from googleapiclient.http import MediaFileUpload
-        creds = _get_credentials()
-        service = build('drive', 'v3', credentials=creds)
-        folder_metadata = {
-            'name': folder_name,
-            'mimeType': 'application/vnd.google-apps.folder',
-            'parents': [DRIVE_FOLDER_ID]
-        }
+    
+    _info(f"[drive] Uploading {os.path.basename(file_path)} ({file_size_mb:.1f}MB)...")
+    
+    for attempt in range(max_retries):
         try:
-            resp = service.files().list(
-                q=f"name='{folder_name}' and '{DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'",
-                fields='files(id,name)'
-            ).execute()
-            folder_id = resp['files'][0]['id'] if resp.get('files') else \
-                service.files().create(body=folder_metadata, fields='id').execute()['id']
-        except Exception:
-            folder_id = service.files().create(body=folder_metadata, fields='id').execute()['id']
-        file_metadata = {'name': os.path.basename(file_path), 'parents': [folder_id]}
-        media = MediaFileUpload(file_path, resumable=True)
-        file = service.files().create(body=file_metadata, media_body=media,
-                                       fields='id, webViewLink').execute()
-        link = file.get('webViewLink', '')
-        _ok(f"[drive] Uploaded -> {link}")
-        return link
-    except Exception as e:
-        _warn(f"[drive] Upload failed: {e}")
-        return ""
+            from googleapiclient.discovery import build
+            from googleapiclient.http import MediaFileUpload
+            creds = _get_credentials()
+            service = build('drive', 'v3', credentials=creds)
+            
+            // Create or find folder
+            folder_metadata = {
+                'name': folder_name,
+                'mimeType': 'application/vnd.google-apps.folder',
+                'parents': [DRIVE_FOLDER_ID]
+            }
+            
+            try:
+                resp = service.files().list(
+                    q=f"name='{folder_name}' and '{DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'",
+                    fields='files(id,name)'
+                ).execute()
+                folder_id = resp['files'][0]['id'] if resp.get('files') else None
+            except Exception as list_e:
+                _dbg(f"[drive] Folder list failed: {list_e}")
+                folder_id = None
+            
+            if not folder_id:
+                try:
+                    folder = service.files().create(body=folder_metadata, fields='id').execute()
+                    folder_id = folder.get('id')
+                    _dbg(f"[drive] Created folder: {folder_id}")
+                except Exception as create_e:
+                    raise Exception(f"Failed to create folder: {create_e}")
+            
+            // Upload file with progress tracking
+            file_metadata = {
+                'name': os.path.basename(file_path), 
+                'parents': [folder_id]
+            }
+            
+            media = MediaFileUpload(
+                file_path, 
+                resumable=True,
+                chunksize=1024*1024  // 1MB chunks
+            )
+            
+            request = service.files().create(
+                body=file_metadata, 
+                media_body=media,
+                fields='id, webViewLink'
+            )
+            
+            // Handle resumable upload
+            response = None
+            while response is None:
+                status, response = request.next_chunk()
+                if status:
+                    progress = int(status.progress() * 100)
+                    _dbg(f"[drive] Upload progress: {progress}%")
+                
+                if _shutdown:  // Handle graceful shutdown
+                    _warn("[drive] Upload interrupted by shutdown")
+                    return ""
+            
+            link = response.get('webViewLink', '')
+            if link:
+                _ok(f"[drive] Uploaded -> {link}")
+                return link
+            else:
+                raise Exception("No webViewLink in response")
+                
+        except Exception as e:
+            if attempt < max_retries - 1:
+                _warn(f"[drive] Upload attempt {attempt + 1} failed: {e}, retrying...")
+                sleep_log(5 + (2 ** attempt), f"drive retry {attempt + 1}")
+            else:
+                _err(f"[drive] All upload attempts failed: {e}")
+                return ""
 
 def upload_story_to_drive(story_folder, safe_name, video_path, thumb_path,
                            sheet_row_num=None):
@@ -874,14 +1020,49 @@ def _logout(page):
     except: pass
 
 def login(page, custom_email=None, custom_pw=None):
+    // Fixed: Add comprehensive login validation and session verification
     _step("[Login] Starting fresh login...")
-    try: page.context.clear_cookies()
-    except: pass
+    
+    email = custom_email or EMAIL
+    password = custom_pw or PASSWORD
+    
+    if not email or not password:
+        raise Exception("Login failed — missing credentials")
+    
+    try:
+        page.context.clear_cookies()
+        page.context.clear_permissions()
+    except Exception as e:
+        _dbg(f"[login] Cookie clear failed: {e}")
+    
     _logout(page)
-    page.goto("https://magiclight.ai/login/?to=%252Fkids-story%252F", timeout=60000)
-    try: page.wait_for_load_state("networkidle", timeout=15000)
-    except: pass
+    
+    // Navigate to login page with retry
+    login_success = False
+    for attempt in range(3):
+        try:
+            page.goto("https://magiclight.ai/login/?to=%252Fkids-story%252F", timeout=60000)
+            wait_site_loaded(page, None, timeout=30)
+            
+            // Verify we're on login page
+            if "login" in page.url.lower() or "magiclight.ai" in page.url:
+                login_success = True
+                break
+            else:
+                _warn(f"[login] Attempt {attempt + 1}: Not on login page: {page.url}")
+                sleep_log(2, f"login retry {attempt + 1}")
+        except Exception as nav_e:
+            _warn(f"[login] Navigation attempt {attempt + 1} failed: {nav_e}")
+            if attempt < 2:
+                sleep_log(3, f"login retry {attempt + 1}")
+    
+    if not login_success:
+        raise Exception("Login failed — could not navigate to login page")
+    
     sleep_log(3, "page settle")
+    dismiss_popups(page, timeout=5)
+    
+    // Click email tab with better detection
     clicked_email_tab = False
     for sel in ['.entry-email', 'text=Log in with Email',
                 'button:has-text("Log in with Email")', '[class*="entry-email"]']:
@@ -893,13 +1074,19 @@ def login(page, custom_email=None, custom_pw=None):
                 sleep_log(3, "inputs settle")
                 break
         except: pass
+    
     if not clicked_email_tab:
-        page.evaluate("""() => {
-            const el = document.querySelector('.entry-email') ||
-                       [...document.querySelectorAll('button')].find(b => b.innerText.includes('Email'));
-            if (el) el.click();
-        }""")
-        sleep_log(2)
+        try:
+            page.evaluate("""() => {
+                const el = document.querySelector('.entry-email') ||
+                           [...document.querySelectorAll('button')].find(b => b.innerText.includes('Email'));
+                if (el) el.click();
+            """)
+            sleep_log(2)
+        except Exception as js_e:
+            _dbg(f"[login] JS email tab click failed: {js_e}")
+    
+    // Fill email with validation
     email_filled = False
     for sel in ['input[type="text"]', 'input[type="email"]', 'input[name="email"]',
                 'input.arco-input', 'input[placeholder*="mail" i]']:
@@ -909,24 +1096,43 @@ def login(page, custom_email=None, custom_pw=None):
             loc.scroll_into_view_if_needed()
             loc.click()
             page.wait_for_timeout(500)
-            loc.fill(custom_email or EMAIL)
-            email_filled = True; break
+            loc.fill(email)
+            
+            // Verify email was filled
+            filled_value = loc.input_value()
+            if email.lower() in filled_value.lower():
+                email_filled = True
+                _ok(f"[login] Email filled: {email[:10]}...")
+                break
         except: continue
+    
     if not email_filled:
         screenshot(page, "login_fail_no_email")
-        raise Exception("Login failed — email input not found")
+        raise Exception("Login failed — email input not found or not fillable")
+    
     page.wait_for_timeout(500)
+    
+    // Fill password with validation
     pass_filled = False
     for sel in ['input[type="password"]', 'input[name="password"]',
                 'input[placeholder*="password" i]']:
         try:
             loc = page.locator(sel).first
             loc.wait_for(state="visible", timeout=8000)
-            loc.fill(custom_pw or PASSWORD)
-            pass_filled = True; break
+            loc.fill(password)
+            
+            // Verify password was filled (check length)
+            filled_value = loc.input_value()
+            if len(filled_value) >= len(password) * 0.8:  // Allow some tolerance
+                pass_filled = True
+                _ok("[login] Password filled")
+                break
         except: continue
+    
     if not pass_filled:
-        raise Exception("Login failed — password input not found")
+        raise Exception("Login failed — password input not found or not fillable")
+    
+    // Click continue with retry
     clicked = False
     for attempt in range(3):
         for sel in [".signin-continue", "text=Continue", "div.signin-continue",
@@ -937,36 +1143,76 @@ def login(page, custom_email=None, custom_pw=None):
                     el.click(); clicked = True; break
             except: pass
         if clicked: break
-        page.wait_for_timeout(2000)
+        if attempt < 2:
+            page.wait_for_timeout(2000)
+    
     if not clicked:
+        screenshot(page, "login_fail_no_continue")
         raise Exception("Login failed — Continue button not found")
+    
+    // Wait for redirect and verify login success
     try:
         page.wait_for_url("**/kids-story/**", timeout=30000)
-    except:
+        sleep_log(2)
+        
+        // Verify we're logged in by checking for logout options
+        logout_found = page.evaluate("""() => {
+            const logoutTexts = ['Log out','Logout','Sign out','Sign Out','Log Out'];
+            const els = Array.from(document.querySelectorAll('a,button,div,span'));
+            for (const el of els) {
+                const t = (el.innerText || '').trim();
+                if (logoutTexts.includes(t) && el.getBoundingClientRect().width > 0) {
+                    return true;
+                }
+            }
+            return false;
+        }""")
+        
+        if not logout_found:
+            _warn("[login] Login may have failed - no logout option found")
+        else:
+            _ok("[login] Login verified - logout option available")
+            
+    except Exception as redirect_e:
+        _warn(f"[login] Redirect verification failed: {redirect_e}")
         page.wait_for_timeout(5000)
+    
     _ok(f"[Login] Logged in -> {page.url}")
     page.wait_for_timeout(3000)
     dismiss_popups(page, timeout=10, sweeps=4)
     _ok("[Login] Post-login popups cleared")
+    
+    // Read credits with better error handling
     _step("[credits] Reading credits from User Center...")
     try:
         page.goto("https://magiclight.ai/user-center", timeout=45000)
-        page.wait_for_selector(".home-top-navbar-credit-amount, .credit-amount",
-                                state="visible", timeout=15000)
+        wait_site_loaded(page, None, timeout=30)
+        
+        // Wait for credit element with timeout
+        credit_selector = ".home-top-navbar-credit-amount, .credit-amount"
+        try:
+            page.wait_for_selector(credit_selector, state="visible", timeout=15000)
+        except:
+            _warn("[credits] Credit selector not visible, trying alternative")
+            
         sleep_log(2, "user center settle")
     except Exception as e:
         _warn(f"[credits] Could not load user center: {e}")
+    
     global _credits_total, _credits_used
     total, used = _read_credits_from_page(page)
     if total > 0:
         _credits_total = total
-        _update_credits_login(custom_email or EMAIL, total)
+        _update_credits_login(email, total)
+        _ok(f"[credits] Credits available: {total}")
     else:
         _warn("[credits] Could not read credit count")
+    
     try:
         page.goto("https://magiclight.ai/kids-story/", timeout=45000)
         wait_site_loaded(page, None, timeout=30)
-    except: pass
+    except Exception as final_e:
+        _warn(f"[login] Final navigation failed: {final_e}")
 
 # ── STEP 1: Story Input ───────────────────────────────────────────────────────
 def step1(page, story_text):
@@ -1720,6 +1966,14 @@ def build_ffmpeg_cmd(
     logo_x: int, logo_y: int, logo_width: int, logo_opacity: float,
     endscreen_enabled: bool, endscreen_path, profile_key: str = "1080p"
 ) -> list[str]:
+    // Validate inputs before processing
+    if not input_file.exists():
+        raise FileNotFoundError(f"Input file not found: {input_file}")
+    if not has_valid_video(input_file):
+        raise ValueError(f"Invalid video file: {input_file}")
+    if trim_seconds < 0:
+        raise ValueError(f"trim_seconds must be non-negative, got {trim_seconds}")
+    
     profile = _PROFILES.get(profile_key, _PROFILES["1080p"])
     res = profile["resolution"]
     w, h = res.split("x")
@@ -1727,12 +1981,26 @@ def build_ffmpeg_cmd(
     crf     = profile["crf"]
     preset  = profile["preset"]
     ab      = profile["audio_br"]
+    
     dur = get_duration(input_file)
-    trim_dur = max(0.1, dur - trim_seconds) if dur > trim_seconds > 0 else dur
+    if dur <= 0:
+        raise ValueError(f"Cannot determine video duration for: {input_file}")
+    
+    // Fixed trim duration calculation - prevent negative/zero duration
+    if trim_seconds >= dur:
+        _warn(f"trim_seconds ({trim_seconds}) >= video duration ({dur:.1f}), using full video")
+        trim_dur = dur
+    else:
+        trim_dur = dur - trim_seconds
+    
+    if trim_dur <= 0.1:
+        raise ValueError(f"Resulting video duration too short: {trim_dur:.1f}s")
+    
     input_has_audio = has_audio_stream(input_file)
     has_logo      = logo_path.exists() and logo_width > 0
     has_endscreen = (endscreen_enabled and endscreen_path and
                      Path(endscreen_path).exists() and has_valid_video(Path(endscreen_path)))
+    
     inputs = ["-i", str(input_file)]
     logo_idx = end_idx = None
     if has_logo:
@@ -1741,10 +2009,12 @@ def build_ffmpeg_cmd(
     if has_endscreen:
         end_idx = len(inputs) // 2
         inputs += ["-i", str(endscreen_path)]
+    
     filters = []
     filters.append(f"[0:v]trim=duration={trim_dur:.3f},setpts=PTS-STARTPTS,{scale}[base]")
     if input_has_audio:
         filters.append(f"[0:a]atrim=duration={trim_dur:.3f},asetpts=PTS-STARTPTS[main_a]")
+    
     if has_logo:
         logo_scale = f"[{logo_idx}:v]scale={logo_width}:-1[logo_s]"
         if logo_opacity < 1.0:
@@ -1757,18 +2027,35 @@ def build_ffmpeg_cmd(
         main_v = "vid_logo"
     else:
         main_v = "base"
+    
     if has_endscreen:
-        end_dur   = get_duration(Path(endscreen_path))
-        cross     = min(0.5, trim_dur * 0.04, end_dur * 0.3)
-        xfade_off = max(0, trim_dur - cross)
-        filters.append(f"[{end_idx}:v]trim=duration={end_dur:.3f},setpts=PTS-STARTPTS,{scale}[end_v]")
-        filters.append(f"[{end_idx}:a]atrim=duration={end_dur:.3f},asetpts=PTS-STARTPTS[end_a]")
-        filters.append(f"[{main_v}][end_v]xfade=transition=fade:duration={cross:.3f}:offset={xfade_off:.3f}[final_v]")
-        filters.append(f"[main_a][end_a]acrossfade=d={cross:.3f}[final_a]")
-        map_v, map_a = "[final_v]", "[final_a]"
-    else:
+        end_dur = get_duration(Path(endscreen_path))
+        if end_dur <= 0:
+            raise ValueError(f"Invalid endscreen duration: {end_dur}")
+        
+        // Fixed crossfade calculation - ensure minimum valid duration
+        cross = min(0.5, trim_dur * 0.04, end_dur * 0.3, trim_dur * 0.25)  // Max 25% of main video
+        cross = max(0.1, cross)  // Minimum 0.1s crossfade
+        
+        if cross >= trim_dur:
+            _warn(f"Crossfade duration ({cross:.1f}s) too long for video ({trim_dur:.1f}s), disabling endscreen")
+            has_endscreen = False
+        else:
+            xfade_off = max(0, trim_dur - cross)
+            filters.append(f"[{end_idx}:v]trim=duration={end_dur:.3f},setpts=PTS-STARTPTS,{scale}[end_v]")
+            if input_has_audio:
+                filters.append(f"[{end_idx}:a]atrim=duration={end_dur:.3f},asetpts=PTS-STARTPTS[end_a]")
+                filters.append(f"[{main_v}][end_v]xfade=transition=fade:duration={cross:.3f}:offset={xfade_off:.3f}[final_v]")
+                filters.append(f"[main_a][end_a]acrossfade=d={cross:.3f}[final_a]")
+                map_v, map_a = "[final_v]", "[final_a]"
+            else:
+                filters.append(f"[{main_v}][end_v]xfade=transition=fade:duration={cross:.3f}:offset={xfade_off:.3f}[final_v]")
+                map_v, map_a = "[final_v]", None
+    
+    if not has_endscreen:
         map_v = f"[{main_v}]"
         map_a = "[main_a]" if input_has_audio else None
+    
     cmd = (["ffmpeg", "-y"] + inputs +
            ["-filter_complex", ";".join(filters),
             "-map", map_v])
@@ -1785,45 +2072,91 @@ def run_ffmpeg(cmd: list[str], input_file: Path, output_file: Path,
     if dry_run:
         _info(f"[DRY-RUN] {' '.join(cmd[:6])} ...")
         return True
+    
     duration = get_duration(input_file)
+    proc = None
+    stdout_lines = []
+    
     try:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                 text=True, universal_newlines=True)
-        if _has_rich:
-            from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
-            with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
-                          BarColumn(), TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
-                          TimeElapsedColumn(), console=console) as progress:
-                task = progress.add_task(f"[cyan]Encoding {input_file.name}", total=100)
+        // Fixed: Use context manager for proper resource cleanup
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                              text=True, universal_newlines=True,
+                              bufsize=1, universal_newlines=True) as proc:
+            
+            if _has_rich:
+                from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+                with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"),
+                              BarColumn(), TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                              TimeElapsedColumn(), console=console) as progress:
+                    task = progress.add_task(f"[cyan]Encoding {input_file.name}", total=100)
+                    for line in proc.stdout:
+                        stdout_lines.append(line.strip())
+                        if "time=" in line:
+                            try:
+                                tp = line.split("time=")[1].split()[0]
+                                h, m, s = tp.split(":")
+                                cur = int(h) * 3600 + int(m) * 60 + float(s)
+                                if duration > 0:
+                                    progress.update(task, completed=min(100, int(cur/duration*100)))
+                            except: pass
+            else:
                 for line in proc.stdout:
-                    if "time=" in line:
-                        try:
-                            tp = line.split("time=")[1].split()[0]
-                            h, m, s = tp.split(":")
-                            cur = int(h) * 3600 + int(m) * 60 + float(s)
-                            if duration > 0:
-                                progress.update(task, completed=min(100, int(cur/duration*100)))
-                        except: pass
-        else:
-            for line in proc.stdout:
-                if "time=" in line: console.print(f"  {line.strip()}")
-        rc = proc.wait()
+                    stdout_lines.append(line.strip())
+                    if "time=" in line: console.print(f"  {line.strip()}")
+            
+            rc = proc.wait()
+            
         if rc == 0:
             _ok(f"Encoded -> {output_file.name}")
             return True
         else:
+            // Fixed: Log stderr output for debugging
             _err(f"FFmpeg exited with code {rc}")
+            if stdout_lines:
+                _warn("Last 5 lines of FFmpeg output:")
+                for line in stdout_lines[-5:]:
+                    _info(f"  {line}")
             return False
+            
+    except subprocess.TimeoutExpired:
+        _err(f"FFmpeg timeout for {input_file.name}")
+        if proc:
+            proc.kill()
+            proc.wait()
+        return False
     except Exception as e:
         _err(f"FFmpeg error: {e}")
+        if proc:
+            try:
+                proc.kill()
+                proc.wait()
+            except:
+                pass
         return False
 
 def process_video(input_video: Path, dry_run: bool = False) -> bool:
     if not check_ffmpeg():
         _err("FFmpeg not found. Install FFmpeg and add to PATH.")
         return False
+    
+    // Fixed: Add comprehensive input validation
+    if not input_video.exists():
+        _err(f"Input video not found: {input_video}")
+        return False
+    
+    if not has_valid_video(input_video):
+        _err(f"Invalid video file: {input_video}")
+        return False
+    
+    file_size_mb = input_video.stat().st_size / (1024 * 1024)
+    if file_size_mb < 0.1:  // Less than 100KB
+        _warn(f"Video file too small ({file_size_mb:.1f}MB): {input_video}")
+        return False
+    
     stem = input_video.stem
     row_num = extract_row_num(stem)
+    
+    // Extract title part with better error handling
     if "-Generated-" in stem:
         title_part = stem.split("-Generated-", 1)[1]
     elif "_" in stem:
@@ -1831,29 +2164,73 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
         title_part = parts[1] if len(parts) > 1 else stem
     else:
         title_part = stem
+    
+    // Generate output filename
     if row_num:
         safe_name   = _make_safe(row_num, title_part.replace("_", " "), "Processed")
         output_file = input_video.parent / f"{safe_name}{input_video.suffix}"
     else:
         output_file = input_video.parent / f"{input_video.stem}_processed{input_video.suffix}"
+    
     if output_file.exists():
         _info(f"Already processed — skipping ({output_file.name})")
         return True
+    
+    // Validate assets before processing
     endscreen_enabled = ENDSCREEN_ENABLED
     endscreen_path    = ENDSCREEN_VIDEO
-    if ENDSCREEN_ENABLED and not ENDSCREEN_VIDEO.exists():
-        _warn(f"Endscreen not found — skipping endscreen")
-        endscreen_enabled = False
-        endscreen_path    = None
-    cmd = build_ffmpeg_cmd(
-        input_file=input_video, output_file=output_file,
-        trim_seconds=TRIM_SECONDS, logo_path=LOGO_PATH,
-        logo_x=LOGO_X, logo_y=LOGO_Y, logo_width=LOGO_WIDTH,
-        logo_opacity=LOGO_OPACITY, endscreen_enabled=endscreen_enabled,
-        endscreen_path=endscreen_path
-    )
-    _info(f"Processing -> {output_file.name}")
-    return run_ffmpeg(cmd, input_video, output_file, dry_run=dry_run)
+    if ENDSCREEN_ENABLED:
+        if not ENDSCREEN_VIDEO.exists():
+            _warn(f"Endscreen not found — skipping endscreen")
+            endscreen_enabled = False
+            endscreen_path    = None
+        elif not has_valid_video(ENDSCREEN_VIDEO):
+            _warn(f"Endscreen video invalid — skipping endscreen")
+            endscreen_enabled = False
+            endscreen_path    = None
+    
+    if not LOGO_PATH.exists():
+        _warn(f"Logo not found: {LOGO_PATH}")
+    
+    try:
+        cmd = build_ffmpeg_cmd(
+            input_file=input_video, output_file=output_file,
+            trim_seconds=TRIM_SECONDS, logo_path=LOGO_PATH,
+            logo_x=LOGO_X, logo_y=LOGO_Y, logo_width=LOGO_WIDTH,
+            logo_opacity=LOGO_OPACITY, endscreen_enabled=endscreen_enabled,
+            endscreen_path=endscreen_path
+        )
+        _info(f"Processing -> {output_file.name}")
+        success = run_ffmpeg(cmd, input_video, output_file, dry_run=dry_run)
+        
+        // Fixed: Validate output file after processing
+        if success and not dry_run:
+            if not output_file.exists():
+                _err(f"Output file not created: {output_file}")
+                return False
+            if not has_valid_video(output_file):
+                _err(f"Output file invalid: {output_file}")
+                try:
+                    output_file.unlink()  // Remove corrupt file
+                except:
+                    pass
+                return False
+            
+            output_size_mb = output_file.stat().st_size / (1024 * 1024)
+            _ok(f"Processing complete: {output_size_mb:.1f}MB")
+        
+        return success
+        
+    except Exception as e:
+        _err(f"Processing failed: {e}")
+        // Clean up partial output file on failure
+        if output_file.exists():
+            try:
+                output_file.unlink()
+                _info(f"Cleaned up partial file: {output_file}")
+            except:
+                pass
+        return False
 
 def process_all(cfg: dict, videos: list[Path] = None,
                 dry_run: bool = False, upload: bool = False) -> int:
@@ -2136,22 +2513,60 @@ def _run_pipeline_core(limit, source_type="auto"):
         except Exception as ce:
             _dbg(f"[credits] credit_before read failed: {ce}")
             credit_before = max(0, _credits_total - _credits_used)
+        // Fixed: Add atomic account rotation with proper cleanup
         if credit_before == 0 or (credit_before > 0 and credit_before < 70):
+            _warn(f"[Rotate] Account {curr_email} exhausted (credits: {credit_before})")
+            
+            // Clean up current context before switching
+            try:
+                if 'context' in locals() and context:
+                    if not context.is_closed():
+                        context.close()
+            except Exception as cleanup_e:
+                _dbg(f"[rotate] Context cleanup error: {cleanup_e}")
+            
             account_idx += 1
             if account_idx >= len(accounts):
                 _err("All accounts exhausted — stopping."); break
+            
             _credits_total = 0; _credits_used = 0
             curr_email, curr_pw = accounts[account_idx]
             os.environ["CURRENT_EMAIL"] = curr_email
-            _step(f"[Rotate] Switching to {curr_email} (credit={credit_before})")
-            try:
-                context.close()
-                context = _browser.new_context(accept_downloads=True, no_viewport=True)
-                page = context.new_page()
-                login(page, custom_email=curr_email, custom_pw=curr_pw)
-                credit_before, _ = _read_credits_from_page(page)
-            except Exception as re_err:
-                _err(f"Login failed during rotation: {re_err}"); break
+            
+            _step(f"[Rotate] Switching to {curr_email}")
+            
+            // Create new context and login with retry
+            rotation_success = False
+            for rotation_attempt in range(2):
+                try:
+                    context = _browser.new_context(accept_downloads=True, no_viewport=True)
+                    page = context.new_page()
+                    
+                    login(page, custom_email=curr_email, custom_pw=curr_pw)
+                    
+                    // Verify new account has credits
+                    credit_before, _ = _read_credits_from_page(page)
+                    if credit_before >= 70:
+                        _ok(f"[Rotate] Successfully switched to {curr_email} (credits: {credit_before})")
+                        rotation_success = True
+                        break
+                    else:
+                        _warn(f"[Rotate] New account also low on credits: {credit_before}")
+                        if not context.is_closed():
+                            context.close()
+                        
+                except Exception as re_err:
+                    _warn(f"[Rotate] Rotation attempt {rotation_attempt + 1} failed: {re_err}")
+                    try:
+                        if 'context' in locals() and context and not context.is_closed():
+                            context.close()
+                    except:
+                        pass
+                    sleep_log(3, f"rotation retry {rotation_attempt + 1}")
+            
+            if not rotation_success:
+                _err(f"[Rotate] Failed to switch to account {curr_email}")
+                break
         vals = list(row.values())
         col_c = str(vals[2]).strip() if len(vals) > 2 else ""
         col_d = str(vals[3]).strip() if len(vals) > 3 else ""
