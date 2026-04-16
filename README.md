@@ -45,7 +45,7 @@ playwright install chromium
 Copy `.env.example` to `.env` and fill it out:
 
 ```bash
-cp .env.example .env
+   cp .env.example .env
 ```
 > **Note:** The script relies entirely on `.env` and authentication files. 
 
