@@ -125,11 +125,11 @@ def close_browser():
     if _browser:
         try:
             _info("[browser] Closing browser...")
-            // Fixed: Ensure all contexts are properly closed
-            contexts_to_close = list(_browser.contexts)  // Copy list to avoid modification during iteration
+            # Fixed: Ensure all contexts are properly closed
+            contexts_to_close = list(_browser.contexts)  # Copy list to avoid modification during iteration
             for context in contexts_to_close:
                 try:
-                    pages_to_close = list(context.pages)  // Copy list
+                    pages_to_close = list(context.pages)  # Copy list
                     for page in pages_to_close:
                         try:
                             if not page.is_closed():
@@ -146,7 +146,7 @@ def close_browser():
             _ok("[browser] Browser closed")
         except Exception as e:
             _warn(f"[browser] Error closing browser: {e}")
-            _browser = None  // Force reset even on error
+            _browser = None  # Force reset even on error
 
 def _sig(sig, frame):
     global _shutdown, _browser
@@ -326,16 +326,16 @@ def _update_credits_login(email, total):
         return 0
 
 def _update_credits_completion(email, total, used, row_num, action, status):
-    // Fixed: Add thread safety and validation
+    # Fixed: Add thread safety and validation
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            with _sheet_update_lock:  // Prevent concurrent credit updates
+            with _sheet_update_lock:  # Prevent concurrent credit updates
                 ws = ensure_credits_sheet()
                 remaining = max(0, total - used)
                 now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 
-                // Validate inputs
+                # Validate inputs
                 if not email or not isinstance(email, str):
                     _warn(f"[credits] Invalid email: {email}")
                     return
@@ -351,7 +351,7 @@ def _update_credits_completion(email, total, used, row_num, action, status):
                 rows = ws.get_all_values()
                 found_row = None
                 
-                // Search for existing email row
+                # Search for existing email row
                 for i, row in enumerate(rows[1:], start=2):
                     if row and len(row) > 0 and row[0].strip().lower() == email.strip().lower():
                         found_row = i
@@ -360,7 +360,7 @@ def _update_credits_completion(email, total, used, row_num, action, status):
                 detail = f"{action} | Row:{row_num} | Status:{status}"
                 
                 if found_row:
-                    // Update existing row
+                    # Update existing row
                     try:
                         ws.update(f"C{found_row}:G{found_row}",
                                   [[str(used), str(remaining), now_str, detail]])
@@ -368,7 +368,7 @@ def _update_credits_completion(email, total, used, row_num, action, status):
                     except Exception as update_e:
                         raise Exception(f"Failed to update row {found_row}: {update_e}")
                 else:
-                    // Append new row
+                    # Append new row
                     try:
                         data = [email, str(total), str(used), str(remaining), now_str, now_str, detail]
                         ws.append_row(data)
@@ -376,13 +376,13 @@ def _update_credits_completion(email, total, used, row_num, action, status):
                     except Exception as append_e:
                         raise Exception(f"Failed to append row: {append_e}")
                 
-                return  // Success, exit retry loop
+                return  # Success, exit retry loop
                 
         except Exception as e:
             if attempt < max_retries - 1:
                 _warn(f"[credits] Update attempt {attempt + 1} failed: {e}, retrying...")
                 sleep_log(2 ** attempt, f"credits retry {attempt + 1}")
-                // Force reconnection
+                # Force reconnection
                 global _cws, _gc
                 _cws = None
                 _gc = None
@@ -409,18 +409,18 @@ import threading
 _sheet_update_lock = threading.Lock()
 
 def update_sheet_row(sheet_row_num: int, layer: str | None = None, **kw):
-    // Fixed: Add thread safety and retry logic
+    # Fixed: Add thread safety and retry logic
     if not kw:
         return
     
     max_retries = 3
     for attempt in range(max_retries):
         try:
-            with _sheet_update_lock:  // Prevent concurrent writes
+            with _sheet_update_lock:  # Prevent concurrent writes
                 ws = _get_sheet()
                 actual_cols = _actual_sheet_cols()
                 
-                // Validate all columns before writing
+                # Validate all columns before writing
                 valid_updates = []
                 for col_name, value in kw.items():
                     col_idx = _col(col_name)
@@ -436,7 +436,7 @@ def update_sheet_row(sheet_row_num: int, layer: str | None = None, **kw):
                     _warn(f"[sheet] No valid columns to update for row {sheet_row_num}")
                     return
                 
-                // Batch update all valid columns
+                # Batch update all valid columns
                 for col_name, col_idx, value in valid_updates:
                     try:
                         ws.update_cell(sheet_row_num, col_idx, str(value) if value is not None else "")
@@ -445,13 +445,13 @@ def update_sheet_row(sheet_row_num: int, layer: str | None = None, **kw):
                         _warn(f"[sheet] Cell update failed for {col_name}: {cell_e}")
                         continue
                 
-                return  // Success, exit retry loop
+                return  # Success, exit retry loop
                 
         except Exception as e:
             if attempt < max_retries - 1:
                 _warn(f"[sheet] Update attempt {attempt + 1} failed: {e}, retrying...")
                 sleep_log(2 ** attempt, f"sheet retry {attempt + 1}")
-                // Force reconnection on retry
+                # Force reconnection on retry
                 global _ws, _gc
                 _ws = None
                 _gc = None
@@ -469,7 +469,7 @@ def ensure_sheet_schema():
     _ok(f"[schema] Headers written to row 1 (A–{end_col})")
 
 def upload_to_drive(file_path, folder_name=None, max_retries=3):
-    // Fixed: Add comprehensive error handling and retry logic
+    # Fixed: Add comprehensive error handling and retry logic
     file_path = str(file_path)
     if not file_path or not os.path.exists(file_path):
         _warn(f"[drive] File not found: {file_path}")
@@ -479,7 +479,7 @@ def upload_to_drive(file_path, folder_name=None, max_retries=3):
         return ""
     
     file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
-    if file_size_mb > 5000:  // 5GB limit
+    if file_size_mb > 5000:  # 5GB limit
         _warn(f"[drive] File too large ({file_size_mb:.1f}MB): {file_path}")
         return ""
     
@@ -495,7 +495,7 @@ def upload_to_drive(file_path, folder_name=None, max_retries=3):
             creds = _get_credentials()
             service = build('drive', 'v3', credentials=creds)
             
-            // Create or find folder
+            # Create or find folder
             folder_metadata = {
                 'name': folder_name,
                 'mimeType': 'application/vnd.google-apps.folder',
@@ -520,7 +520,7 @@ def upload_to_drive(file_path, folder_name=None, max_retries=3):
                 except Exception as create_e:
                     raise Exception(f"Failed to create folder: {create_e}")
             
-            // Upload file with progress tracking
+            # Upload file with progress tracking
             file_metadata = {
                 'name': os.path.basename(file_path), 
                 'parents': [folder_id]
@@ -529,7 +529,7 @@ def upload_to_drive(file_path, folder_name=None, max_retries=3):
             media = MediaFileUpload(
                 file_path, 
                 resumable=True,
-                chunksize=1024*1024  // 1MB chunks
+                chunksize=1024*1024  # 1MB chunks
             )
             
             request = service.files().create(
@@ -538,7 +538,7 @@ def upload_to_drive(file_path, folder_name=None, max_retries=3):
                 fields='id, webViewLink'
             )
             
-            // Handle resumable upload
+            # Handle resumable upload
             response = None
             while response is None:
                 status, response = request.next_chunk()
@@ -546,7 +546,7 @@ def upload_to_drive(file_path, folder_name=None, max_retries=3):
                     progress = int(status.progress() * 100)
                     _dbg(f"[drive] Upload progress: {progress}%")
                 
-                if _shutdown:  // Handle graceful shutdown
+                if _shutdown:  # Handle graceful shutdown
                     _warn("[drive] Upload interrupted by shutdown")
                     return ""
             
@@ -1020,7 +1020,7 @@ def _logout(page):
     except: pass
 
 def login(page, custom_email=None, custom_pw=None):
-    // Fixed: Add comprehensive login validation and session verification
+    # Fixed: Add comprehensive login validation and session verification
     _step("[Login] Starting fresh login...")
     
     email = custom_email or EMAIL
@@ -1037,14 +1037,14 @@ def login(page, custom_email=None, custom_pw=None):
     
     _logout(page)
     
-    // Navigate to login page with retry
+    # Navigate to login page with retry
     login_success = False
     for attempt in range(3):
         try:
             page.goto("https://magiclight.ai/login/?to=%252Fkids-story%252F", timeout=60000)
             wait_site_loaded(page, None, timeout=30)
             
-            // Verify we're on login page
+            # Verify we're on login page
             if "login" in page.url.lower() or "magiclight.ai" in page.url:
                 login_success = True
                 break
@@ -1062,7 +1062,7 @@ def login(page, custom_email=None, custom_pw=None):
     sleep_log(3, "page settle")
     dismiss_popups(page, timeout=5)
     
-    // Click email tab with better detection
+    # Click email tab with better detection
     clicked_email_tab = False
     for sel in ['.entry-email', 'text=Log in with Email',
                 'button:has-text("Log in with Email")', '[class*="entry-email"]']:
@@ -1086,7 +1086,7 @@ def login(page, custom_email=None, custom_pw=None):
         except Exception as js_e:
             _dbg(f"[login] JS email tab click failed: {js_e}")
     
-    // Fill email with validation
+    # Fill email with validation
     email_filled = False
     for sel in ['input[type="text"]', 'input[type="email"]', 'input[name="email"]',
                 'input.arco-input', 'input[placeholder*="mail" i]']:
@@ -1098,7 +1098,7 @@ def login(page, custom_email=None, custom_pw=None):
             page.wait_for_timeout(500)
             loc.fill(email)
             
-            // Verify email was filled
+            # Verify email was filled
             filled_value = loc.input_value()
             if email.lower() in filled_value.lower():
                 email_filled = True
@@ -1112,7 +1112,7 @@ def login(page, custom_email=None, custom_pw=None):
     
     page.wait_for_timeout(500)
     
-    // Fill password with validation
+    # Fill password with validation
     pass_filled = False
     for sel in ['input[type="password"]', 'input[name="password"]',
                 'input[placeholder*="password" i]']:
@@ -1121,9 +1121,9 @@ def login(page, custom_email=None, custom_pw=None):
             loc.wait_for(state="visible", timeout=8000)
             loc.fill(password)
             
-            // Verify password was filled (check length)
+            # Verify password was filled (check length)
             filled_value = loc.input_value()
-            if len(filled_value) >= len(password) * 0.8:  // Allow some tolerance
+            if len(filled_value) >= len(password) * 0.8:  # Allow some tolerance
                 pass_filled = True
                 _ok("[login] Password filled")
                 break
@@ -1132,7 +1132,7 @@ def login(page, custom_email=None, custom_pw=None):
     if not pass_filled:
         raise Exception("Login failed — password input not found or not fillable")
     
-    // Click continue with retry
+    # Click continue with retry
     clicked = False
     for attempt in range(3):
         for sel in [".signin-continue", "text=Continue", "div.signin-continue",
@@ -1150,12 +1150,12 @@ def login(page, custom_email=None, custom_pw=None):
         screenshot(page, "login_fail_no_continue")
         raise Exception("Login failed — Continue button not found")
     
-    // Wait for redirect and verify login success
+    # Wait for redirect and verify login success
     try:
         page.wait_for_url("**/kids-story/**", timeout=30000)
         sleep_log(2)
         
-        // Verify we're logged in by checking for logout options
+        # Verify we're logged in by checking for logout options
         logout_found = page.evaluate("""() => {
             const logoutTexts = ['Log out','Logout','Sign out','Sign Out','Log Out'];
             const els = Array.from(document.querySelectorAll('a,button,div,span'));
@@ -1182,13 +1182,13 @@ def login(page, custom_email=None, custom_pw=None):
     dismiss_popups(page, timeout=10, sweeps=4)
     _ok("[Login] Post-login popups cleared")
     
-    // Read credits with better error handling
+    # Read credits with better error handling
     _step("[credits] Reading credits from User Center...")
     try:
         page.goto("https://magiclight.ai/user-center", timeout=45000)
         wait_site_loaded(page, None, timeout=30)
         
-        // Wait for credit element with timeout
+        # Wait for credit element with timeout
         credit_selector = ".home-top-navbar-credit-amount, .credit-amount"
         try:
             page.wait_for_selector(credit_selector, state="visible", timeout=15000)
@@ -1966,7 +1966,7 @@ def build_ffmpeg_cmd(
     logo_x: int, logo_y: int, logo_width: int, logo_opacity: float,
     endscreen_enabled: bool, endscreen_path, profile_key: str = "1080p"
 ) -> list[str]:
-    // Validate inputs before processing
+    # Validate inputs before processing
     if not input_file.exists():
         raise FileNotFoundError(f"Input file not found: {input_file}")
     if not has_valid_video(input_file):
@@ -1986,7 +1986,7 @@ def build_ffmpeg_cmd(
     if dur <= 0:
         raise ValueError(f"Cannot determine video duration for: {input_file}")
     
-    // Fixed trim duration calculation - prevent negative/zero duration
+    # Fixed trim duration calculation - prevent negative/zero duration
     if trim_seconds >= dur:
         _warn(f"trim_seconds ({trim_seconds}) >= video duration ({dur:.1f}), using full video")
         trim_dur = dur
@@ -2033,9 +2033,9 @@ def build_ffmpeg_cmd(
         if end_dur <= 0:
             raise ValueError(f"Invalid endscreen duration: {end_dur}")
         
-        // Fixed crossfade calculation - ensure minimum valid duration
-        cross = min(0.5, trim_dur * 0.04, end_dur * 0.3, trim_dur * 0.25)  // Max 25% of main video
-        cross = max(0.1, cross)  // Minimum 0.1s crossfade
+        # Fixed crossfade calculation - ensure minimum valid duration
+        cross = min(0.5, trim_dur * 0.04, end_dur * 0.3, trim_dur * 0.25)  # Max 25% of main video
+        cross = max(0.1, cross)  # Minimum 0.1s crossfade
         
         if cross >= trim_dur:
             _warn(f"Crossfade duration ({cross:.1f}s) too long for video ({trim_dur:.1f}s), disabling endscreen")
@@ -2078,10 +2078,10 @@ def run_ffmpeg(cmd: list[str], input_file: Path, output_file: Path,
     stdout_lines = []
     
     try:
-        // Fixed: Use context manager for proper resource cleanup
+        # Fixed: Use context manager for proper resource cleanup
         with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                               text=True, universal_newlines=True,
-                              bufsize=1, universal_newlines=True) as proc:
+                              bufsize=1) as proc:
             
             if _has_rich:
                 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
@@ -2110,7 +2110,7 @@ def run_ffmpeg(cmd: list[str], input_file: Path, output_file: Path,
             _ok(f"Encoded -> {output_file.name}")
             return True
         else:
-            // Fixed: Log stderr output for debugging
+            # Fixed: Log stderr output for debugging
             _err(f"FFmpeg exited with code {rc}")
             if stdout_lines:
                 _warn("Last 5 lines of FFmpeg output:")
@@ -2139,7 +2139,7 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
         _err("FFmpeg not found. Install FFmpeg and add to PATH.")
         return False
     
-    // Fixed: Add comprehensive input validation
+    # Fixed: Add comprehensive input validation
     if not input_video.exists():
         _err(f"Input video not found: {input_video}")
         return False
@@ -2149,14 +2149,14 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
         return False
     
     file_size_mb = input_video.stat().st_size / (1024 * 1024)
-    if file_size_mb < 0.1:  // Less than 100KB
+    if file_size_mb < 0.1:  # Less than 100KB
         _warn(f"Video file too small ({file_size_mb:.1f}MB): {input_video}")
         return False
     
     stem = input_video.stem
     row_num = extract_row_num(stem)
     
-    // Extract title part with better error handling
+    # Extract title part with better error handling
     if "-Generated-" in stem:
         title_part = stem.split("-Generated-", 1)[1]
     elif "_" in stem:
@@ -2165,7 +2165,7 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
     else:
         title_part = stem
     
-    // Generate output filename
+    # Generate output filename
     if row_num:
         safe_name   = _make_safe(row_num, title_part.replace("_", " "), "Processed")
         output_file = input_video.parent / f"{safe_name}{input_video.suffix}"
@@ -2176,7 +2176,7 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
         _info(f"Already processed — skipping ({output_file.name})")
         return True
     
-    // Validate assets before processing
+    # Validate assets before processing
     endscreen_enabled = ENDSCREEN_ENABLED
     endscreen_path    = ENDSCREEN_VIDEO
     if ENDSCREEN_ENABLED:
@@ -2203,7 +2203,7 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
         _info(f"Processing -> {output_file.name}")
         success = run_ffmpeg(cmd, input_video, output_file, dry_run=dry_run)
         
-        // Fixed: Validate output file after processing
+        # Fixed: Validate output file after processing
         if success and not dry_run:
             if not output_file.exists():
                 _err(f"Output file not created: {output_file}")
@@ -2211,7 +2211,7 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
             if not has_valid_video(output_file):
                 _err(f"Output file invalid: {output_file}")
                 try:
-                    output_file.unlink()  // Remove corrupt file
+                    output_file.unlink()  # Remove corrupt file
                 except:
                     pass
                 return False
@@ -2223,7 +2223,7 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
         
     except Exception as e:
         _err(f"Processing failed: {e}")
-        // Clean up partial output file on failure
+        # Clean up partial output file on failure
         if output_file.exists():
             try:
                 output_file.unlink()
@@ -2513,11 +2513,11 @@ def _run_pipeline_core(limit, source_type="auto"):
         except Exception as ce:
             _dbg(f"[credits] credit_before read failed: {ce}")
             credit_before = max(0, _credits_total - _credits_used)
-        // Fixed: Add atomic account rotation with proper cleanup
+        # Fixed: Add atomic account rotation with proper cleanup
         if credit_before == 0 or (credit_before > 0 and credit_before < 70):
             _warn(f"[Rotate] Account {curr_email} exhausted (credits: {credit_before})")
             
-            // Clean up current context before switching
+            # Clean up current context before switching
             try:
                 if 'context' in locals() and context:
                     if not context.is_closed():
@@ -2535,7 +2535,7 @@ def _run_pipeline_core(limit, source_type="auto"):
             
             _step(f"[Rotate] Switching to {curr_email}")
             
-            // Create new context and login with retry
+            # Create new context and login with retry
             rotation_success = False
             for rotation_attempt in range(2):
                 try:
@@ -2544,7 +2544,7 @@ def _run_pipeline_core(limit, source_type="auto"):
                     
                     login(page, custom_email=curr_email, custom_pw=curr_pw)
                     
-                    // Verify new account has credits
+                    # Verify new account has credits
                     credit_before, _ = _read_credits_from_page(page)
                     if credit_before >= 70:
                         _ok(f"[Rotate] Successfully switched to {curr_email} (credits: {credit_before})")
