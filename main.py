@@ -2135,7 +2135,7 @@ def _run_pipeline_core(limit, source_type="auto"):
         except Exception as ce:
             _dbg(f"[credits] credit_before read failed: {ce}")
             credit_before = max(0, _credits_total - _credits_used)
-        if credit_before > 0 and credit_before < 70:
+        if credit_before == 0 or (credit_before > 0 and credit_before < 70):
             account_idx += 1
             if account_idx >= len(accounts):
                 _err("All accounts exhausted — stopping."); break
