@@ -588,7 +588,7 @@ td.muted{color:var(--muted)}
 <div class="tab-pane" id="pane-stories">
 
   <div class="toolbar">
-    <input class="search-box" id="story-search" placeholder="Search title, theme, notes…" oninput="storySearch()">
+    <input class="search-box" id="story-search" placeholder="Search title, theme, notes…" oninput="handleStorySearch()">
     <div id="story-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
     <button class="btn btn-primary btn-sm" onclick="loadStories(1)">↻</button>
   </div>
@@ -1368,7 +1368,7 @@ function setStoryFilter(f, el) {
   loadStories(1);
 }
 
-function storySearch() {
+function handleStorySearch() {
   storySearch = document.getElementById('story-search').value;
   storyPage = 1;
   loadStories(1);
