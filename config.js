@@ -14,7 +14,7 @@ const CONFIG = {
   DEFAULT_ACCOUNTS: [
     {
       theme: 'Teamwork',
-      channel: 'Bright Little Stories',
+      channel: 'The OutLawZ ™',
       channelId: 'UC2FdFOP-XrLFlWN9VJWmYWQ',
       email: 'net2tara@gmail.com',
       category: '27',
