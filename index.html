@@ -1060,7 +1060,7 @@ td.muted{color:var(--muted)}
 const CFG = {
   // ← Paste your deployed Apps Script Web App URL here
   APPS_SCRIPT_URL: localStorage.getItem('ml_apps_script_url') ||
-    'https://script.google.com/macros/s/AKfycbxMLY2i7pgJqU5drVMzPkGWCqMh-E90Oj03bo2nhJadZaNOWVeVfnfyWvGOFL0Z3hz3Aw/exec',
+    'https://script.google.com/macros/s/AKfycbxSy_wzMGtF8Y6vY99gqdeOrLZSowKzLL33K_RO-yaezSHbEKgZJInBo1vJgwuL1wT7Ag/exec',
 
   // Public CSV export URL of your Google Sheet
   SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?gid=2087344095&single=true&output=csv',
@@ -1096,12 +1096,62 @@ async function api(action, params = {}) {
     throw new Error('APPS_SCRIPT_URL not configured');
   }
 
-  const res  = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify({ action, ...params })
-  });
-  const data = await res.json();
-  return data;
+  try {
+    const res  = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action, ...params }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    console.error('API call failed:', e);
+    toast(`🔴 Backend error: ${e.message}`, 'error');
+    throw e;
+  }
+}
+
+// Fallback: Load data directly from Google Sheet CSV
+async function loadSheetCSV() {
+  try {
+    const response = await fetch(CFG.SHEET_URL);
+    if (!response.ok) {
+      throw new Error(`Sheet CSV error: ${response.status}`);
+    }
+    const csv = await response.text();
+    return parseCSV(csv);
+  } catch (e) {
+    console.error('CSV loading failed:', e);
+    toast('🔴 Cannot load Google Sheet data', 'error');
+    return null;
+  }
+}
+
+// Simple CSV parser
+function parseCSV(csv) {
+  const lines = csv.split('\n').filter(line => line.trim());
+  if (lines.length < 2) return [];
+  
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  const rows = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+    if (values.length >= headers.length) {
+      const row = {};
+      headers.forEach((header, idx) => {
+        row[header] = values[idx] || '';
+      });
+      rows.push(row);
+    }
+  }
+  
+  return rows;
 }
 
 
@@ -1134,24 +1184,81 @@ function switchTab(name, el) {
 
 async function loadDashboard() {
   try {
+    document.getElementById('hdr-status').textContent = 'Loading…';
+    document.getElementById('hdr-sheet').textContent = 'Connecting…';
+    
     const data = await api('getStats');
-    if (!data.success) return;
+    if (!data.success) {
+      // Try fallback to CSV loading
+      const csvData = await loadSheetCSV();
+      if (csvData) {
+        const stats = calculateStatsFromCSV(csvData);
+        updateDashboardUI(stats);
+        document.getElementById('hdr-sheet').textContent = 'CSV Mode';
+        document.getElementById('hdr-status').textContent = stats.total + ' stories';
+        return;
+      }
+      throw new Error('Backend unavailable and CSV fallback failed');
+    }
+    
     const s = data.stats;
-
-    // Update badge
-    document.getElementById('badge-pending').textContent = s.pending || 0;
-    document.getElementById('hdr-status').textContent = s.total + ' stories';
+    updateDashboardUI(s);
     document.getElementById('hdr-sheet').textContent = 'Connected';
-
-    // Stat cards
+    document.getElementById('hdr-status').textContent = s.total + ' stories';
+    
+  } catch (e) {
+    console.error('Dashboard load failed:', e);
+    document.getElementById('hdr-status').textContent = 'Error';
+    document.getElementById('hdr-sheet').textContent = 'Offline';
     document.getElementById('dash-stats').innerHTML = `
-      <div class="stat-card">       <div class="stat-n">${s.total||0}</div>   <div class="stat-l">Total Stories</div></div>
-      <div class="stat-card green"> <div class="stat-n">${s.done||0}</div>    <div class="stat-l">Done ✓</div></div>
-      <div class="stat-card">       <div class="stat-n">${s.pending||0}</div> <div class="stat-l">Pending</div></div>
-      <div class="stat-card orange"><div class="stat-n">${s.generated||0}</div><div class="stat-l">Generated</div></div>
-      <div class="stat-card red">   <div class="stat-n">${s.error||0}</div>  <div class="stat-l">Errors</div></div>
-      <div class="stat-card purple"><div class="stat-n">${s.scheduled||0}</div><div class="stat-l">Scheduled</div></div>
+      <div class="warn-box">
+        <strong>🔴 Connection Error</strong><br>
+        Cannot load data from backend or Google Sheet.<br>
+        Please check:<br>
+        • Apps Script URL is correct<br>
+        • Google Sheet is publicly accessible<br>
+        • Backend is deployed and running
+      </div>
     `;
+  }
+}
+
+function updateDashboardUI(s) {
+  // Update badge
+  document.getElementById('badge-pending').textContent = s.pending || 0;
+
+  // Stat cards
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card">       <div class="stat-n">${s.total||0}</div>   <div class="stat-l">Total Stories</div></div>
+    <div class="stat-card green"> <div class="stat-n">${s.done||0}</div>    <div class="stat-l">Done ✓</div></div>
+    <div class="stat-card">       <div class="stat-n">${s.pending||0}</div> <div class="stat-l">Pending</div></div>
+    <div class="stat-card orange"><div class="stat-n">${s.generated||0}</div><div class="stat-l">Generated</div></div>
+    <div class="stat-card red">   <div class="stat-n">${s.error||0}</div>  <div class="stat-l">Errors</div></div>
+    <div class="stat-card purple"><div class="stat-n">${s.scheduled||0}</div><div class="stat-l">Scheduled</div></div>
+  `;
+}
+
+function calculateStatsFromCSV(rows) {
+  const stats = {
+    total: rows.length,
+    done: 0,
+    pending: 0,
+    generated: 0,
+    error: 0,
+    scheduled: 0
+  };
+  
+  rows.forEach(row => {
+    const status = (row.Status || '').toLowerCase();
+    if (status === 'done') stats.done++;
+    else if (status === 'pending') stats.pending++;
+    else if (status === 'generated') stats.generated++;
+    else if (status.includes('error')) stats.error++;
+    else if (status === 'scheduled') stats.scheduled++;
+  });
+  
+  return stats;
+}
 
     // Quota meter (based on done count this day — approximate)
     const used     = (s.done||0) * 1600;
