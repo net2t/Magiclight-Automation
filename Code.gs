@@ -26,7 +26,7 @@
 
 // Google Sheet ID — change this to your actual sheet ID
 // Found in sheet URL: docs.google.com/spreadsheets/d/SHEET_ID/edit
-var SHEET_ID   = '13XaxmGZmkKAeY4B9WIp1zETJMhdK-A5N6l_w5hFQoCQ'; // ← paste your Sheet ID here
+var SHEET_ID   = '2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB'; // ← paste your Sheet ID here
 
 // Sheet tab name that holds story data
 var SHEET_NAME = 'Database';

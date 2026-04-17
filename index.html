@@ -1089,6 +1089,7 @@ let cachedRows     = [];      // all story rows cache
  */
 async function api(action, params = {}) {
   const url = CFG.APPS_SCRIPT_URL;
+  console.log(`[API] Calling ${action} at ${url}`);
 
   // Warn if URL not configured
   if (url.includes('YOUR_DEPLOYMENT_ID')) {
@@ -1097,21 +1098,35 @@ async function api(action, params = {}) {
   }
 
   try {
+    const payload = JSON.stringify({ action, ...params });
+    console.log(`[API] Payload:`, payload);
+    
     const res  = await fetch(url, {
       method: 'POST',
-      body: JSON.stringify({ action, ...params }),
+      body: payload,
       headers: { 'Content-Type': 'application/json' }
     });
     
+    console.log(`[API] Response status: ${res.status} ${res.statusText}`);
+    
     if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`[API] HTTP Error Response:`, errorText);
       throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
     
     const data = await res.json();
+    console.log(`[API] Response data:`, data);
+    
+    if (!data.success) {
+      console.error(`[API] Backend error:`, data.error);
+      toast(`🔴 Backend error: ${data.error}`, 'error');
+    }
+    
     return data;
   } catch (e) {
-    console.error('API call failed:', e);
-    toast(`🔴 Backend error: ${e.message}`, 'error');
+    console.error('[API] Call failed:', e);
+    toast(`🔴 Connection error: ${e.message}`, 'error');
     throw e;
   }
 }
