@@ -979,3 +979,77 @@ function setupTrigger() {
     .create();
   Logger.log('Hourly trigger set for autoUploadTrigger');
 }
+
+/**
+ * clearAllTokens — removes all stored OAuth tokens for deauthorization
+ * Run this function manually to clear all YouTube authorizations
+ */
+function clearAllTokens() {
+  var props = PropertiesService.getScriptProperties();
+  var keys = props.getKeys();
+  var cleared = 0;
+  
+  keys.forEach(function(key) {
+    if (key.indexOf('TOKEN_') === 0) {
+      props.deleteProperty(key);
+      cleared++;
+    }
+  });
+  
+  Logger.log('Cleared ' + cleared + ' OAuth tokens');
+  return { success: true, cleared: cleared };
+}
+
+/**
+ * testAuthorization — verifies current YouTube authorization status
+ */
+function testAuthorization() {
+  try {
+    var channels = YouTube.Channels.list('snippet', { mine: true });
+    var channel = channels.items && channels.items.length > 0 ? channels.items[0] : null;
+    
+    if (channel) {
+      Logger.log('Authorization successful!');
+      Logger.log('Channel: ' + channel.snippet.title);
+      Logger.log('Channel ID: ' + channel.id);
+      return { 
+        success: true, 
+        channel: channel.snippet.title,
+        channelId: channel.id,
+        subscribers: channel.statistics ? channel.statistics.subscriberCount : 'N/A'
+      };
+    } else {
+      Logger.log('No channels found - authorization may be incomplete');
+      return { success: false, error: 'No channels found' };
+    }
+  } catch (err) {
+    Logger.log('Authorization test failed: ' + err.toString());
+    return { success: false, error: err.toString() };
+  }
+}
+
+/**
+ * forceReauthorization — clears tokens and triggers fresh authorization
+ */
+function forceReauthorization() {
+  Logger.log('Starting force reauthorization process...');
+  
+  // Step 1: Clear existing tokens
+  var clearResult = clearAllTokens();
+  Logger.log('Tokens cleared: ' + clearResult.cleared);
+  
+  // Step 2: Test authorization (this will trigger OAuth flow)
+  var authResult = testAuthorization();
+  
+  if (authResult.success) {
+    Logger.log('Reauthorization successful!');
+    return authResult;
+  } else {
+    Logger.log('Reauthorization requires manual OAuth - please run authorizeYouTube()');
+    return { 
+      success: false, 
+      message: 'Please run authorizeYouTube() manually to complete OAuth flow',
+      error: authResult.error 
+    };
+  }
+}
