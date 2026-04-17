@@ -1,16 +1,12 @@
 # MagicLight Auto 🪄
 
-<div align="center">
-
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python)
 ![Playwright](https://img.shields.io/badge/playwright-1.40%2B-green?style=for-the-badge)
 ![FFmpeg](https://img.shields.io/badge/FFmpeg-4.4%2B-orange?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-v2.1.0-brightgreen?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-v1.0.0-brightgreen?style=for-the-badge)
 
 **Automated kids story video pipeline**
 MagicLight.ai generation → FFmpeg processing → Google Drive upload → Sheets tracking
-
-</div>
 
 ---
 
@@ -47,11 +43,13 @@ Copy `.env.example` to `.env` and fill it out:
 ```bash
    cp .env.example .env
 ```
-> **Note:** The script relies entirely on `.env` and authentication files. 
+
+> **Note:** The script relies entirely on `.env` and authentication files.
 
 ### 3. Authentication & Credentials
 
 **Google Cloud Services:**
+
 1. Enable **Google Sheets API** and **Google Drive API** in your Google Cloud Console.
 2. Create a Service Account, generate a JSON key, and save it as `credentials.json` in the root folder.
 3. Share your target Google Sheet and Google Drive folder with the Service Account email.
@@ -67,13 +65,14 @@ email2@gmail.com:Password2
 ```
 
 ### 4. Create Directory Assets
-If running Video Encoding Process locally, place your logo at `assets/logo.png`. 
+
+If running Video Encoding Process locally, place your logo at `assets/logo.png`.
 
 ---
 
 ## 📊 Google Sheet Structure
 
-You must configure a specific 21-column layout in your Google Sheets file for the bot to read/write accurately. 
+You must configure a specific 21-column layout in your Google Sheets file for the bot to read/write accurately.
 
 > **Quick setup:** Run `python main.py --migrate-schema` to automatically build these 21 columns in your linked Sheet.
 
@@ -92,6 +91,7 @@ python main.py
 ```
 
 **Options:**
+
 1. **Full Pipeline:** Generate Video + Encode/Process Video + Upload to Drive.
 2. **Just Video Story Making:** Generate Video + Upload raw version to Drive.
 3. **Video Encoding Process:** Scan local `output/` files, process them with FFmpeg + Upload to Drive.
@@ -105,14 +105,17 @@ python main.py
 You can run the script remotely on GitHub Actions. It is programmed to automatically handle Drive Uploads.
 
 ### Setup Repository Secrets
+
 Go to your GitHub repository -> **Settings** -> **Secrets and variables** -> **Actions** -> **New repository secret**.
 
 You must add the following Secrets:
+
 1. `ENV_FILE`: Paste the full contents of your `.env` file.
 2. `ACCOUNTS_TXT`: Paste the full contents of your `accounts.txt`.
 3. `GCP_CREDENTIALS`: Paste the full contents of your `credentials.json`.
 
 ### Trigger The Workflow
+
 1. Navigate to the **Actions** tab in your GitHub repository.
 2. Select **MagicLight Generation Pipeline** on the left.
 3. Click the **Run workflow** dropdown.
