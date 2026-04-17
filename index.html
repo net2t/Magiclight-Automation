@@ -13,12 +13,16 @@
   --blue:#2D5BFF;--text:#f0f0f0;--muted:#888;--card:#1c1c1c;
 }
 body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+
+/* ── Topbar ── */
+.topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--accent)}
 .logo span{color:var(--red)}
-.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .badge{background:#1f1f1f;border:1px solid var(--border);padding:6px 14px;font-size:12px;font-weight:600;border-radius:4px;color:var(--muted)}
 .badge b{color:var(--accent)}
+
+/* ── Buttons ── */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-weight:700;font-size:12px;cursor:pointer;border:none;border-radius:4px;font-family:'Space Grotesk',sans-serif;transition:.15s;letter-spacing:.5px}
 .btn-primary{background:var(--accent);color:#000}
 .btn-primary:hover{background:#ffe94d}
@@ -26,54 +30,151 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 .btn-ghost:hover{background:var(--border);color:var(--text)}
 .btn-danger{background:var(--red);color:#fff}
 .btn-success{background:var(--accent2);color:#000}
+.btn-success:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Container ── */
 .container{max-width:1400px;margin:0 auto;padding:24px}
+
+/* ── Stats ── */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
 .stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px 20px}
 .stat-n{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1}
 .stat-l{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px}
 .stat.done .stat-n{color:var(--accent2)}
 .stat.pending .stat-n{color:var(--accent)}
 .stat.error .stat-n{color:var(--red)}
+
+/* ── Toolbar ── */
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
 .search{flex:1;min-width:200px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:9px 14px;color:var(--text);font-size:13px;font-family:'Space Grotesk',sans-serif;outline:none}
 .search:focus{border-color:var(--accent)}
 .filter-chip{padding:6px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--muted);transition:.1s;white-space:nowrap}
 .filter-chip.active,.filter-chip:hover{background:var(--accent);color:#000;border-color:var(--accent)}
+
+/* ── Grid ── */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+
+/* ── Card ── */
 .card{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:.15s}
 .card:hover{border-color:#444;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.thumb-wrap{position:relative;width:100%;height:150px;background:#111;overflow:hidden}
-.thumb-img{width:100%;height:100%;object-fit:cover;display:block}
-.thumb-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:48px;color:#333}
-.status-pill{position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── Thumbnail wrapper ── */
+.thumb-wrap{
+  position:relative;width:100%;
+  padding-top:56.25%; /* 16:9 ratio */
+  background:#111;overflow:hidden;
+}
+/* ── FIXED: Actual image fills the ratio box ── */
+.thumb-img{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+  transition:opacity .3s;
+}
+.thumb-img.loading{opacity:0}
+.thumb-img.loaded{opacity:1}
+
+/* Fallback letter shown when no image / image fails */
+.thumb-fallback{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:48px;color:#333;
+  background:#111;
+}
+
+/* ── Status pill (inside card) ── */
+.status-pill{position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:3px;text-transform:uppercase;letter-spacing:.5px;z-index:2}
 .pill-done{background:var(--accent2);color:#000}
 .pill-generated{background:var(--accent);color:#000}
 .pill-pending{background:#333;color:var(--muted)}
 .pill-error{background:var(--red);color:#fff}
 .pill-processing{background:var(--blue);color:#fff}
+
+/* ── Card body ── */
 .card-body{padding:12px}
 .card-title{font-size:13px;font-weight:700;line-height:1.4;margin-bottom:6px;color:var(--text)}
 .card-meta{font-size:11px;color:var(--muted);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card-footer{display:flex;align-items:center;justify-content:space-between}
 .drive-link{font-size:11px;font-weight:600;color:var(--accent);text-decoration:none}
 .drive-link:hover{text-decoration:underline}
-/* Modal */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:16px}
+
+/* ── Pagination ── */
+.pagination{
+  display:flex;align-items:center;justify-content:center;
+  gap:8px;margin-top:28px;flex-wrap:wrap;
+}
+.page-btn{
+  min-width:36px;height:36px;padding:0 10px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:4px;color:var(--muted);font-size:13px;font-weight:600;
+  cursor:pointer;transition:.15s;font-family:'Space Grotesk',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+}
+.page-btn:hover{border-color:var(--accent);color:var(--accent)}
+.page-btn.active{background:var(--accent);border-color:var(--accent);color:#000}
+.page-btn:disabled{opacity:.3;cursor:not-allowed}
+.page-info{font-size:12px;color:var(--muted);padding:0 8px}
+
+/* ── Modal overlay ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;align-items:center;justify-content:center;padding:16px}
 .overlay.open{display:flex}
-.modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
-.modal-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:12px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto}
+.modal-head{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--panel);z-index:5}
 .modal-head h2{font-size:16px;font-weight:700}
 .modal-body{padding:20px 24px}
-.modal-thumb{width:100%;height:200px;object-fit:cover;border-radius:6px;display:block;margin-bottom:16px;background:#111}
-.modal-thumb-ph{width:100%;height:200px;background:#111;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:60px;color:#333;margin-bottom:16px}
+
+/* ── FIXED: Modal thumbnail container ── */
+.modal-thumb-wrap{
+  width:100%;
+  padding-top:56.25%; /* 16:9 */
+  position:relative;
+  background:#111;
+  border-radius:8px;
+  overflow:hidden;
+  margin-bottom:16px;
+}
+.modal-thumb-img{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  object-fit:cover;border-radius:8px;
+  transition:opacity .3s;
+}
+.modal-thumb-img.loading{opacity:0}
+.modal-thumb-img.loaded{opacity:1}
+.modal-thumb-ph{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Bebas Neue',sans-serif;font-size:60px;color:#333;
+}
+
+/* ── Detail rows ── */
 .detail-row{display:flex;gap:8px;margin-bottom:8px;font-size:13px}
 .detail-label{color:var(--muted);min-width:100px;flex-shrink:0}
 .detail-value{color:var(--text);word-break:break-all}
 .detail-link{color:var(--accent);text-decoration:none}
 .detail-link:hover{text-decoration:underline}
-.autopost-notice{background:#0a1f0a;border:1px solid var(--accent2);border-radius:6px;padding:12px 16px;font-size:12px;color:var(--accent2);margin-top:16px;display:flex;align-items:center;gap:8px}
+
+/* ── YouTube section in modal ── */
+.yt-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.yt-section-title{font-size:13px;font-weight:700;margin-bottom:10px}
+.yt-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+@media(max-width:480px){.yt-fields{grid-template-columns:1fr}}
+.yt-label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px}
+.yt-input{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;border-radius:4px;font-size:12px;font-family:'Space Grotesk',sans-serif;outline:none}
+.yt-input:focus{border-color:var(--accent)}
+.yt-textarea{resize:vertical;min-height:70px}
+.yt-btns{display:flex;gap:8px;margin-top:10px}
+.yt-status{font-size:12px;margin-top:8px;color:var(--muted);min-height:18px}
+
+/* ── Close button ── */
 .close-x{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:4px}
 .close-x:hover{color:var(--text)}
+
+/* ── Empty / loading states ── */
 .empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .empty h3{font-size:16px;margin-bottom:8px}
 .loading-shimmer{background:linear-gradient(90deg,var(--card) 25%,#1f1f1f 50%,var(--card) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px;height:220px}
@@ -82,6 +183,9 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
 </head>
 <body>
 
+<!-- ══════════════════════════════════════════════════════
+     TOPBAR
+════════════════════════════════════════════════════════ -->
 <div class="topbar">
   <div class="logo">Magic<span>▶</span>Light Dashboard</div>
   <div class="topbar-right">
@@ -91,23 +195,38 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════
+     MAIN CONTAINER
+════════════════════════════════════════════════════════ -->
 <div class="container">
+
+  <!-- Stats row -->
   <div class="stats">
-    <div class="stat"><div class="stat-n" id="st-total">0</div><div class="stat-l">Total Stories</div></div>
-    <div class="stat done"><div class="stat-n" id="st-done">0</div><div class="stat-l">Done</div></div>
-    <div class="stat pending"><div class="stat-n" id="st-pending">0</div><div class="stat-l">Pending</div></div>
-    <div class="stat error"><div class="stat-n" id="st-error">0</div><div class="stat-l">Errors</div></div>
+    <div class="stat">         <div class="stat-n" id="st-total">0</div>  <div class="stat-l">Total Stories</div></div>
+    <div class="stat done">    <div class="stat-n" id="st-done">0</div>   <div class="stat-l">Done</div></div>
+    <div class="stat pending"> <div class="stat-n" id="st-pending">0</div><div class="stat-l">Pending</div></div>
+    <div class="stat error">   <div class="stat-n" id="st-error">0</div>  <div class="stat-l">Errors</div></div>
   </div>
 
+  <!-- Toolbar -->
   <div class="toolbar">
-    <input class="search" id="search" type="text" placeholder="Search by title, theme, notes…" oninput="applyFilter()">
+    <input class="search" id="search" type="text"
+           placeholder="Search by title, theme, notes…" oninput="onSearch()">
     <div id="status-filters" style="display:flex;gap:8px;flex-wrap:wrap"></div>
   </div>
 
+  <!-- Cards grid -->
   <div class="grid" id="grid"></div>
-</div>
 
-<!-- Detail Modal -->
+  <!-- Pagination -->
+  <div class="pagination" id="pagination"></div>
+
+</div><!-- /container -->
+
+
+<!-- ══════════════════════════════════════════════════════
+     DETAIL / UPLOAD MODAL
+════════════════════════════════════════════════════════ -->
 <div class="overlay" id="overlay" onclick="closeModal(event)">
   <div class="modal">
     <div class="modal-head">
@@ -118,70 +237,147 @@ body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--tex
   </div>
 </div>
 
-<script>
-// ── CONFIG ──────────────────────────────────────────────────────────────────
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?output=csv';
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxIb22Qo_3BxI73PgD5PbaDu6ocMXQu7T_FV7kBKZztcJvcOMKuTERZVg1AKAAnV7f3qg/exec';
-const YT_CHANNEL_ID   = 'UC2FdFOP-XrLFlWN9VJWmYWQ';
 
-// ── STATE ────────────────────────────────────────────────────────────────────
-let allStories = [];
-let filtered   = [];
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
+<script>
+
+// ════════════════════════════════════════════════════════
+// ── CONFIG  (edit only this block) ──────────────────────
+// ════════════════════════════════════════════════════════
+const CFG = {
+  // Public CSV export URL of your Google Sheet
+  SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?gid=2087344095&single=true&output=csv',
+
+  // Your deployed Apps Script Web App URL (for YouTube upload)
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxIb22Qo_3BxI73PgD5PbaDu6ocMXQu7T_FV7kBKZztcJvcOMKuTERZVg1AKAAnV7f3qg/exec',
+
+  // YouTube channel ID to post to
+  YT_CHANNEL_ID: 'UC2FdFOP-XrLFlWN9VJWmYWQ',
+
+  // How many cards per page
+  PAGE_SIZE: 100,
+};
+// ════════════════════════════════════════════════════════
+
+
+// ── State ────────────────────────────────────────────────
+let allStories   = [];   // every row parsed from CSV
+let filtered     = [];   // after search + status filter
+let currentPage  = 1;
 let activeFilter = 'All';
 
-// ── LOAD DATA ────────────────────────────────────────────────────────────────
+// ── Boot ─────────────────────────────────────────────────
+loadData();
+
+// ════════════════════════════════════════════════════════
+// LOAD & PARSE
+// ════════════════════════════════════════════════════════
 async function loadData() {
+  // Show skeleton
   document.getElementById('hdr-status').textContent = 'Loading…';
-  document.getElementById('grid').innerHTML = Array(8).fill(
-    '<div class="loading-shimmer"></div>'
-  ).join('');
+  document.getElementById('grid').innerHTML =
+    Array(8).fill('<div class="loading-shimmer"></div>').join('');
 
   try {
-    const r   = await fetch(SHEET_CSV_URL + '&t=' + Date.now());
+    const r   = await fetch(CFG.SHEET_URL + '&t=' + Date.now());
     const txt = await r.text();
     allStories = parseCSV(txt);
-    document.getElementById('hdr-sheet').textContent = 'Connected';
+    document.getElementById('hdr-sheet').textContent  = 'Connected';
     document.getElementById('hdr-status').textContent = allStories.length + ' stories';
   } catch(e) {
     document.getElementById('hdr-status').textContent = 'Offline — demo data';
     allStories = DEMO;
   }
-  applyFilter();
-  updateStats();
+
   buildFilters();
+  updateStats();
+  applyFilter();   // renders first page
 }
 
-// ── CSV PARSER ────────────────────────────────────────────────────────────────
+// ── CSV parser ────────────────────────────────────────────
 function parseCSV(txt) {
   const lines   = txt.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.replace(/"/g,'').trim().toLowerCase().replace(/ /g,'_'));
+  const headers = lines[0].split(',')
+    .map(h => h.replace(/"/g,'').trim().toLowerCase().replace(/\s+/g,'_'));
+
   return lines.slice(1).map(line => {
-    const vals = []; let cur = '', inQ = false;
-    for(let c of line){ if(c==='"'){inQ=!inQ} else if(c===','&&!inQ){vals.push(cur);cur=''}else{cur+=c} }
-    vals.push(cur);
-    const obj = {};
-    headers.forEach((h,i) => obj[h] = (vals[i]||'').replace(/"/g,'').trim());
-    if(!obj.driveimg_link && !obj.drive_img_link) {
-      const imgKey = Object.keys(obj).find(k => /driveimg|drive_img|thumb|thumbnail|image|img/.test(k));
-      if(imgKey && obj[imgKey]) obj.driveimg_link = obj[imgKey];
+    // Properly handle quoted fields with commas inside
+    const vals = [];
+    let cur = '', inQ = false;
+    for (const c of line) {
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { vals.push(cur); cur = ''; }
+      else { cur += c; }
     }
+    vals.push(cur);
+
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (vals[i] || '').replace(/^"|"$/g,'').trim());
+
+    // ── Normalise thumbnail key ──
+    // Handles: driveimg_link, drive_img_link, DriveImg_Link, thumbnail, image, img …
+    if (!obj.driveimg_link) {
+      const imgKey = Object.keys(obj).find(k =>
+        /driveimg|drive_img|thumb|thumbnail|image(?!_url)|^img$/.test(k));
+      if (imgKey && obj[imgKey]) obj.driveimg_link = obj[imgKey];
+    }
+
     return obj;
   }).filter(r => r.title || r.gen_title || r.story);
 }
 
-// ── STATS ─────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// THUMBNAIL URL  ← THE MAIN FIX
+// ════════════════════════════════════════════════════════
+/*
+  Google Drive no longer serves images via:
+    https://drive.google.com/uc?export=view&id=FILE_ID
+  
+  Working alternatives (tried in order):
+    1. /thumbnail?id=FILE_ID&sz=w400  ← works for images, fast
+    2. /file/d/FILE_ID/preview        ← fallback (iframe only)
+  
+  We extract the file ID from any standard Drive share URL.
+*/
+function driveThumbUrl(rawUrl) {
+  if (!rawUrl) return '';
+
+  // Extract file ID from common Drive URL patterns
+  const m1 = rawUrl.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+  const m2 = rawUrl.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+  const id  = (m1 && m1[1]) || (m2 && m2[1]) || '';
+
+  if (!id) return '';
+
+  // ✅ This URL format works reliably for thumbnails
+  return `https://drive.google.com/thumbnail?id=${id}&sz=w400`;
+}
+
+// Direct view URL for opening in browser (modal "Open Drive" links)
+function driveViewUrl(rawUrl) {
+  if (!rawUrl) return '';
+  const m1 = rawUrl.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+  const m2 = rawUrl.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+  const id  = (m1 && m1[1]) || (m2 && m2[1]) || '';
+  return id ? `https://drive.google.com/file/d/${id}/view` : rawUrl;
+}
+
+// ════════════════════════════════════════════════════════
+// STATS & FILTERS
+// ════════════════════════════════════════════════════════
 function updateStats() {
   document.getElementById('st-total').textContent   = allStories.length;
   document.getElementById('st-done').textContent    = allStories.filter(s => s.status==='Done').length;
-  document.getElementById('st-pending').textContent = allStories.filter(s => s.status==='Pending'||!s.status).length;
-  document.getElementById('st-error').textContent   = allStories.filter(s => s.status==='Error'||s.status==='No_Video').length;
+  document.getElementById('st-pending').textContent = allStories.filter(s => !s.status || s.status==='Pending').length;
+  document.getElementById('st-error').textContent   = allStories.filter(s => /error|no_video/i.test(s.status||'')).length;
 }
 
-// ── STATUS FILTERS ────────────────────────────────────────────────────────────
 function buildFilters() {
   const statuses = ['All', ...new Set(allStories.map(s => s.status||'Pending').filter(Boolean))];
   document.getElementById('status-filters').innerHTML = statuses.map(s =>
-    `<div class="filter-chip ${s===activeFilter?'active':''}" onclick="setFilter('${s}',this)">${s}</div>`
+    `<div class="filter-chip${s===activeFilter?' active':''}" onclick="setFilter('${s}',this)">${s}</div>`
   ).join('');
 }
 
@@ -189,197 +385,343 @@ function setFilter(s, el) {
   activeFilter = s;
   document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  currentPage = 1;
   applyFilter();
 }
 
-// ── FILTER + RENDER ──────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+// SEARCH & FILTER
+// ════════════════════════════════════════════════════════
+function onSearch() {
+  currentPage = 1;
+  applyFilter();
+}
+
 function applyFilter() {
-  const q = document.getElementById('search').value.toLowerCase();
+  const q = (document.getElementById('search').value || '').toLowerCase();
+
   filtered = allStories.filter(s => {
     const matchF = activeFilter === 'All' || (s.status||'Pending') === activeFilter;
-    const matchQ = !q || [s.gen_title,s.title,s.theme,s.notes].join(' ').toLowerCase().includes(q);
+    const matchQ = !q ||
+      [s.gen_title, s.title, s.theme, s.notes, s.moral]
+        .join(' ').toLowerCase().includes(q);
     return matchF && matchQ;
   });
-  renderGrid();
+
+  renderPage();
+  renderPagination();
 }
 
-function statusPill(st) {
-  if(!st || st==='Pending') return '<span class="status-pill pill-pending">Pending</span>';
-  if(st==='Done')           return '<span class="status-pill pill-done">✓ Done</span>';
-  if(st==='Generated')      return '<span class="status-pill pill-generated">Generated</span>';
-  if(st==='Processing')     return '<span class="status-pill pill-processing">Processing</span>';
-  if(st==='Error'||st==='No_Video') return '<span class="status-pill pill-error">Error</span>';
-  return `<span class="status-pill pill-pending">${st}</span>`;
-}
+// ════════════════════════════════════════════════════════
+// RENDER — GRID (current page slice)
+// ════════════════════════════════════════════════════════
+function renderPage() {
+  const start = (currentPage - 1) * CFG.PAGE_SIZE;
+  const slice = filtered.slice(start, start + CFG.PAGE_SIZE);
+  const grid  = document.getElementById('grid');
 
-function renderGrid() {
-  const grid = document.getElementById('grid');
-  if(!filtered.length) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><h3>No stories found</h3><p style="font-size:13px;margin-top:6px">Try changing the filter or refreshing the data.</p></div>`;
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <h3>No stories found</h3>
+      <p style="font-size:13px;margin-top:6px">Try a different filter or refresh.</p>
+    </div>`;
     return;
   }
-  grid.innerHTML = filtered.map((s, i) => {
-    const title = s.gen_title || s.title || 'Untitled';
-    const thumb = driveImageUrl(s.driveimg_link || s.drive_img_link || '');
-    const thumbHtml = thumb
-      ? `<img class="thumb-img" src="${thumb}" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt="">`
-      + `<div class="thumb-fallback" style="display:none">${(s.theme||'?')[0]||'?'}</div>`
-      : `<div class="thumb-fallback">${(s.theme||'?')[0]||'?'}</div>`;
-    const bestVideoUrl = s.process_d_link || s.drive_link || '';
-    const driveHtml = bestVideoUrl
-      ? `<a class="drive-link" href="${normalizeUrl(bestVideoUrl)}" target="_blank" onclick="event.stopPropagation()">▶ Open Video</a>`
+
+  grid.innerHTML = slice.map((s, localIdx) => {
+    const globalIdx = start + localIdx;           // index into `filtered`
+    const title     = s.gen_title || s.title || 'Untitled';
+    const thumbUrl  = driveThumbUrl(s.driveimg_link || '');
+    const letter    = (s.theme || title || '?')[0].toUpperCase();
+
+    // Build thumbnail HTML
+    // Image is hidden (opacity 0) until it loads successfully.
+    // On error we show the fallback letter.
+    const thumbHtml = thumbUrl
+      ? `<img class="thumb-img loading"
+              src="${thumbUrl}"
+              alt=""
+              onload="this.classList.remove('loading');this.classList.add('loaded');
+                      this.nextElementSibling.style.display='none';"
+              onerror="this.style.display='none';
+                       this.nextElementSibling.style.display='flex';">
+         <div class="thumb-fallback">${letter}</div>`
+      : `<div class="thumb-fallback">${letter}</div>`;
+
+    const videoUrl = s.drive_link || '';
+    const driveLinkHtml = videoUrl
+      ? `<a class="drive-link" href="${driveViewUrl(videoUrl)}"
+            target="_blank" onclick="event.stopPropagation()">▶ Open Video</a>`
       : `<span style="font-size:11px;color:var(--muted)">No video yet</span>`;
-    return `<div class="card" onclick="openModal(${i})">
-      <div class="thumb-wrap">${thumbHtml}${statusPill(s.status)}</div>
+
+    return `<div class="card" onclick="openModal(${globalIdx})">
+      <div class="thumb-wrap">
+        ${thumbHtml}
+        ${statusPill(s.status)}
+      </div>
       <div class="card-body">
-        <div class="card-title">${title}</div>
-        <div class="card-meta">${s.theme||''} ${s.completed_time ? '· '+s.completed_time.substring(0,10) : ''}</div>
-        <div class="card-footer">${driveHtml}</div>
+        <div class="card-title">${esc(title)}</div>
+        <div class="card-meta">${esc(s.theme||'')}${s.completed_time?' · '+s.completed_time.substring(0,10):''}</div>
+        <div class="card-footer">${driveLinkHtml}</div>
       </div>
     </div>`;
   }).join('');
 }
 
-// ── MODAL ─────────────────────────────────────────────────────────────────────
-function openModal(i) {
-  const s = filtered[i];
-  document.getElementById('modal-title').textContent = s.gen_title || s.title || 'Story Detail';
-  const thumb = driveImageUrl(s.driveimg_link || s.drive_img_link || '');
-  const thumbEl = thumb
-    ? `<img class="modal-thumb" src="${thumb}" onerror="this.src=''" alt="Thumbnail">`
-    : `<div class="modal-thumb-ph">${(s.theme||'?')[0]||'?'}</div>`;
+// ════════════════════════════════════════════════════════
+// RENDER — PAGINATION
+// ════════════════════════════════════════════════════════
+function renderPagination() {
+  const total = Math.ceil(filtered.length / CFG.PAGE_SIZE);
+  const pg    = document.getElementById('pagination');
 
-  const isDone = s.status === 'Done';
-  const autoNotice = isDone
-    ? `<div class="autopost-notice">✅ Auto-post triggered — processed video was uploaded and Drive_Link updated in sheet.</div>`
-    : '';
-  const videoUrl = s.drive_link || s.process_d_link || '';
-  const ytBtn = (isDone && videoUrl)
-    ? `<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
-        <div style="font-size:13px;font-weight:700;margin-bottom:8px">📺 Post to YouTube</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Title</label>
-            <input id="yt-title" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;border-radius:4px;font-size:12px" value="${(s.gen_title||s.title||'').replace(/'/g,'&#39;')}"></div>
-          <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Privacy</label>
-            <select id="yt-privacy" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;border-radius:4px;font-size:12px">
-              <option value="public">🌐 Public</option>
-              <option value="unlisted">🔗 Unlisted</option>
-              <option value="private">🔒 Private</option>
-            </select></div>
-        </div>
-        <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Description</label>
-          <textarea id="yt-desc" rows="3" style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;border-radius:4px;font-size:12px;resize:none">${(s.gen_summary||s.moral||'').replace(/'/g,'&#39;')}</textarea></div>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn btn-success" onclick="postToYouTube('${videoUrl}', '${i}')" style="flex:1">▶ POST TO YOUTUBE NOW</button>
-          <a class="btn btn-ghost" href="https://studio.youtube.com" target="_blank">Open Studio ↗</a>
-        </div>
-        <div id="yt-status" style="font-size:12px;margin-top:8px;color:var(--muted)"></div>
-      </div>`
-    : '';
+  if (total <= 1) { pg.innerHTML = ''; return; }
 
-  document.getElementById('modal-body').innerHTML = `
-    ${thumbEl}
-    ${row('Status', `<b style="color:${statusColor(s.status)}">${s.status||'Pending'}</b>`)}
-    ${row('Title', s.title||'—')}
-    ${row('Gen Title', s.gen_title||'—')}
-    ${row('Theme', s.theme||'—')}
-    ${row('Moral', s.moral||'—')}
-    ${row('Account', s.email_used||'—')}
-    ${row('Credits', s.credit_before ? s.credit_before+'→'+s.credit_after : '—')}
-    ${row('Created', s.created_time||'—')}
-    ${row('Completed', s.completed_time||'—')}
-    ${row('Raw Video', s.drive_link ? link(s.drive_link,'Open Drive') : '—')}
-    ${row('Proc. Video', (s.process_d_link||s.drive_link) ? link(s.process_d_link||s.drive_link,'Open Drive') : '—')}
-    ${row('Thumbnail', (s.driveimg_link||s.drive_img_link) ? link(s.driveimg_link||s.drive_img_link,'Open Drive') : '—')}
-    ${row('Project', s.project_url ? link(s.project_url,'Open MagicLight') : '—')}
-    ${s.notes ? row('Notes', s.notes) : ''}
-    ${autoNotice}
-    ${ytBtn}
-  `;
-  document.getElementById('overlay').classList.add('open');
+  const start = (currentPage - 1) * CFG.PAGE_SIZE + 1;
+  const end   = Math.min(currentPage * CFG.PAGE_SIZE, filtered.length);
+
+  let html = '';
+
+  // Prev button
+  html += `<button class="page-btn" ${currentPage===1?'disabled':''} onclick="goPage(${currentPage-1})">‹ Prev</button>`;
+
+  // Page number buttons — show max 7 around current
+  const range = pageRange(currentPage, total, 7);
+  let prev = null;
+  range.forEach(p => {
+    if (prev !== null && p - prev > 1) html += `<span class="page-info">…</span>`;
+    html += `<button class="page-btn${p===currentPage?' active':''}" onclick="goPage(${p})">${p}</button>`;
+    prev = p;
+  });
+
+  // Next button
+  html += `<button class="page-btn" ${currentPage===total?'disabled':''} onclick="goPage(${currentPage+1})">Next ›</button>`;
+
+  // Info label
+  html += `<span class="page-info">${start}–${end} of ${filtered.length}</span>`;
+
+  pg.innerHTML = html;
 }
 
-function row(label, val) {
-  return `<div class="detail-row"><span class="detail-label">${label}</span><span class="detail-value">${val}</span></div>`;
+// Returns an array of page numbers around `current` within [1, total]
+function pageRange(current, total, maxShow) {
+  const half  = Math.floor(maxShow / 2);
+  let lo = Math.max(1, current - half);
+  let hi = Math.min(total, lo + maxShow - 1);
+  if (hi - lo < maxShow - 1) lo = Math.max(1, hi - maxShow + 1);
+  const pages = [];
+  for (let i = lo; i <= hi; i++) pages.push(i);
+  return pages;
 }
-function link(url, text) {
-  return `<a class="detail-link" href="${normalizeUrl(url)}" target="_blank">${text} ↗</a>`;
+
+function goPage(n) {
+  currentPage = n;
+  renderPage();
+  renderPagination();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// ════════════════════════════════════════════════════════
+// STATUS PILL
+// ════════════════════════════════════════════════════════
+function statusPill(st) {
+  if (!st || st==='Pending')   return '<span class="status-pill pill-pending">Pending</span>';
+  if (st==='Done')             return '<span class="status-pill pill-done">✓ Done</span>';
+  if (st==='Generated')        return '<span class="status-pill pill-generated">Generated</span>';
+  if (st==='Processing')       return '<span class="status-pill pill-processing">Processing</span>';
+  if (/error|no_video/i.test(st)) return '<span class="status-pill pill-error">Error</span>';
+  return `<span class="status-pill pill-pending">${esc(st)}</span>`;
+}
+
 function statusColor(s) {
-  if(s==='Done')      return 'var(--accent2)';
-  if(s==='Generated') return 'var(--accent)';
-  if(s==='Error')     return 'var(--red)';
+  if (s==='Done')       return 'var(--accent2)';
+  if (s==='Generated')  return 'var(--accent)';
+  if (/error/i.test(s||'')) return 'var(--red)';
   return 'var(--muted)';
 }
 
+// ════════════════════════════════════════════════════════
+// MODAL — open
+// ════════════════════════════════════════════════════════
+function openModal(idx) {
+  const s = filtered[idx];
+  if (!s) return;
+
+  document.getElementById('modal-title').textContent = s.gen_title || s.title || 'Story Detail';
+
+  // ── FIXED: Modal thumbnail ──
+  const thumbUrl = driveThumbUrl(s.driveimg_link || '');
+  const letter   = (s.theme || s.gen_title || s.title || '?')[0].toUpperCase();
+
+  const thumbSection = `
+    <div class="modal-thumb-wrap">
+      ${thumbUrl
+        ? `<img class="modal-thumb-img loading"
+                src="${thumbUrl}"
+                alt="Thumbnail"
+                onload="this.classList.remove('loading');this.classList.add('loaded');
+                        this.nextElementSibling.style.display='none';"
+                onerror="this.style.display='none';
+                         this.nextElementSibling.style.display='flex';">
+           <div class="modal-thumb-ph" style="display:none">${letter}</div>`
+        : `<div class="modal-thumb-ph">${letter}</div>`
+      }
+    </div>`;
+
+  // ── YouTube upload section (only when video link exists) ──
+  const videoUrl = s.drive_link || s.process_d_link || '';
+  const ytSection = videoUrl ? `
+    <div class="yt-section">
+      <div class="yt-section-title">📺 Post to YouTube</div>
+      <div class="yt-fields">
+        <div>
+          <label class="yt-label">Title</label>
+          <input id="yt-title" class="yt-input"
+                 value="${esc(s.gen_title || s.title || '')}">
+        </div>
+        <div>
+          <label class="yt-label">Privacy</label>
+          <select id="yt-privacy" class="yt-input">
+            <option value="public">🌐 Public</option>
+            <option value="unlisted">🔗 Unlisted</option>
+            <option value="private">🔒 Private</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="yt-label">Description</label>
+        <textarea id="yt-desc" class="yt-input yt-textarea">${esc(s.gen_summary || s.moral || '')}</textarea>
+      </div>
+      <div>
+        <label class="yt-label" style="margin-top:8px">Tags</label>
+        <input id="yt-tags" class="yt-input" value="${esc(s.gen_tags || '')}">
+      </div>
+      <div class="yt-btns">
+        <button class="btn btn-success"
+                onclick="postToYouTube('${encodeURIComponent(videoUrl)}')"
+                style="flex:1">▶ POST TO YOUTUBE NOW</button>
+        <a class="btn btn-ghost"
+           href="https://studio.youtube.com" target="_blank">Open Studio ↗</a>
+      </div>
+      <div id="yt-status" class="yt-status"></div>
+    </div>` : '';
+
+  document.getElementById('modal-body').innerHTML = `
+    ${thumbSection}
+    ${row('Status',    `<b style="color:${statusColor(s.status)}">${esc(s.status||'Pending')}</b>`)}
+    ${row('Title',     esc(s.title||'—'))}
+    ${row('Gen Title', esc(s.gen_title||'—'))}
+    ${row('Theme',     esc(s.theme||'—'))}
+    ${row('Moral',     esc(s.moral||'—'))}
+    ${row('Account',   esc(s.email_used||'—'))}
+    ${row('Credits',   s.credit_before ? `${s.credit_before} → ${s.credit_after||'?'}` : '—')}
+    ${row('Created',   esc(s.created_time||'—'))}
+    ${row('Completed', esc(s.completed_time||'—'))}
+    ${s.drive_link     ? row('Raw Video',  link(s.drive_link,   'Open Drive ↗')) : ''}
+    ${s.driveimg_link  ? row('Thumbnail',  link(s.driveimg_link,'Open Drive ↗')) : ''}
+    ${s.project_url    ? row('Project',    link(s.project_url,  'Open MagicLight ↗')) : ''}
+    ${s.notes          ? row('Notes',      `<span style="color:var(--muted)">${esc(s.notes)}</span>`) : ''}
+    ${ytSection}
+  `;
+
+  document.getElementById('overlay').classList.add('open');
+}
+
 function closeModal(e) {
-  if(e.target === document.getElementById('overlay'))
+  if (e.target === document.getElementById('overlay'))
     document.getElementById('overlay').classList.remove('open');
 }
 
-// ── YOUTUBE UPLOAD ───────────────────────────────────────────────────────────
-async function postToYouTube(driveUrl, storyIdx) {
+// ════════════════════════════════════════════════════════
+// YOUTUBE UPLOAD
+// ════════════════════════════════════════════════════════
+async function postToYouTube(encodedUrl) {
   const statusEl = document.getElementById('yt-status');
-  const title    = document.getElementById('yt-title')?.value || 'Story Video';
-  const desc     = document.getElementById('yt-desc')?.value  || '';
+  const driveUrl = decodeURIComponent(encodedUrl);
+  const title    = document.getElementById('yt-title')?.value   || 'Story Video';
+  const desc     = document.getElementById('yt-desc')?.value    || '';
   const privacy  = document.getElementById('yt-privacy')?.value || 'public';
+  const tags     = document.getElementById('yt-tags')?.value    || '';
 
-  if(!driveUrl){ statusEl.innerHTML='<span style="color:var(--red)">⚠ No video Drive link available</span>'; return; }
-  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_')){ 
-    statusEl.innerHTML='<span style="color:var(--red)">⚠ Set APPS_SCRIPT_URL in config.js first</span>'; return; 
+  if (!driveUrl) {
+    statusEl.innerHTML = '<span style="color:var(--red)">⚠ No video Drive link</span>';
+    return;
+  }
+  if (!CFG.APPS_SCRIPT_URL || CFG.APPS_SCRIPT_URL.includes('YOUR_')) {
+    statusEl.innerHTML = '<span style="color:var(--red)">⚠ Set APPS_SCRIPT_URL in CFG block</span>';
+    return;
   }
 
-  statusEl.innerHTML='<span style="color:var(--accent)">⏳ Sending to Apps Script…</span>';
+  statusEl.innerHTML = '<span style="color:var(--accent)">⏳ Sending to Apps Script…</span>';
+
   try {
-    const payload = {
-      action:    'uploadToYouTube',
-      driveUrl:  driveUrl,
-      title:     title,
-      description: desc,
-      privacy:   privacy,
-      channelId: YT_CHANNEL_ID,
-      tags:      filtered[storyIdx]?.gen_tags || ''
-    };
-    const res = await fetch(APPS_SCRIPT_URL, {
+    const res  = await fetch(CFG.APPS_SCRIPT_URL, {
       method: 'POST',
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        action:      'uploadToYouTube',
+        driveUrl:    driveUrl,
+        title:       title,
+        description: desc,
+        privacy:     privacy,
+        channelId:   CFG.YT_CHANNEL_ID,
+        tags:        tags,
+      })
     });
     const data = await res.json();
-    if(data.success) {
-      statusEl.innerHTML=`<span style="color:var(--accent2)">✅ Uploaded! <a style="color:var(--accent)" href="https://youtu.be/${data.videoId}" target="_blank">View on YouTube ↗</a></span>`;
+
+    if (data.success) {
+      statusEl.innerHTML =
+        `<span style="color:var(--accent2)">✅ Uploaded! &nbsp;
+         <a style="color:var(--accent)" href="https://youtu.be/${data.videoId}"
+            target="_blank">Watch on YouTube ↗</a></span>`;
     } else {
-      statusEl.innerHTML=`<span style="color:var(--red)">❌ Error: ${data.error||'Unknown error'}</span>`;
+      statusEl.innerHTML =
+        `<span style="color:var(--red)">❌ ${esc(data.error || 'Unknown error')}</span>`;
     }
   } catch(e) {
-    statusEl.innerHTML=`<span style="color:var(--red)">❌ Request failed: ${e.message}</span>`;
+    statusEl.innerHTML =
+      `<span style="color:var(--red)">❌ Request failed: ${esc(e.message)}</span>`;
   }
 }
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-function normalizeUrl(u) {
-  if(!u) return '';
-  return u.replace('view?usp=drivesdk','preview').replace('view?usp=sharing','preview');
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
+function esc(s) {
+  // Basic HTML escape to prevent XSS from sheet data
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function driveImageUrl(u) {
-  if(!u) return '';
-  const m1 = u.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  const m2 = u.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  const id = (m1 && m1[1]) || (m2 && m2[1]) || '';
-  if(id) return `https://drive.google.com/uc?export=view&id=${id}`;
-  return normalizeUrl(u);
+function row(label, val) {
+  return `<div class="detail-row">
+    <span class="detail-label">${label}</span>
+    <span class="detail-value">${val}</span>
+  </div>`;
 }
 
-// ── DEMO DATA ─────────────────────────────────────────────────────────────────
+function link(url, text) {
+  return `<a class="detail-link" href="${driveViewUrl(url)}" target="_blank">${text}</a>`;
+}
+
+// ════════════════════════════════════════════════════════
+// DEMO DATA  (shown when sheet is unreachable)
+// ════════════════════════════════════════════════════════
 const DEMO = [
-  {status:'Done',title:'Sample Story 1',gen_title:'The Glowing Lantern',theme:'Courage',moral:'Be brave',drive_link:'https://drive.google.com',driveimg_link:'',email_used:'demo@example.com',credit_before:'800',credit_after:'740',created_time:'2026-04-15 01:00',completed_time:'2026-04-15 02:30',notes:'Generated OK'},
-  {status:'Generated',title:'Sample Story 2',gen_title:'The Bouncing Cloud',theme:'Friendship',moral:'Share and care',drive_link:'',driveimg_link:'',email_used:'demo@example.com',credit_before:'740',credit_after:'680',created_time:'2026-04-15 03:00',completed_time:'',notes:''},
-  {status:'Pending',title:'Sample Story 3',gen_title:'',theme:'Teamwork',moral:'Work together',drive_link:'',driveimg_link:'',email_used:'',credit_before:'',credit_after:'',created_time:'',completed_time:'',notes:''},
-  {status:'Error',title:'Sample Story 4',gen_title:'',theme:'Kindness',moral:'Be kind',drive_link:'',driveimg_link:'',email_used:'demo@example.com',credit_before:'680',credit_after:'',created_time:'2026-04-15 04:00',completed_time:'',notes:'Render timeout'},
+  { status:'Done',      title:'The Glowing Lantern',  gen_title:'The Glowing Lantern',   theme:'Courage',    moral:'Be brave',
+    drive_link:'https://drive.google.com', driveimg_link:'', email_used:'demo@example.com',
+    credit_before:'800', credit_after:'740', created_time:'2026-04-15 01:00', completed_time:'2026-04-15 02:30', notes:'Generated OK' },
+  { status:'Generated', title:'The Bouncing Cloud',   gen_title:'The Bouncing Cloud',    theme:'Friendship', moral:'Share and care',
+    drive_link:'', driveimg_link:'', email_used:'demo@example.com',
+    credit_before:'740', credit_after:'680', created_time:'2026-04-15 03:00', completed_time:'', notes:'' },
+  { status:'Pending',   title:'Sample Story 3',        gen_title:'',                      theme:'Teamwork',   moral:'Work together',
+    drive_link:'', driveimg_link:'', email_used:'', credit_before:'', credit_after:'', created_time:'', completed_time:'', notes:'' },
+  { status:'Error',     title:'Sample Story 4',        gen_title:'',                      theme:'Kindness',   moral:'Be kind',
+    drive_link:'', driveimg_link:'', email_used:'demo@example.com',
+    credit_before:'680', credit_after:'', created_time:'2026-04-15 04:00', completed_time:'', notes:'Render timeout' },
 ];
 
-// ── BOOT ──────────────────────────────────────────────────────────────────────
-loadData();
 </script>
 </body>
 </html>
