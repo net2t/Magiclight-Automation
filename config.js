@@ -4,7 +4,7 @@ const CONFIG = {
   SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?gid=2087344095&single=true&output=csv',
   
   // Apps Script Web App URL (replace after deployment)
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxIb22Qo_3BxI73PgD5PbaDu6ocMXQu7T_FV7kBKZztcJvcOMKuTERZVg1AKAAnV7f3qg/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxSy_wzMGtF8Y6vY99gqdeOrLZSowKzLL33K_RO-yaezSHbEKgZJInBo1vJgwuL1wT7Ag/exec',
   
   // API Quota settings
   QUOTA_PER_DAY: 10000,
