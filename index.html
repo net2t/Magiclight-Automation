@@ -1260,68 +1260,63 @@ function calculateStatsFromCSV(rows) {
   return stats;
 }
 
-    // Quota meter (based on done count this day — approximate)
-    const used     = (s.done||0) * 1600;
-    const pct      = Math.min(100, Math.round(used / 10000 * 100));
-    const barColor = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--orange)' : 'var(--accent2)';
-    document.getElementById('quota-text').textContent = used.toLocaleString() + ' / 10,000 units (approx)';
-    document.getElementById('quota-bar').style.width  = pct + '%';
-    document.getElementById('quota-bar').style.background = barColor;
-
-  } catch(e) {
-    document.getElementById('hdr-status').textContent = 'Offline';
-  }
-
-  // Recent uploads
-  loadRecentDash();
-  loadUpcomingDash();
-}
+// ════════════════════════════════════════════════════════════
+// RECENT & UPCOMING DASHBOARD
+// ════════════════════════════════════════════════════════════
 
 async function loadRecentDash() {
   try {
     const data = await api('getRows', { filter: 'done', page: 1, pageSize: 5 });
-    if (!data.success || !data.rows.length) {
-      document.getElementById('dash-recent').innerHTML = '<div class="empty-state"><div>No completed uploads yet.</div></div>';
+    if (!data.success) return;
+    
+    const el = document.getElementById('recent-list');
+    if (!data.rows.length) {
+      el.innerHTML = '<div style="color:var(--muted);font-size:12px">No recent uploads</div>';
       return;
     }
-    document.getElementById('dash-recent').innerHTML = `
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>#Row</th><th>Title</th><th>Account</th><th>Completed</th><th>YouTube</th></tr></thead>
-          <tbody>${data.rows.map(r => `
-            <tr>
-              <td><span class="row-num">${r.rowNum}</span></td>
-              <td>${esc(r.gen_title||r.title||'—')}</td>
-              <td class="mono muted">${esc(r.email_used||'—')}</td>
-              <td class="mono muted">${esc(r.completed_time ? r.completed_time.substring(0,10) : '—')}</td>
-              <td>${r.youtube_url ? `<a href="${r.youtube_url}" target="_blank" style="color:var(--red)">▶ Watch</a>` : '<span style="color:var(--muted)">—</span>'}</td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>`;
+    
+    el.innerHTML = data.rows.map(r => `
+      <div class="queue-item" style="border-left-color:var(--accent2)">
+        <div style="flex:1">
+          <div class="queue-title">${esc(r.gen_title||r.title||'Untitled')}</div>
+          <div class="queue-meta">Row ${r.rowNum} · Completed ${fmtDate(r.completed_time)}</div>
+        </div>
+        <a href="${r.drive_link||'#'}" target="_blank" class="btn btn-ghost btn-xs">▶ View</a>
+      </div>
+    `).join('');
   } catch(e) {
-    document.getElementById('dash-recent').innerHTML = '<div style="color:var(--muted);font-size:12px">Could not load recent uploads.</div>';
+    document.getElementById('recent-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error loading recent</div>';
   }
 }
 
 async function loadUpcomingDash() {
   try {
     const data = await api('getScheduled');
-    if (!data.success || !data.scheduled.length) {
-      document.getElementById('dash-upcoming').innerHTML = '<div class="empty-state"><div>No upcoming scheduled uploads.</div></div>';
+    if (!data.success) return;
+    
+    const el = document.getElementById('upcoming-list');
+    if (!data.scheduled.length) {
+      el.innerHTML = '<div style="color:var(--muted);font-size:12px">No scheduled uploads</div>';
       return;
     }
-    const items = data.scheduled.slice(0, 3);
-    document.getElementById('dash-upcoming').innerHTML = items.map(item => `
-      <div class="queue-item">
-        <div>
-          <div class="queue-title">${esc(item.title||'Row '+item.rowNum)}</div>
-          <div class="queue-meta">Row ${item.rowNum} · ${esc(item.accountEmail||'—')}</div>
+    
+    el.innerHTML = data.scheduled.slice(0, 5).map(item => `
+      <div class="queue-item" style="border-left-color:var(--purple)">
+        <div style="flex:1">
+          <div class="queue-title">${esc(item.title||'Untitled')}</div>
+          <div class="queue-meta">Row ${item.rowNum} · ${fmtDate(item.scheduleTime)}</div>
         </div>
-        <div class="queue-time">📅 ${fmtDate(item.scheduleTime)}</div>
-      </div>`).join('');
-  } catch(e) {}
+        <span class="tag">${statusPill(item.status)}</span>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('upcoming-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error loading upcoming</div>';
+  }
 }
+
+// ════════════════════════════════════════════════════════════
+// REFRESH ALL
+// ════════════════════════════════════════════════════════════
 
 async function refreshAll() {
   loadDashboard();
@@ -1330,6 +1325,10 @@ async function refreshAll() {
   if (document.querySelector('#pane-accounts.active'))  loadAccounts();
   if (document.querySelector('#pane-logs.active'))      loadLogs();
 }
+
+// ════════════════════════════════════════════════════════════
+// STORIES TAB
+// ════════════════════════════════════════════════════════════
 
 
 // ════════════════════════════════════════════════════════════
