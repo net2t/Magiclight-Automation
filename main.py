@@ -1967,12 +1967,16 @@ def _retry_from_user_center(page, project_url, safe_name):
 
 # ── Filename helpers ──────────────────────────────────────────────────────────
 def _make_safe(row_num, title, file_type=""):
+    safe_title = re.sub(r"[^\w\-]", "_", str(title)[:30])
     if file_type:
-        safe_title = re.sub(r"[^\w\-]", "_", str(title)[:40])
-        return f"row{row_num}-{file_type}-{safe_title}".strip("_")
-    return re.sub(r"[^\w\-]", "_", f"row{row_num}_{str(title)[:40]}").strip("_")
+        return f"R{row_num}_{safe_title}_{file_type}".strip("_")
+    return re.sub(r"[^\w\-]", "_", f"R{row_num}_{safe_title}").strip("_")
 
 def extract_row_num(stem: str) -> int | None:
+    m = re.match(r"R(\d+)_", stem)
+    if m:
+        return int(m.group(1))
+    # Fallback to old pattern for backward compatibility
     m = re.match(r"row(\d+)[_\-]", stem, re.IGNORECASE)
     if m:
         return int(m.group(1))
