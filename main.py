@@ -390,6 +390,95 @@ def _update_credits_completion(email, total, used, row_num, action, status):
                 _err(f"[credits] All update attempts failed for {email}: {e}")
                 break
 
+def check_all_accounts_credits(headless=False):
+    """
+    Check all accounts from accounts.txt and log their credit data to the Credits sheet.
+    This function iterates through all accounts, logs in to each, reads the credit balance,
+    and logs the data to the 'Credits' tab in the Google Sheet.
+    
+    Args:
+        headless: If True, run browser in headless mode (no UI)
+    """
+    global _browser
+    
+    _step("[Credits Check] Starting account credit check...")
+    
+    # Load accounts from accounts.txt
+    accounts = []
+    if os.path.exists("accounts.txt"):
+        with open("accounts.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and ":" in line:
+                    u, p = line.split(":", 1)
+                    accounts.append((u.strip(), p.strip()))
+    
+    if not accounts:
+        if EMAIL and PASSWORD:
+            accounts = [(EMAIL, PASSWORD)]
+            _info("[Credits Check] Using single account from .env")
+        else:
+            _err("[Credits Check] No credentials in accounts.txt or .env")
+            return
+    
+    _ok(f"[Credits Check] Loaded {len(accounts)} account(s)")
+    
+    # Initialize browser if not already running
+    if _browser is None:
+        _info(f"[Credits Check] Starting browser (headless={headless})...")
+        playwright = sync_playwright().start()
+        _browser = playwright.chromium.launch(headless=headless)
+    
+    checked_count = 0
+    failed_count = 0
+    
+    for idx, (email, password) in enumerate(accounts, 1):
+        _info(f"[Credits Check] Checking account {idx}/{len(accounts)}: {email}")
+        
+        try:
+            # Create new context and page for this account
+            context = _browser.new_context(accept_downloads=True, no_viewport=True)
+            page = context.new_page()
+            
+            # Login using existing login function
+            login(page, custom_email=email, custom_pw=password)
+            
+            # Navigate to user-center to read credits
+            _info("[Credits Check] Navigating to user-center...")
+            try:
+                page.goto("https://magiclight.ai/user-center", timeout=45000)
+                wait_site_loaded(page, None, timeout=30)
+                sleep_log(2, "user center settle")
+            except Exception as e:
+                _warn(f"[Credits Check] Could not load user center: {e}")
+            
+            # Read credits using existing function
+            total_credits, used_credits = _read_credits_from_page(page)
+            
+            _ok(f"[Credits Check] {email}: Total={total_credits}, Used={used_credits}")
+            
+            # Log to Credits sheet using existing function
+            _update_credits_login(email, total_credits)
+            
+            # Logout and cleanup
+            try:
+                _logout(page)
+            except:
+                pass
+            
+            context.close()
+            checked_count += 1
+            
+        except Exception as e:
+            _err(f"[Credits Check] Failed for {email}: {e}")
+            failed_count += 1
+            try:
+                context.close()
+            except:
+                pass
+    
+    _ok(f"[Credits Check] Complete: {checked_count} checked, {failed_count} failed")
+
 def _col(name: str) -> int | None:
     return SHEET_SCHEMA.get(name)
 
@@ -2774,11 +2863,18 @@ def menu():
     mt.add_row("1", "Full Pipeline")
     mt.add_row("2", "Just Video Story Making")
     mt.add_row("3", "Video Encoding Process")
-    mt.add_row("4", "Exit")
+    mt.add_row("4", "Check Account Credits")
+    mt.add_row("5", "Exit")
     console.print(mt)
     console.print()
 
-    choice = console.input("  [bold cyan]Select Mode [1-4]: [/bold cyan]").strip()
+    choice = console.input("  [bold cyan]Select Mode [1-5]: [/bold cyan]").strip()
+    
+    # Handle option 4 - Check Account Credits
+    if choice == "4":
+        check_all_accounts_credits()
+        return
+    
     if choice not in ["1", "2", "3"]: return
 
     mode_map = {"1": "combined", "2": "generate", "3": "process"}
@@ -2840,6 +2936,7 @@ def parse_args():
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--migrate-schema", action="store_true")
+    parser.add_argument("--check-credits", action="store_true", help="Check all accounts and log credits to Credits sheet")
     return parser.parse_args()
 
 def run_cli_mode(args):
@@ -2847,6 +2944,12 @@ def run_cli_mode(args):
     if getattr(args, 'debug', False):
         DEBUG = True
         os.environ["DEBUG"] = "1"
+    
+    # Handle --check-credits flag
+    if getattr(args, 'check_credits', False):
+        check_all_accounts_credits(headless=getattr(args, 'headless', False))
+        return True
+    
     if getattr(args, 'mode', None) == 'loop':
         args.mode = 'combined'
         args.loop = True
