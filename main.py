@@ -115,6 +115,7 @@ LOGO_OPACITY        = float(os.getenv("LOGO_OPACITY", "1.0"))
 ENDSCREEN_ENABLED   = os.getenv("ENDSCREEN_ENABLED",  "true").lower() == "true"
 ENDSCREEN_DURATION  = os.getenv("ENDSCREEN_DURATION", "auto")
 UPLOAD_TO_DRIVE     = os.getenv("UPLOAD_TO_DRIVE", "false").lower() == "true"
+LOCAL_OUTPUT_ENABLED = os.getenv("LOCAL_OUTPUT_ENABLED", "true").lower() == "true"
 
 _shutdown = False
 _browser  = None
@@ -158,8 +159,11 @@ def _sig(sig, frame):
 
 signal.signal(signal.SIGINT, _sig)
 
-for _d in [OUT_BASE, OUT_SHOTS]:
-    os.makedirs(_d, exist_ok=True)
+if LOCAL_OUTPUT_ENABLED:
+    for _d in [OUT_BASE, OUT_SHOTS]:
+        os.makedirs(_d, exist_ok=True)
+else:
+    _info("[config] Local output disabled — files will not be saved locally")
 
 # ── Google Sheets ─────────────────────────────────────────────────────────────
 import gspread
@@ -1683,7 +1687,11 @@ def step4(page, safe_name, sheet_row_num=None):
 # ── DOWNLOAD ──────────────────────────────────────────────────────────────────
 def _download(page, safe_name, sheet_row_num=None):
     out = {"video": "", "thumb": "", "gen_title": "", "summary": "", "tags": ""}
-    sdir = story_dir(safe_name)
+    if LOCAL_OUTPUT_ENABLED:
+        sdir = story_dir(safe_name)
+    else:
+        sdir = None
+        _info("[download] Local output disabled — skipping local save")
     meta = page.evaluate("""\
 () => {
     const result = { title: '', summary: '', hashtags: '' };
@@ -1705,7 +1713,7 @@ def _download(page, safe_name, sheet_row_num=None):
     _info(f"[meta] Title='{out['gen_title'][:50]}'")
     cookies = {c["name"]: c["value"] for c in page.context.cookies()}
     headers = {"User-Agent": "Mozilla/5.0", "Referer": page.url}
-    thumb_dest = os.path.join(sdir, f"{safe_name}_thumb.jpg")
+    thumb_dest = os.path.join(sdir, f"{safe_name}_thumb.jpg") if sdir else None
     try:
         page.mouse.move(1000, 400)
         page.mouse.wheel(0, 3000)
@@ -1792,9 +1800,12 @@ def _download(page, safe_name, sheet_row_num=None):
                 if r.status_code == 200:
                     content_bytes = r.content
             if content_bytes and len(content_bytes) > 5000:
-                with open(thumb_dest, "wb") as f: f.write(content_bytes)
-                out["thumb"] = thumb_dest
-                _ok(f"Thumbnail -> {thumb_dest} ({len(content_bytes)//1024} KB)")
+                if thumb_dest:
+                    with open(thumb_dest, "wb") as f: f.write(content_bytes)
+                    out["thumb"] = thumb_dest
+                    _ok(f"Thumbnail -> {thumb_dest} ({len(content_bytes)//1024} KB)")
+                else:
+                    _ok(f"Thumbnail downloaded ({len(content_bytes)//1024} KB) - local save skipped")
         except Exception as e:
             _warn(f"Thumbnail error: {e}")
     if not out["thumb"]:
@@ -1817,12 +1828,15 @@ def _download(page, safe_name, sheet_row_num=None):
             try:
                 r = requests.get(fallback_url, timeout=30, cookies=cookies, headers=headers)
                 if r.status_code == 200 and len(r.content) > 1000:
-                    with open(thumb_dest, "wb") as f: f.write(r.content)
-                    out["thumb"] = thumb_dest
-                    _ok(f"Thumbnail (fallback) -> {thumb_dest}")
+                    if thumb_dest:
+                        with open(thumb_dest, "wb") as f: f.write(r.content)
+                        out["thumb"] = thumb_dest
+                        _ok(f"Thumbnail (fallback) -> {thumb_dest}")
+                    else:
+                        _ok(f"Thumbnail (fallback) downloaded ({len(r.content)//1024} KB) - local save skipped")
             except Exception as e:
                 _warn(f"Thumbnail fallback error: {e}")
-    video_dest = os.path.join(sdir, f"{safe_name}.mp4")
+    video_dest = os.path.join(sdir, f"{safe_name}.mp4") if sdir else None
     try:
         cancel_btn = page.locator('button', has_text="Cancel")
         if cancel_btn.count() > 0 and cancel_btn.first.is_visible(timeout=1000):
@@ -1859,11 +1873,19 @@ def _download(page, safe_name, sheet_row_num=None):
                 with page.expect_download(timeout=180000) as dl_info:
                     loc.first.click()
                 dl = dl_info.value
-                dl.save_as(video_dest)
-                if os.path.exists(video_dest) and os.path.getsize(video_dest) > 10000:
-                    out["video"] = video_dest
-                    _ok(f"Video -> {video_dest} ({os.path.getsize(video_dest)//1024} KB)")
-                    break
+                if video_dest:
+                    dl.save_as(video_dest)
+                    if os.path.exists(video_dest) and os.path.getsize(video_dest) > 10000:
+                        out["video"] = video_dest
+                        _ok(f"Video -> {video_dest} ({os.path.getsize(video_dest)//1024} KB)")
+                        break
+                else:
+                    # Get video content to upload to Drive directly
+                    video_bytes = dl.read()
+                    if len(video_bytes) > 10000:
+                        out["video_bytes"] = video_bytes
+                        _ok(f"Video downloaded ({len(video_bytes)//1024} KB) - local save skipped")
+                        break
         except Exception as e:
             _warn(f"  {sel}: {e}")
     if not out["video"]:
@@ -1884,32 +1906,67 @@ def _download(page, safe_name, sheet_row_num=None):
                                   cookies=cookies, headers=headers)
                 r.raise_for_status()
                 total = 0
-                with open(video_dest, "wb") as f:
+                if video_dest:
+                    with open(video_dest, "wb") as f:
+                        for chunk in r.iter_content(65536):
+                            if chunk:
+                                f.write(chunk); total += len(chunk)
+                    if total > 10000:
+                        out["video"] = video_dest
+                        _ok(f"Video (URL) -> {video_dest} ({total//1024} KB)")
+                    else:
+                        _warn(f"Video too small ({total}B)")
+                        try: os.remove(video_dest)
+                        except: pass
+                else:
+                    # Collect video bytes for direct Drive upload
+                    video_bytes = b""
                     for chunk in r.iter_content(65536):
                         if chunk:
-                            f.write(chunk); total += len(chunk)
-                if total > 10000:
-                    out["video"] = video_dest
-                    _ok(f"Video (URL) -> {video_dest} ({total//1024} KB)")
-                else:
-                    _warn(f"Video too small ({total}B)")
-                    try: os.remove(video_dest)
-                    except: pass
+                            video_bytes += chunk; total += len(chunk)
+                    if total > 10000:
+                        out["video_bytes"] = video_bytes
+                        _ok(f"Video (URL) downloaded ({total//1024} KB) - local save skipped")
+                    else:
+                        _warn(f"Video too small ({total}B)")
             except Exception as e:
                 _warn(f"Video URL download error: {e}")
-    if not out["video"]:
+    if not out["video"] and not out.get("video_bytes"):
         _err("[dl] VIDEO DOWNLOAD FAILED")
-    if out.get("video") and DRIVE_FOLDER_ID:
+    
+    # Handle Drive upload for both file path and bytes
+    if DRIVE_FOLDER_ID and (out.get("video") or out.get("video_bytes")):
         try:
-            story_folder = os.path.dirname(out["video"])
+            video_path = out.get("video")
+            temp_video_path = None
+            
+            # If video is in bytes, save to temp file for upload
+            if out.get("video_bytes") and not video_path:
+                import tempfile
+                temp_video_path = tempfile.NamedTemporaryFile(suffix=".mp4", delete=False)
+                temp_video_path.write(out["video_bytes"])
+                temp_video_path.close()
+                video_path = temp_video_path.name
+                _info(f"[drive] Saved video to temp file for upload: {video_path}")
+            
+            story_folder = os.path.dirname(video_path) if video_path else None
             drive_results = upload_story_to_drive(
                 story_folder, safe_name,
-                out["video"], out.get("thumb", ""),
+                video_path, out.get("thumb", ""),
                 sheet_row_num=sheet_row_num
             )
             out["drive_folder"] = drive_results["folder_link"]
             out["drive_link"]   = drive_results["video_link"]
             out["drive_thumb"]  = drive_results["thumb_link"]
+            
+            # Clean up temp file if used
+            if temp_video_path and os.path.exists(temp_video_path):
+                try:
+                    os.remove(temp_video_path)
+                    _info(f"[drive] Cleaned up temp file: {temp_video_path}")
+                except Exception as cleanup_e:
+                    _warn(f"[drive] Temp file cleanup error: {cleanup_e}")
+                    
         except Exception as e:
             _warn(f"Drive upload error: {e}")
     return out
@@ -2228,6 +2285,10 @@ def run_ffmpeg(cmd: list[str], input_file: Path, output_file: Path,
         return False
 
 def process_video(input_video: Path, dry_run: bool = False) -> bool:
+    if not LOCAL_OUTPUT_ENABLED:
+        _warn("[process] Local output disabled — skipping video processing")
+        return False
+    
     if not check_ffmpeg():
         _err("FFmpeg not found. Install FFmpeg and add to PATH.")
         return False
