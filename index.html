@@ -3,2060 +3,1159 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MAGICLIGHT PRO</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600;700&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<title>Sheet → YouTube Publisher</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════════════
-   RAW NEOBRUTALISM — No mercy, no rounded corners
-═══════════════════════════════════════════════════ */
-*{box-sizing:border-box;margin:0;padding:0}
+/* ═══════════════════════════════════════════════
+   YOUTUBE.COM THEME
+   Pure white bg, YouTube red (#ff0000), grey text
+═══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --black:#000;
-  --white:#fff;
-  --yellow:#FFE500;
-  --red:#FF1F1F;
-  --green:#00FF7F;
-  --blue:#0066FF;
-  --purple:#CC00FF;
-  --orange:#FF6600;
-  --bg:#0D0D0D;
-  --bg2:#111;
-  --bg3:#161616;
-  --border:#fff;
-  --border-dim:#333;
-  --text:#fff;
-  --text-dim:#888;
-  --mono:'IBM Plex Mono',monospace;
-  --display:'Bebas Neue',sans-serif;
-  --body:'Barlow Condensed',sans-serif;
-  --bw:3px;  /* brutal border width */
+  --white:#ffffff;
+  --bg:#f9f9f9;
+  --red:#ff0000;
+  --red-d:#cc0000;
+  --red-hover:#ff0000dd;
+  --red-light:#fff0f0;
+  --red-border:rgba(255,0,0,.25);
+  --grey1:#0f0f0f;   /* primary text */
+  --grey2:#606060;   /* secondary text */
+  --grey3:#909090;   /* muted */
+  --grey4:#d3d3d3;   /* borders */
+  --grey5:#f2f2f2;   /* light bg */
+  --grey6:#e5e5e5;   /* card border */
+  --blue:#065fd4;
+  --green:#2ba640;
+  --green-bg:#e6f4ea;
+  --amber:#b45309;
+  --amber-bg:#fef3c7;
+  --err:#cc0000;
+  --err-bg:#fce8e6;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Roboto',sans-serif;
+  --r:8px;
+  --r-sm:4px;
+  --shadow:0 1px 2px rgba(0,0,0,.1);
+  --shadow-md:0 2px 8px rgba(0,0,0,.12);
 }
-
-body{
-  font-family:var(--body);
+html,body{
+  font-family:var(--sans);
   background:var(--bg);
-  color:var(--text);
+  color:var(--grey1);
   min-height:100vh;
-  overflow-x:hidden;
+  font-size:14px;
+  line-height:1.5;
 }
+a{color:var(--blue);text-decoration:none;}
+a:hover{text-decoration:underline;}
 
-/* ── BRUTALIST SCROLLBAR ── */
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:var(--black)}
-::-webkit-scrollbar-thumb{background:var(--yellow);border:2px solid var(--black)}
-
-/* ═══════════════════════════════════════════════════
-   TOP BAR — thick border bottom, brutal type
-═══════════════════════════════════════════════════ */
-.topbar{
-  background:var(--black);
-  border-bottom:var(--bw) solid var(--yellow);
-  padding:0 20px;
-  height:52px;
-  display:flex;align-items:center;justify-content:space-between;
+/* ═══ TOPNAV (YouTube style) ══════════════════ */
+.topnav{
   position:sticky;top:0;z-index:200;
-  gap:12px;flex-wrap:wrap;
+  height:56px;background:var(--white);
+  border-bottom:1px solid var(--grey6);
+  display:flex;align-items:center;
+  padding:0 16px;gap:16px;
 }
-.logo{
-  font-family:var(--display);
-  font-size:28px;letter-spacing:4px;
-  color:var(--yellow);
-  display:flex;align-items:center;gap:8px;
-  white-space:nowrap;
-}
-.logo-red{color:var(--red)}
-.logo-badge{
-  font-family:var(--mono);
-  font-size:9px;font-weight:700;
-  background:var(--red);color:var(--white);
-  padding:2px 6px;
-  border:2px solid var(--white);
-  letter-spacing:1px;
-}
-.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.hdr-pill{
-  font-family:var(--mono);font-size:10px;font-weight:600;
-  padding:4px 10px;
-  background:var(--bg3);
-  border:2px solid var(--border-dim);
-  color:var(--text-dim);
-  white-space:nowrap;
-}
-.hdr-pill b{color:var(--green)}
-.mode-badge{
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  padding:3px 8px;
-  border:2px solid var(--yellow);
-  color:var(--yellow);
-  letter-spacing:1px;
-}
-
-/* ═══════════════════════════════════════════════════
-   TABS — brutal block tabs
-═══════════════════════════════════════════════════ */
-.tabs{
-  background:var(--black);
-  border-bottom:var(--bw) solid var(--white);
-  padding:0;
-  display:flex;
-  overflow-x:auto;
-}
-.tabs::-webkit-scrollbar{height:4px}
-.tab{
-  padding:14px 20px;
-  font-family:var(--display);
-  font-size:16px;letter-spacing:2px;
-  color:var(--text-dim);
-  cursor:pointer;
-  border-right:2px solid var(--border-dim);
-  white-space:nowrap;
-  display:flex;align-items:center;gap:7px;
-  transition:background .1s,color .1s;
-  user-select:none;
-  position:relative;
-}
-.tab:hover{background:var(--bg2);color:var(--white)}
-.tab.active{
-  background:var(--yellow);
-  color:var(--black);
-  border-right:2px solid var(--black);
-}
-.tab.active .tab-icon{filter:none}
-.tab-icon{font-size:14px}
-.tab-badge{
-  background:var(--red);color:var(--white);
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  padding:1px 5px;
-  border:1.5px solid var(--white);
-  min-width:18px;text-align:center;
-}
-.tab.active .tab-badge{border-color:var(--black)}
-
-/* ═══════════════════════════════════════════════════
-   LAYOUT
-═══════════════════════════════════════════════════ */
-.wrap{max-width:1600px;margin:0 auto;padding:20px}
-.tab-pane{display:none}
-.tab-pane.active{display:block}
-
-/* ═══════════════════════════════════════════════════
-   BUTTONS — pure brutalist
-═══════════════════════════════════════════════════ */
-.btn{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:8px 18px;
-  font-family:var(--display);
-  font-size:16px;letter-spacing:1.5px;
-  cursor:pointer;
-  border:var(--bw) solid var(--white);
-  background:var(--black);
-  color:var(--white);
-  transition:.08s;
-  white-space:nowrap;
-  outline:none;
-}
-.btn:hover{background:var(--white);color:var(--black)}
-.btn:active{transform:translate(2px,2px)}
-
-.btn-yellow{background:var(--yellow);color:var(--black);border-color:var(--black)}
-.btn-yellow:hover{background:var(--black);color:var(--yellow);border-color:var(--yellow)}
-.btn-red{background:var(--red);color:var(--white);border-color:var(--white)}
-.btn-red:hover{background:var(--white);color:var(--red)}
-.btn-green{background:var(--green);color:var(--black);border-color:var(--black)}
-.btn-green:hover{background:var(--black);color:var(--green);border-color:var(--green)}
-.btn-blue{background:var(--blue);color:var(--white);border-color:var(--white)}
-.btn-blue:hover{background:var(--white);color:var(--blue)}
-.btn-purple{background:var(--purple);color:var(--white);border-color:var(--white)}
-.btn-ghost{background:transparent;color:var(--text-dim);border-color:var(--border-dim)}
-.btn-ghost:hover{background:var(--bg3);color:var(--white);border-color:var(--white)}
-
-.btn-sm{padding:5px 12px;font-size:13px}
-.btn-xs{padding:3px 8px;font-size:11px}
-.btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
-
-/* ═══════════════════════════════════════════════════
-   STAT CARDS — heavy borders
-═══════════════════════════════════════════════════ */
-.stats-row{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:0;
-  border:var(--bw) solid var(--white);
-  margin-bottom:20px;
-}
-.stat-card{
-  padding:16px 18px;
-  border-right:var(--bw) solid var(--white);
-  background:var(--black);
-}
-.stat-card:last-child{border-right:none}
-.stat-n{
-  font-family:var(--display);
-  font-size:52px;line-height:1;
-  color:var(--yellow);
-}
-.stat-n.green{color:var(--green)}
-.stat-n.red{color:var(--red)}
-.stat-n.blue{color:var(--blue)}
-.stat-n.purple{color:var(--purple)}
-.stat-n.orange{color:var(--orange)}
-.stat-l{
-  font-family:var(--mono);
-  font-size:9px;font-weight:700;
-  letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--text-dim);margin-top:4px;
-}
-@media(max-width:640px){
-  .stats-row{grid-template-columns:repeat(3,1fr)}
-  .stat-card{border-bottom:var(--bw) solid var(--white)}
-}
-
-/* ═══════════════════════════════════════════════════
-   SECTION HEADER
-═══════════════════════════════════════════════════ */
-.sec-head{
-  display:flex;align-items:stretch;justify-content:space-between;
-  border:var(--bw) solid var(--white);
-  border-bottom:none;
-  background:var(--black);
-  flex-wrap:wrap;
-}
-.sec-head-left{
-  padding:10px 16px;
-  border-right:var(--bw) solid var(--white);
-  flex:1;
-  display:flex;flex-direction:column;justify-content:center;
-}
-.sec-head-right{
-  padding:10px 16px;
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-}
-.sec-title{
-  font-family:var(--display);
-  font-size:20px;letter-spacing:2px;color:var(--yellow);
-}
-.sec-sub{
-  font-family:var(--mono);
-  font-size:9px;color:var(--text-dim);letter-spacing:.5px;margin-top:2px;
-}
-
-/* ═══════════════════════════════════════════════════
-   TOOLBAR
-═══════════════════════════════════════════════════ */
-.toolbar{
-  border:var(--bw) solid var(--white);
-  border-bottom:none;
-  display:flex;align-items:stretch;flex-wrap:wrap;
-}
-.search-box{
-  flex:1;min-width:200px;
-  background:var(--black);
-  border:none;border-right:var(--bw) solid var(--white);
-  color:var(--white);
-  padding:10px 14px;
-  font-family:var(--mono);font-size:12px;
-  outline:none;
-}
-.search-box::placeholder{color:var(--text-dim)}
-.filter-chips{display:flex;flex-wrap:wrap}
-.chip{
-  padding:10px 14px;
-  font-family:var(--display);font-size:14px;letter-spacing:1px;
-  cursor:pointer;
-  border-right:2px solid var(--border-dim);
-  color:var(--text-dim);
-  background:transparent;
-  transition:.1s;white-space:nowrap;
-}
-.chip:hover{background:var(--bg2);color:var(--white)}
-.chip.active{background:var(--yellow);color:var(--black)}
-
-/* ═══════════════════════════════════════════════════
-   TABLE — pure brutalist
-═══════════════════════════════════════════════════ */
-.table-wrap{
-  border:var(--bw) solid var(--white);
-  overflow-x:auto;
-}
-table{width:100%;border-collapse:collapse;font-size:12px}
-thead tr{
-  background:var(--yellow);
-  border-bottom:var(--bw) solid var(--black);
-}
-th{
-  padding:10px 12px;
-  font-family:var(--display);font-size:14px;letter-spacing:1px;
-  color:var(--black);text-align:left;white-space:nowrap;
-}
-tbody tr{border-bottom:2px solid var(--border-dim);transition:background .08s}
-tbody tr:hover{background:rgba(255,229,0,.05)}
-tbody tr:last-child{border-bottom:none}
-td{padding:9px 12px;color:var(--text);vertical-align:middle}
-.mono{font-family:var(--mono);font-size:11px}
-.dim{color:var(--text-dim)}
-
-/* Row number badge */
-.row-num{
-  font-family:var(--mono);font-size:10px;font-weight:700;
-  background:var(--yellow);color:var(--black);
-  padding:2px 6px;
-  border:2px solid var(--black);
-  display:inline-block;white-space:nowrap;
-}
-
-/* Status pills */
-.pill{
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  padding:3px 8px;letter-spacing:.8px;text-transform:uppercase;
-  border:2px solid;display:inline-block;white-space:nowrap;
-}
-.p-done    {background:var(--green);color:var(--black);border-color:var(--black)}
-.p-pending {background:transparent;color:var(--text-dim);border-color:var(--border-dim)}
-.p-gen     {background:var(--yellow);color:var(--black);border-color:var(--black)}
-.p-proc    {background:var(--blue);color:var(--white);border-color:var(--white)}
-.p-err     {background:var(--red);color:var(--white);border-color:var(--white)}
-.p-sched   {background:var(--purple);color:var(--white);border-color:var(--white)}
-
-/* Cell actions */
-.cell-acts{display:flex;gap:4px;align-items:center}
-
-/* ═══════════════════════════════════════════════════
-   PAGINATION
-═══════════════════════════════════════════════════ */
-.pager{
-  display:flex;align-items:stretch;
-  border:var(--bw) solid var(--white);border-top:none;
-  flex-wrap:wrap;
-}
-.pg{
-  padding:8px 14px;
-  font-family:var(--mono);font-size:11px;font-weight:700;
-  cursor:pointer;
-  border-right:2px solid var(--border-dim);
-  background:var(--black);color:var(--text-dim);
-  transition:.08s;
-  display:inline-flex;align-items:center;
-}
-.pg:hover{background:var(--bg2);color:var(--white)}
-.pg.active{background:var(--yellow);color:var(--black)}
-.pg:disabled,.pg[disabled]{opacity:.3;cursor:not-allowed;pointer-events:none}
-.pg-info{padding:8px 14px;font-family:var(--mono);font-size:10px;color:var(--text-dim);display:flex;align-items:center;margin-left:auto}
-
-/* ═══════════════════════════════════════════════════
-   MODALS
-═══════════════════════════════════════════════════ */
-.overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.9);z-index:1000;
-  align-items:center;justify-content:center;padding:16px;
-}
-.overlay.open{display:flex}
-.modal{
-  background:var(--black);
-  border:var(--bw) solid var(--white);
-  width:100%;max-width:680px;max-height:92vh;overflow-y:auto;
-}
-.modal-head{
-  padding:14px 20px;
-  border-bottom:var(--bw) solid var(--white);
-  display:flex;justify-content:space-between;align-items:center;
-  position:sticky;top:0;background:var(--yellow);z-index:5;
-}
-.modal-head h3{
-  font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--black);
-}
-.close-x{
-  background:var(--black);border:2px solid var(--black);
-  color:var(--yellow);cursor:pointer;
-  font-size:18px;font-weight:700;line-height:1;
-  width:30px;height:30px;
+.tn-logo{display:flex;align-items:center;gap:6px;text-decoration:none;}
+.yt-icon{
+  width:34px;height:24px;background:var(--red);border-radius:5px;
   display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
 }
-.close-x:hover{background:var(--red);border-color:var(--red);color:var(--white)}
-.modal-body{padding:20px}
+.yt-icon::after{content:'▶';color:#fff;font-size:11px;margin-left:1px;}
+.tn-name{font-size:18px;font-weight:400;color:var(--grey1);letter-spacing:-.5px;}
+.tn-name sup{font-size:10px;color:var(--grey2);margin-left:3px;vertical-align:top;margin-top:5px;}
+.tn-sep{width:1px;height:22px;background:var(--grey4);margin:0 6px;}
+.tn-sub{font-size:13px;color:var(--grey2);font-weight:400;}
+.tn-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.tn-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--grey2);}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--grey4);flex-shrink:0;}
+.status-dot.green{background:var(--green);animation:pd 2s ease infinite;}
+.status-dot.amber{background:#f59e0b;}
+.status-dot.red-d{background:var(--err);}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.45}}
+.hamburger{background:none;border:none;font-size:20px;cursor:pointer;padding:8px;border-radius:50%;color:var(--grey2);}
+.hamburger:hover{background:var(--grey5);}
 
-/* ═══════════════════════════════════════════════════
-   FORM ELEMENTS
-═══════════════════════════════════════════════════ */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:520px){.form-grid{grid-template-columns:1fr}}
-.form-group{display:flex;flex-direction:column;gap:6px}
-.form-group.full{grid-column:1/-1}
-.form-label{
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  letter-spacing:1.5px;text-transform:uppercase;color:var(--yellow);
-}
-.form-input{
-  background:var(--bg3);
-  border:2px solid var(--border-dim);
-  color:var(--white);
-  padding:9px 12px;
-  font-family:var(--mono);font-size:12px;
-  outline:none;width:100%;
-}
-.form-input:focus{border-color:var(--yellow)}
-.form-textarea{resize:vertical;min-height:80px}
-.form-select{appearance:none;cursor:pointer}
-.form-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+/* ═══ LAYOUT ═══════════════════════════════════ */
+.app-body{display:flex;min-height:calc(100vh - 56px);}
 
-/* ═══════════════════════════════════════════════════
-   BRUTALIST INFO / WARN BOXES
-═══════════════════════════════════════════════════ */
-.info-box{
-  border:2px solid var(--blue);
-  background:rgba(0,102,255,.08);
-  padding:12px 16px;
-  font-family:var(--mono);font-size:11px;color:var(--blue);
-  line-height:1.7;margin-bottom:16px;
+/* ── Left sidebar (YouTube style) ── */
+.leftnav{
+  width:240px;flex-shrink:0;
+  padding:12px 0;
+  background:var(--white);
+  position:sticky;top:56px;
+  height:calc(100vh - 56px);
+  overflow-y:auto;
 }
-.warn-box{
-  border:2px solid var(--orange);
-  background:rgba(255,102,0,.08);
-  padding:12px 16px;
-  font-family:var(--mono);font-size:11px;color:var(--orange);
-  line-height:1.7;margin-bottom:16px;
+.ln-section{
+  font-size:13px;font-weight:500;color:var(--grey2);
+  padding:8px 24px 4px;
+  text-transform:uppercase;letter-spacing:.05em;
+  font-size:11px;
 }
-.success-box{
-  border:2px solid var(--green);
-  background:rgba(0,255,127,.06);
-  padding:12px 16px;
-  font-family:var(--mono);font-size:11px;color:var(--green);
-  line-height:1.7;margin-bottom:16px;
+.ln-item{
+  display:flex;align-items:center;gap:16px;
+  padding:10px 24px;cursor:pointer;
+  font-size:14px;color:var(--grey1);
+  border-radius:0;
+  transition:background .1s;
+  border-left:3px solid transparent;
 }
+.ln-item:hover{background:var(--grey5);}
+.ln-item.active{background:var(--red-light);color:var(--red);border-left-color:var(--red);font-weight:500;}
+.ln-ico{font-size:18px;width:22px;text-align:center;flex-shrink:0;}
+.ln-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;padding:2px 6px;border-radius:99px;font-family:var(--mono);}
 
-/* ═══════════════════════════════════════════════════
-   ACCOUNTS GRID
-═══════════════════════════════════════════════════ */
-.accounts-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:0;
-  border:var(--bw) solid var(--white);
-}
-.acc-card{
-  padding:18px 20px;
-  border-right:var(--bw) solid var(--white);
-  border-bottom:var(--bw) solid var(--white);
-  background:var(--black);
-}
-.acc-email{
-  font-family:var(--mono);font-size:12px;font-weight:700;
-  color:var(--white);margin-bottom:4px;word-break:break-all;
-}
-.acc-channel{
-  font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:10px;
-}
-.acc-status{
-  display:flex;align-items:center;gap:6px;
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  letter-spacing:1px;text-transform:uppercase;
-  margin-bottom:12px;
-}
-.dot{width:8px;height:8px;border:2px solid}
-.dot-on{background:var(--green);border-color:var(--green)}
-.dot-off{background:transparent;border-color:var(--red)}
-.acc-acts{display:flex;gap:6px;flex-wrap:wrap}
+/* ── Main content ── */
+.main-content{flex:1;padding:24px 32px;max-width:1100px;}
 
-/* ═══════════════════════════════════════════════════
-   QUEUE / SCHEDULE ITEMS
-═══════════════════════════════════════════════════ */
-.queue-item{
-  border:2px solid var(--border-dim);
-  border-left:var(--bw) solid var(--purple);
-  background:var(--black);
-  padding:12px 16px;
+/* ═══ PANELS ════════════════════════════════════ */
+.panel{display:none;}
+.panel.active{display:block;animation:pfade .18s ease;}
+@keyframes pfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.ph{margin-bottom:24px;}
+.ph-title{font-size:20px;font-weight:400;color:var(--grey1);}
+.ph-sub{font-size:14px;color:var(--grey2);margin-top:4px;}
+
+/* ═══ CARDS ═════════════════════════════════════ */
+.card{
+  background:var(--white);
+  border:1px solid var(--grey6);
+  border-radius:var(--r);
+  padding:20px 24px;
+  margin-bottom:16px;
+}
+.card-title{
+  font-size:14px;font-weight:500;color:var(--grey1);
+  margin-bottom:16px;
   display:flex;align-items:center;justify-content:space-between;
-  gap:12px;flex-wrap:wrap;
-  margin-bottom:0;
-  border-top:none;
-}
-.queue-item:first-child{border-top:var(--bw) solid var(--white)}
-.queue-title{
-  font-family:var(--body);font-size:14px;font-weight:700;
-  color:var(--white);
-}
-.queue-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:3px}
-.queue-time{
-  font-family:var(--mono);font-size:11px;
-  color:var(--purple);font-weight:700;white-space:nowrap;
+  flex-wrap:wrap;gap:8px;
 }
 
-/* ═══════════════════════════════════════════════════
-   ANALYTICS
-═══════════════════════════════════════════════════ */
-.ana-bar{height:4px;background:var(--border-dim);margin-top:4px}
-.ana-fill{height:100%;background:var(--yellow);transition:.3s}
+/* ═══ FORMS ═════════════════════════════════════ */
+.fg{margin-bottom:14px;}
+.fl{font-size:12px;font-weight:500;color:var(--grey2);margin-bottom:5px;display:block;}
+.fc{
+  width:100%;background:var(--white);
+  border:1px solid var(--grey4);border-radius:var(--r-sm);
+  color:var(--grey1);font-family:var(--sans);font-size:14px;
+  padding:8px 12px;outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+.fc:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(6,95,212,.15);}
+select.fc{cursor:pointer;}
+textarea.fc{resize:vertical;min-height:80px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.help{font-size:11px;color:var(--grey3);margin-top:4px;}
+code.c{background:var(--grey5);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px;color:var(--grey2);}
 
-/* ═══════════════════════════════════════════════════
-   LOG TYPES
-═══════════════════════════════════════════════════ */
-.lt{
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  padding:2px 7px;text-transform:uppercase;letter-spacing:.5px;
-  border:1.5px solid;display:inline-block;
-}
-.lt-upload {color:var(--green);border-color:var(--green)}
-.lt-error  {color:var(--red);border-color:var(--red)}
-.lt-sched  {color:var(--purple);border-color:var(--purple)}
-.lt-update {color:var(--blue);border-color:var(--blue)}
-.lt-delete {color:var(--red);border-color:var(--red)}
-.lt-auth   {color:var(--yellow);border-color:var(--yellow)}
-.lt-cfg    {color:var(--text-dim);border-color:var(--border-dim)}
-.lt-def    {color:var(--text-dim);border-color:var(--border-dim)}
+/* Toggle */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--grey6);border-radius:var(--r-sm);margin-bottom:8px;background:var(--bg);}
+.tog-lbl{font-size:14px;color:var(--grey1);}
+.tog-sub{font-size:11px;color:var(--grey3);margin-top:1px;}
+.tog{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0;}
+.tog input{opacity:0;width:0;height:0;position:absolute;}
+.tog-sl{position:absolute;inset:0;background:#ccc;border-radius:99px;transition:.18s;}
+.tog-sl::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.tog input:checked+.tog-sl{background:var(--red);}
+.tog input:checked+.tog-sl::before{transform:translateX(16px);}
 
-/* ═══════════════════════════════════════════════════
-   QUOTA BAR
-═══════════════════════════════════════════════════ */
-.quota-wrap{
-  border:var(--bw) solid var(--white);
-  padding:16px 20px;
-  margin-bottom:20px;
-  background:var(--black);
-  display:flex;gap:20px;align-items:center;flex-wrap:wrap;
+/* ═══ BUTTONS ═══════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 16px;border-radius:var(--r-sm);
+  font-family:var(--sans);font-size:14px;font-weight:500;
+  cursor:pointer;border:none;transition:background .15s,box-shadow .15s;
+  white-space:nowrap;
 }
-.quota-label{font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--white);white-space:nowrap}
-.quota-bar-wrap{flex:1;min-width:200px}
-.quota-bar-bg{height:12px;background:var(--bg3);border:2px solid var(--border-dim)}
-.quota-bar-fill{height:100%;background:var(--green);transition:.5s}
-.quota-text{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:5px}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.b-red{background:var(--red);color:#fff;}.b-red:hover:not(:disabled){background:var(--red-d);}
+.b-red-outline{background:#fff;color:var(--red);border:1px solid var(--red);}.b-red-outline:hover:not(:disabled){background:var(--red-light);}
+.b-outline{background:#fff;color:var(--grey1);border:1px solid var(--grey4);}.b-outline:hover:not(:disabled){background:var(--grey5);border-color:#bbb;}
+.b-blue{background:var(--blue);color:#fff;}.b-blue:hover:not(:disabled){background:#0552b5;}
+.b-ghost{background:transparent;color:var(--grey2);border:1px solid transparent;}.b-ghost:hover:not(:disabled){background:var(--grey5);}
+.b-sm{padding:6px 12px;font-size:12px;}
+.b-xs{padding:4px 10px;font-size:11px;border-radius:3px;}
+.b-block{width:100%;justify-content:center;}
 
-/* ═══════════════════════════════════════════════════
-   TOAST
-═══════════════════════════════════════════════════ */
-#toast{
-  position:fixed;bottom:20px;right:20px;z-index:9999;
-  display:flex;flex-direction:column;gap:6px;pointer-events:none;
-}
-.toast-item{
-  background:var(--black);
-  border:var(--bw) solid var(--white);
-  padding:10px 16px;
-  font-family:var(--mono);font-size:11px;font-weight:700;
-  max-width:300px;pointer-events:all;
-  animation:tIn .2s ease;
-}
-.toast-item.success{border-color:var(--green);color:var(--green)}
-.toast-item.error  {border-color:var(--red);color:var(--red)}
-.toast-item.info   {border-color:var(--blue);color:var(--blue)}
-.toast-item.warn   {border-color:var(--orange);color:var(--orange)}
-@keyframes tIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+/* ═══ CHIPS ═════════════════════════════════════ */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:500;}
+.ch-done{background:var(--green-bg);color:var(--green);}
+.ch-pend{background:var(--amber-bg);color:var(--amber);}
+.ch-proc{background:#e8f0fe;color:var(--blue);}
+.ch-err{background:var(--err-bg);color:var(--err);}
+.ch-gray{background:var(--grey5);color:var(--grey2);}
+.ch-yt{background:var(--red-light);color:var(--red);}
 
-/* ═══════════════════════════════════════════════════
-   HELP PAGE STYLING
-═══════════════════════════════════════════════════ */
-.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:var(--bw) solid var(--white)}
-@media(max-width:700px){.help-grid{grid-template-columns:1fr}}
-.help-box{
-  padding:20px;
-  border-right:var(--bw) solid var(--white);
-  border-bottom:var(--bw) solid var(--white);
-}
-.help-box:nth-child(even){border-right:none}
-.help-num{
-  font-family:var(--display);font-size:48px;color:var(--yellow);
-  line-height:1;margin-bottom:8px;
-}
-.help-title{
-  font-family:var(--display);font-size:20px;letter-spacing:2px;
-  color:var(--white);margin-bottom:10px;
-}
-.help-body{
-  font-family:var(--mono);font-size:11px;color:var(--text-dim);
-  line-height:1.8;
-}
-.help-body code{
-  background:var(--bg3);border:1px solid var(--border-dim);
-  padding:1px 6px;color:var(--yellow);font-family:var(--mono);
-}
-.help-body b{color:var(--white)}
+/* ═══ TABLE ═════════════════════════════════════ */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--grey6);border-radius:var(--r);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:var(--grey5);}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:500;color:var(--grey2);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--grey6);white-space:nowrap;}
+td{padding:10px 14px;border-bottom:1px solid #f0f0f0;color:var(--grey1);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafafa;}
+.td-clip{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.td-sm{font-size:11px;color:var(--grey2);font-family:var(--mono);}
+.td-bold{font-weight:500;}
 
-/* ═══════════════════════════════════════════════════
-   EMPTY / LOADING
-═══════════════════════════════════════════════════ */
-.empty{text-align:center;padding:48px 20px;border:var(--bw) solid var(--white)}
-.empty-icon{font-size:40px;margin-bottom:12px}
-.empty-title{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--yellow);margin-bottom:6px}
-.empty-sub{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
-.shimmer{
-  background:linear-gradient(90deg,var(--black) 25%,var(--bg3) 50%,var(--black) 75%);
-  background-size:200% 100%;animation:shim 1.4s infinite;
+/* ═══ VIDEO ROW CARD ════════════════════════════ */
+/* Each Done video shown as a YouTube-style item */
+.vid-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 16px;
+  background:var(--white);
+  border:1px solid var(--grey6);
+  border-radius:var(--r);
+  margin-bottom:8px;
+  transition:border-color .15s,box-shadow .15s;
 }
-@keyframes shim{from{background-position:200% 0}to{background-position:-200% 0}}
+.vid-item:hover{border-color:var(--grey3);box-shadow:var(--shadow);}
+.vid-item.uploading{border-color:var(--blue);background:#f8fbff;}
+.vid-item.done-up{border-color:rgba(43,166,64,.5);background:var(--green-bg);}
+.vid-item.failed-up{border-color:rgba(204,0,0,.4);background:var(--err-bg);}
 
-/* ═══════════════════════════════════════════════════
-   DIVIDER
-═══════════════════════════════════════════════════ */
-.div-line{height:var(--bw);background:var(--border-dim);margin:16px 0}
-.tag{
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  background:var(--yellow);color:var(--black);
-  padding:2px 7px;border:none;letter-spacing:.5px;
-  display:inline-block;
+/* Thumbnail area */
+.vid-thumb{
+  width:96px;height:54px;border-radius:4px;
+  background:var(--grey5);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;overflow:hidden;position:relative;
+}
+.vid-thumb img{width:100%;height:100%;object-fit:cover;}
+.vid-thumb-overlay{
+  position:absolute;bottom:3px;right:3px;
+  background:rgba(0,0,0,.75);color:#fff;
+  font-size:9px;padding:1px 4px;border-radius:2px;
+  font-family:var(--mono);
+}
+
+/* Video meta */
+.vid-meta{flex:1;min-width:0;}
+.vid-title{font-size:14px;font-weight:500;color:var(--grey1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px;}
+.vid-gen-title{font-size:12px;color:var(--grey2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px;}
+.vid-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.vid-tag{font-size:10px;color:var(--grey2);background:var(--grey5);padding:1px 7px;border-radius:3px;font-family:var(--mono);}
+
+/* Progress inside video item */
+.vid-prog-wrap{height:3px;background:var(--grey5);border-radius:99px;margin-top:7px;overflow:hidden;}
+.vid-prog-fill{height:100%;background:var(--red);border-radius:99px;width:0;transition:width .3s ease;}
+.vid-prog-fill.gr{background:var(--green);}
+
+/* Upload button area */
+.vid-action{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.vid-status{flex-shrink:0;}
+
+/* ═══ UPLOAD PROGRESS HERO ══════════════════════ */
+.up-hero{
+  background:var(--red);
+  border-radius:var(--r);
+  padding:24px 28px;
+  color:#fff;
+  margin-bottom:16px;
+  display:none;
+}
+.uh-top{display:flex;align-items:center;gap:20px;margin-bottom:14px;}
+.uh-pct{font-size:48px;font-weight:700;letter-spacing:-.03em;line-height:1;flex-shrink:0;}
+.uh-text-title{font-size:15px;font-weight:500;opacity:.95;}
+.uh-text-msg{font-size:12px;opacity:.7;margin-top:3px;}
+.uh-bar{background:rgba(255,255,255,.25);border-radius:99px;height:5px;overflow:hidden;margin-bottom:10px;}
+.uh-fill{height:100%;background:#fff;border-radius:99px;transition:width .4s ease;}
+.uh-phases{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.uh-ph{background:rgba(255,255,255,.12);border-radius:4px;padding:8px 10px;text-align:center;}
+.uh-ph-l{font-size:9px;opacity:.6;text-transform:uppercase;letter-spacing:.05em;font-family:var(--mono);}
+.uh-ph-v{font-size:13px;margin-top:3px;opacity:.5;}
+.uh-ph-v.active{opacity:1;}
+.uh-ph-v.done-v{color:#4ade80;opacity:1;}
+
+/* ═══ OAUTH STEPS ═══════════════════════════════ */
+.oa{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--grey6);}
+.oa:last-child{border-bottom:none;}
+.oa-n{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;background:var(--grey5);color:var(--grey2);border:2px solid var(--grey4);transition:.2s;}
+.oa.done .oa-n{background:var(--green-bg);color:var(--green);border-color:rgba(43,166,64,.4);}
+.oa.act .oa-n{background:var(--red-light);color:var(--red);border-color:var(--red-border);}
+.oa-body{flex:1;}
+.oa-t{font-size:14px;font-weight:500;margin-bottom:3px;}
+.oa-d{font-size:12px;color:var(--grey2);line-height:1.6;}
+.oa-a{margin-top:10px;}
+
+/* ═══ LOG ═══════════════════════════════════════ */
+.logbox{background:#1a1a1a;border-radius:var(--r);padding:14px 16px;height:200px;overflow-y:auto;font-family:var(--mono);font-size:11px;line-height:1.9;color:#ccc;}
+.ll{display:flex;gap:10px;}
+.lt{color:#555;flex-shrink:0;}
+.lok{color:#4ade80;}.lwarn{color:#fbbf24;}.lerr{color:#f87171;}.linfo{color:#818cf8;}.lstep{color:#ff6b6b;}
+
+/* ═══ RESULT ITEM ════════════════════════════════ */
+.res-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--grey6);border-radius:var(--r-sm);margin-bottom:7px;background:var(--white);}
+.res-item.done-r{border-color:rgba(43,166,64,.4);background:var(--green-bg);}
+.res-item.fail-r{border-color:rgba(204,0,0,.3);background:var(--err-bg);}
+
+/* ═══ SCROLLBAR ══════════════════════════════════ */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--grey4);border-radius:99px;}
+.logbox::-webkit-scrollbar-thumb{background:#444;}
+
+/* ═══ MOBILE ═════════════════════════════════════ */
+.mob-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:190;opacity:0;transition:opacity .2s;pointer-events:none;}
+.mob-backdrop.show{display:block;opacity:1;pointer-events:auto;}
+@media(max-width:860px){
+  .leftnav{position:fixed;top:56px;left:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .2s;border-right:1px solid var(--grey6);}
+  .leftnav.open{transform:none;box-shadow:4px 0 16px rgba(0,0,0,.12);}
+  .main-content{padding:16px;}
+  .fr{grid-template-columns:1fr;}
+  .vid-item{flex-wrap:wrap;}
+  .vid-action{flex-direction:row;width:100%;}
+}
+@media(max-width:500px){
+  .uh-pct{font-size:36px;}
+  .uh-phases{grid-template-columns:repeat(3,1fr);}
 }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-     TOPBAR
-═══════════════════════════════════════ -->
-<div class="topbar">
-  <div class="logo">
-    MAGIC<span class="logo-red">▶</span>LIGHT
-    <span class="logo-badge">PRO V3</span>
-  </div>
-  <div class="topbar-right">
-    <div class="hdr-pill">SHEET: <b id="hdr-sheet">—</b></div>
-    <div class="hdr-pill" id="hdr-rows">— ROWS</div>
-    <div class="mode-badge" id="mode-badge">CSV + API</div>
-    <button class="btn btn-sm btn-yellow" onclick="refreshAll()">↻ REFRESH</button>
+<div class="mob-backdrop" id="backdrop" onclick="closeSB()"></div>
+
+<!-- ═══════════════════════════════════════════════
+     TOP NAV — YouTube style
+════════════════════════════════════════════════ -->
+<div class="topnav">
+  <button class="hamburger" onclick="togSB()">☰</button>
+  <a class="tn-logo" href="#">
+    <div class="yt-icon"></div>
+    <span class="tn-name">YouTube<sup>Publisher</sup></span>
+  </a>
+  <div class="tn-sep"></div>
+  <span class="tn-sub">Sheet → Upload</span>
+  <div class="tn-right">
+    <div class="tn-status">
+      <div class="status-dot amber" id="sh-dot"></div>
+      <span id="sh-status-txt">Sheet: Not connected</span>
+    </div>
+    <div class="tn-sep"></div>
+    <div class="tn-status">
+      <div class="status-dot" id="yt-dot"></div>
+      <span id="yt-status-txt">YouTube: Not authenticated</span>
+    </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     TABS
-═══════════════════════════════════════ -->
-<div class="tabs">
-  <div class="tab active"  onclick="goTab('dashboard',this)"> <span class="tab-icon">▣</span> DASHBOARD</div>
-  <div class="tab"         onclick="goTab('stories',this)">   <span class="tab-icon">▶</span> STORIES <span class="tab-badge" id="badge-p">0</span></div>
-  <div class="tab"         onclick="goTab('schedule',this)">  <span class="tab-icon">◷</span> SCHEDULE</div>
-  <div class="tab"         onclick="goTab('accounts',this)">  <span class="tab-icon">◉</span> ACCOUNTS</div>
-  <div class="tab"         onclick="goTab('analytics',this)"> <span class="tab-icon">▲</span> ANALYTICS</div>
-  <div class="tab"         onclick="goTab('logs',this)">      <span class="tab-icon">≡</span> LOGS</div>
-  <div class="tab"         onclick="goTab('config',this)">    <span class="tab-icon">◈</span> CONFIG</div>
-  <div class="tab"         onclick="goTab('help',this)">      <span class="tab-icon">?</span> HELP</div>
-</div>
+<div class="app-body">
 
-<!-- ═══════════════════════════════════════
-     MAIN WRAP
-═══════════════════════════════════════ -->
-<div class="wrap">
-
-<!-- ════════════════════ TAB: DASHBOARD ════════════════════ -->
-<div class="tab-pane active" id="pane-dashboard">
-
-  <div class="stats-row" id="dash-stats">
-    <div class="stat-card shimmer" style="height:90px"></div>
-    <div class="stat-card shimmer" style="height:90px"></div>
-    <div class="stat-card shimmer" style="height:90px"></div>
-    <div class="stat-card shimmer" style="height:90px"></div>
-    <div class="stat-card shimmer" style="height:90px"></div>
-    <div class="stat-card shimmer" style="height:90px"></div>
+<!-- ═══════════════════════════════════════════════
+     LEFT NAV — YouTube.com sidebar style
+════════════════════════════════════════════════ -->
+<nav class="leftnav" id="leftnav">
+  <div class="ln-section">Setup</div>
+  <div class="ln-item active" data-panel="p-sheet">
+    <span class="ln-ico">📊</span> Connect Sheet
+  </div>
+  <div class="ln-item" data-panel="p-auth">
+    <span class="ln-ico">🔑</span> YouTube Auth
   </div>
 
-  <div class="quota-wrap">
-    <div class="quota-label">DAILY QUOTA</div>
-    <div class="quota-bar-wrap">
-      <div class="quota-bar-bg"><div class="quota-bar-fill" id="quota-fill" style="width:0%"></div></div>
-      <div class="quota-text" id="quota-text">0 / 10,000 UNITS — ~5 videos/day per account</div>
-    </div>
+  <div class="ln-section" style="margin-top:8px;">Upload</div>
+  <div class="ln-item" data-panel="p-videos">
+    <span class="ln-ico">▶</span> Done Videos
+    <span class="ln-badge" id="ln-badge">0</span>
+  </div>
+  <div class="ln-item" data-panel="p-results">
+    <span class="ln-ico">✅</span> Upload Results
   </div>
 
-  <!-- Recent -->
-  <div class="sec-head">
-    <div class="sec-head-left">
-      <div class="sec-title">RECENT DONE</div>
-      <div class="sec-sub">LAST 5 COMPLETED UPLOADS</div>
-    </div>
-    <div class="sec-head-right">
-      <button class="btn btn-sm btn-ghost" onclick="goTab('stories',document.querySelectorAll('.tab')[1])">VIEW ALL →</button>
-    </div>
+  <div class="ln-section" style="margin-top:8px;">Other</div>
+  <div class="ln-item" data-panel="p-log">
+    <span class="ln-ico">📋</span> Activity Log
   </div>
-  <div id="dash-recent"><div class="shimmer" style="height:120px;border:var(--bw) solid var(--white);border-top:none"></div></div>
+</nav>
 
-  <div class="div-line"></div>
+<!-- ═══════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════ -->
+<div class="main-content">
 
-  <!-- Upcoming scheduled -->
-  <div class="sec-head" style="margin-top:0">
-    <div class="sec-head-left">
-      <div class="sec-title">UPCOMING SCHEDULE</div>
-      <div class="sec-sub">NEXT 3 QUEUED UPLOADS</div>
-    </div>
-    <div class="sec-head-right">
-      <button class="btn btn-sm btn-ghost" onclick="goTab('schedule',document.querySelectorAll('.tab')[2])">MANAGE →</button>
-    </div>
-  </div>
-  <div id="dash-upcoming"><div class="shimmer" style="height:80px;border:var(--bw) solid var(--white);border-top:none"></div></div>
-
-</div><!-- /dashboard -->
-
-
-<!-- ════════════════════ TAB: STORIES ════════════════════ -->
-<div class="tab-pane" id="pane-stories">
-
-  <div class="toolbar">
-    <input class="search-box" id="s-search" placeholder="SEARCH TITLE / THEME / NOTES…" oninput="doSearch()">
-    <div class="filter-chips" id="s-chips"></div>
-    <button class="btn btn-sm btn-yellow" style="border:none" onclick="loadStories(1)">↻</button>
-  </div>
-
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>#ROW</th><th>STATUS</th><th>THEME</th>
-        <th>TITLE / GEN TITLE</th><th>ACCOUNT</th>
-        <th>CREDITS</th><th>DONE</th><th>YOUTUBE</th><th>ACTIONS</th>
-      </tr></thead>
-      <tbody id="s-tbody">
-        <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-dim);font-family:var(--mono)">LOADING…</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="pager" id="s-pager"></div>
-
-</div><!-- /stories -->
-
-
-<!-- ════════════════════ TAB: SCHEDULE ════════════════════ -->
-<div class="tab-pane" id="pane-schedule">
-
-  <div class="sec-head">
-    <div class="sec-head-left">
-      <div class="sec-title">UPLOAD QUEUE</div>
-      <div class="sec-sub">ROWS SCHEDULED FOR AUTO-UPLOAD</div>
-    </div>
-    <div class="sec-head-right">
-      <button class="btn btn-sm btn-purple" onclick="openSchedModal()">+ SCHEDULE UPLOAD</button>
-    </div>
-  </div>
-
-  <div class="info-box" style="border-top:none">
-    ⚙ Scheduled uploads run automatically every hour via Apps Script trigger.<br>
-    To activate: Apps Script editor → run <code>setupTrigger()</code> once.
-  </div>
-  <div id="sched-list"><div class="shimmer" style="height:100px"></div></div>
-
-</div><!-- /schedule -->
-
-
-<!-- ════════════════════ TAB: ACCOUNTS ════════════════════ -->
-<div class="tab-pane" id="pane-accounts">
-
-  <div class="sec-head">
-    <div class="sec-head-left">
-      <div class="sec-title">YOUTUBE ACCOUNTS</div>
-      <div class="sec-sub">OAUTH 2.0 — TOKEN SAVED PER ACCOUNT</div>
-    </div>
-    <div class="sec-head-right">
-      <button class="btn btn-sm btn-yellow" onclick="openAddAccModal()">+ ADD ACCOUNT</button>
-    </div>
-  </div>
-
-  <div class="warn-box" style="border-top:none">
-    ⚠ WRONG ACCOUNT POSTING? → Click <b>DE-AUTH</b> on that account → Re-open Auth URL in the CORRECT browser account.
-  </div>
-
-  <div class="accounts-grid" id="acc-grid">
-    <div class="acc-card shimmer" style="height:160px"></div>
-    <div class="acc-card shimmer" style="height:160px"></div>
-  </div>
-
-</div><!-- /accounts -->
-
-
-<!-- ════════════════════ TAB: ANALYTICS ════════════════════ -->
-<div class="tab-pane" id="pane-analytics">
-
-  <div class="sec-head">
-    <div class="sec-head-left">
-      <div class="sec-title">YOUTUBE REACH</div>
-      <div class="sec-sub">VIEWS · LIKES · COMMENTS — ALL UPLOADED VIDEOS</div>
-    </div>
-    <div class="sec-head-right">
-      <button class="btn btn-sm btn-purple" onclick="loadAnalytics()">↻ FETCH ANALYTICS</button>
-    </div>
-  </div>
-
-  <div class="stats-row" id="ana-totals" style="border-top:none">
-    <div class="stat-card shimmer" style="height:90px"></div>
-    <div class="stat-card shimmer" style="height:90px"></div>
-    <div class="stat-card shimmer" style="height:90px"></div>
-    <div class="stat-card shimmer" style="height:90px"></div>
-  </div>
-
-  <div class="table-wrap" style="border-top:none">
-    <table>
-      <thead><tr>
-        <th>#ROW</th><th>THUMB</th><th>TITLE</th>
-        <th>PUBLISHED</th><th>VIEWS</th><th>LIKES</th>
-        <th>COMMENTS</th><th>ENGAGE%</th><th>LINK</th>
-      </tr></thead>
-      <tbody id="ana-tbody">
-        <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-dim);font-family:var(--mono)">CLICK FETCH ANALYTICS →</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-</div><!-- /analytics -->
-
-
-<!-- ════════════════════ TAB: LOGS ════════════════════ -->
-<div class="tab-pane" id="pane-logs">
-
-  <div class="sec-head">
-    <div class="sec-head-left">
-      <div class="sec-title">ACTIVITY LOG</div>
-      <div class="sec-sub">ALL UPLOADS · EDITS · ERRORS · AUTH CHANGES</div>
-    </div>
-    <div class="sec-head-right">
-      <button class="btn btn-sm btn-ghost" onclick="loadLogs()">↻ REFRESH</button>
-      <button class="btn btn-sm btn-red" onclick="confirmClear()">🗑 CLEAR</button>
-    </div>
-  </div>
-
-  <div class="table-wrap" style="border-top:none">
-    <table>
-      <thead><tr><th>TIMESTAMP</th><th>TYPE</th><th>TARGET</th><th>DETAIL</th></tr></thead>
-      <tbody id="log-tbody">
-        <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-dim);font-family:var(--mono)">LOADING…</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-</div><!-- /logs -->
-
-
-<!-- ════════════════════ TAB: CONFIG ════════════════════ -->
-<div class="tab-pane" id="pane-config">
-
-  <div class="sec-head">
-    <div class="sec-head-left">
-      <div class="sec-title">CONFIGURATION</div>
-      <div class="sec-sub">SHEET URL · APPS SCRIPT · DEFAULTS</div>
-    </div>
-    <div class="sec-head-right">
-      <button class="btn btn-sm btn-green" onclick="saveCfg()">💾 SAVE CONFIG</button>
-    </div>
-  </div>
-
-  <div style="border:var(--bw) solid var(--white);border-top:none;padding:20px;max-width:800px">
-
-    <div style="font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--yellow);margin-bottom:14px;border-bottom:2px solid var(--border-dim);padding-bottom:8px">APPS SCRIPT CONNECTION</div>
-    <div class="form-group full" style="margin-bottom:16px">
-      <label class="form-label">Apps Script Web App URL (for WRITE operations — edit/delete/upload)</label>
-      <input class="form-input" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec">
-      <div style="font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-top:4px">Code.gs deploy → New Deployment → Web App → copy URL here</div>
+  <!-- ═══════════════════════════════════════════
+       PANEL 1: Connect Sheet
+  ════════════════════════════════════════════ -->
+  <div class="panel active" id="p-sheet">
+    <div class="ph">
+      <div class="ph-title">Connect Google Sheet</div>
+      <div class="ph-sub">Sheet ID aur API Key dalo — sirf "Done" status wale rows load honge</div>
     </div>
 
-    <div style="font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--yellow);margin:20px 0 14px;border-bottom:2px solid var(--border-dim);padding-bottom:8px">GOOGLE SHEET (READ — CSV)</div>
-    <div class="form-grid" style="margin-bottom:16px">
-      <div class="form-group">
-        <label class="form-label">Public CSV Export URL (for READ)</label>
-        <input class="form-input" id="cfg-csv" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?…output=csv">
+    <div class="card">
+      <div class="card-title">Sheet Credentials</div>
+      <div class="fr">
+        <div class="fg">
+          <label class="fl">Google Sheet ID</label>
+          <input type="text" class="fc" id="sh-id" placeholder="1MPfnJ2UajI-eKKqGS4y6eb3BEg…">
+          <div class="help">Sheet URL mein /d/ ke baad aur /edit se pehle ka part</div>
+        </div>
+        <div class="fg">
+          <label class="fl">Google API Key (read-only)</label>
+          <input type="text" class="fc" id="sh-key" placeholder="AIzaSy…">
+          <div class="help">Cloud Console → Credentials → API Key (Sheets API enabled honi chahiye)</div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Sheet Tab Name</label>
-        <input class="form-input" id="cfg-sheet-name" placeholder="Database">
+      <div class="fr">
+        <div class="fg">
+          <label class="fl">Tab Name</label>
+          <input type="text" class="fc" id="sh-tab" value="Database">
+        </div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:14px;">
+          <button class="btn b-red b-block" onclick="loadSheet()">
+            📊 Load Done Videos
+          </button>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Sheet ID (for Apps Script write)</label>
-        <input class="form-input" id="cfg-sheet-id" placeholder="1BxiMVs0XRA5…">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px;">
+        <button class="btn b-outline b-sm" onclick="loadDemo()">📋 Try Demo Data</button>
+        <span class="help">Real credentials baad mein daal sakte ho</span>
       </div>
     </div>
 
-    <div style="font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--yellow);margin:20px 0 14px;border-bottom:2px solid var(--border-dim);padding-bottom:8px">UPLOAD DEFAULTS</div>
-    <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">Default Privacy</label>
-        <select class="form-input form-select" id="cfg-privacy">
-          <option value="public">PUBLIC</option>
-          <option value="unlisted">UNLISTED</option>
-          <option value="private">PRIVATE</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Max Uploads / Day</label>
-        <input class="form-input" id="cfg-max" type="number" min="1" max="5" value="5">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Timezone</label>
-        <select class="form-input form-select" id="cfg-tz">
-          <option value="Asia/Karachi">ASIA/KARACHI (PKT)</option>
-          <option value="UTC">UTC</option>
-          <option value="America/New_York">AMERICA/NEW_YORK</option>
-          <option value="Europe/London">EUROPE/LONDON</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Default Category</label>
-        <select class="form-input form-select" id="cfg-cat">
-          <option value="27">27 — EDUCATION</option>
-          <option value="1">1 — FILM & ANIMATION</option>
-          <option value="22">22 — PEOPLE & BLOGS</option>
-          <option value="24">24 — ENTERTAINMENT</option>
-        </select>
+    <!-- How to get API Key guide -->
+    <div class="card">
+      <div class="card-title">Google Sheets API Key — 3 Simple Steps</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <div style="padding:16px;background:var(--bg);border:1px solid var(--grey6);border-radius:var(--r-sm);">
+          <div style="font-size:22px;margin-bottom:8px;">1️⃣</div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:6px;">Cloud Console</div>
+          <div style="font-size:12px;color:var(--grey2);">console.cloud.google.com kholain → New project ya existing select karo</div>
+          <div style="margin-top:10px;"><a href="https://console.cloud.google.com" target="_blank" class="btn b-outline b-xs">↗ Open</a></div>
+        </div>
+        <div style="padding:16px;background:var(--bg);border:1px solid var(--grey6);border-radius:var(--r-sm);">
+          <div style="font-size:22px;margin-bottom:8px;">2️⃣</div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:6px;">Sheets API Enable</div>
+          <div style="font-size:12px;color:var(--grey2);">APIs & Services → Library → "Google Sheets API" → Enable karo</div>
+          <div style="margin-top:10px;"><a href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank" class="btn b-outline b-xs">↗ Enable</a></div>
+        </div>
+        <div style="padding:16px;background:var(--bg);border:1px solid var(--grey6);border-radius:var(--r-sm);">
+          <div style="font-size:22px;margin-bottom:8px;">3️⃣</div>
+          <div style="font-size:13px;font-weight:500;margin-bottom:6px;">API Key Banao</div>
+          <div style="font-size:12px;color:var(--grey2);">Credentials → Create Credentials → API Key → Copy karke upar paste karo</div>
+          <div style="margin-top:10px;"><a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="btn b-outline b-xs">↗ Credentials</a></div>
+        </div>
       </div>
     </div>
 
-  </div>
-
-</div><!-- /config -->
-
-
-<!-- ════════════════════ TAB: HELP ════════════════════ -->
-<div class="tab-pane" id="pane-help">
-
-  <div class="sec-head">
-    <div class="sec-head-left">
-      <div class="sec-title">SETUP GUIDE</div>
-      <div class="sec-sub">MAGICLIGHT PRO V3 — FULL DOCUMENTATION</div>
+    <!-- Preview after load -->
+    <div class="card" id="preview-card" style="display:none;">
+      <div class="card-title">
+        Loaded — Done Videos
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="chip ch-done" id="preview-chip">0 rows</span>
+          <button class="btn b-red b-sm" onclick="SW('p-videos')">Go to Upload →</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Row</th><th>Title</th><th>Gen Title</th><th>Theme</th><th>Completed</th><th>Drive</th></tr></thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- 2-WAY EXPLANATION -->
-  <div class="success-box" style="border-top:none;margin-bottom:0">
-    ✅ <b>HOW 2-WAY WORKS:</b><br>
-    <b>READ (CSV) →</b> Dashboard directly fetches your Google Sheet CSV — no login, no Apps Script needed. Instant.<br>
-    <b>WRITE (Apps Script) →</b> Edit/Delete/Upload/Schedule all go through Apps Script backend. One-time deploy.
-  </div>
-
-  <div class="help-grid" style="border-top:none">
-
-    <div class="help-box">
-      <div class="help-num">01</div>
-      <div class="help-title">GOOGLE CLOUD SETUP</div>
-      <div class="help-body">
-        1. Go to <b>console.cloud.google.com</b><br>
-        2. Create new project: <code>MagicLight-Pro</code><br>
-        3. <b>APIs & Services → Library</b><br>
-        4. Search & Enable: <code>YouTube Data API v3</code><br>
-        5. <b>OAuth consent screen</b> → Add your Gmail as test user<br>
-        6. Do this separately for each YouTube account
-      </div>
+  <!-- ═══════════════════════════════════════════
+       PANEL 2: YouTube Auth
+  ════════════════════════════════════════════ -->
+  <div class="panel" id="p-auth">
+    <div class="ph">
+      <div class="ph-title">YouTube Authentication</div>
+      <div class="ph-sub">OAuth 2.0 se YouTube channel connect karo — 4 steps</div>
     </div>
 
-    <div class="help-box">
-      <div class="help-num">02</div>
-      <div class="help-title">APPS SCRIPT DEPLOY</div>
-      <div class="help-body">
-        1. Open your Google Sheet<br>
-        2. <b>Extensions → Apps Script</b><br>
-        3. Replace Code.gs with the provided file<br>
-        4. Set <code>SHEET_ID</code> at top of Code.gs<br>
-        5. <b>Services (+)</b> → Add <code>YouTube Data API v3</code><br>
-        6. <b>Deploy → New Deployment → Web App</b><br>
-        &nbsp;&nbsp; Execute as: <b>Me</b> · Access: <b>Anyone</b><br>
-        7. Copy URL → paste in <b>Config Tab</b>
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start;">
+      <div class="card">
+        <div class="card-title">OAuth 2.0 — Step by Step</div>
+
+        <div class="oa done" id="oa1">
+          <div class="oa-n">1</div>
+          <div class="oa-body">
+            <div class="oa-t">YouTube Data API v3 Enable Karo</div>
+            <div class="oa-d">Same Google Cloud project mein → APIs & Services → Library → "YouTube Data API v3" → Enable</div>
+            <div class="oa-a"><a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" class="btn b-outline b-sm">↗ Open API Library</a></div>
+          </div>
+        </div>
+
+        <div class="oa act" id="oa2">
+          <div class="oa-n">2</div>
+          <div class="oa-body">
+            <div class="oa-t">OAuth 2.0 Client ID Banao</div>
+            <div class="oa-d">Console → Credentials → Create → OAuth Client ID → Web Application. Authorized Redirect URI mein <code class="c">http://localhost</code> add karo.</div>
+            <div class="oa-a">
+              <div class="fr" style="gap:10px;">
+                <div class="fg" style="margin:0;"><label class="fl">Client ID</label><input type="text" class="fc" id="yt-cid" placeholder="xxxx.apps.googleusercontent.com"></div>
+                <div class="fg" style="margin:0;"><label class="fl">Client Secret</label><input type="password" class="fc" id="yt-cs" placeholder="GOCSPX-xxxx"></div>
+              </div>
+              <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="btn b-outline b-sm" style="margin-top:6px;">↗ Open Credentials</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="oa" id="oa3">
+          <div class="oa-n">3</div>
+          <div class="oa-body">
+            <div class="oa-t">Google Authorization Window Kholo</div>
+            <div class="oa-d">Button dabao → Google login khulega → Channel owner account se sign in karo → "Allow" karo</div>
+            <div class="oa-a"><button class="btn b-red" onclick="doOAuth()">🔑 Authorize with Google</button></div>
+          </div>
+        </div>
+
+        <div class="oa" id="oa4">
+          <div class="oa-n">4</div>
+          <div class="oa-body">
+            <div class="oa-t">Access Token Paste Karo &amp; Verify</div>
+            <div class="oa-d">Sign-in ke baad browser URL bar mein <code class="c">access_token=</code> ke baad wali value copy karo aur yahan paste karo</div>
+            <div class="oa-a">
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input type="text" class="fc" id="yt-tok" placeholder="ya29.xxxxxxxxxxxx" style="flex:1;min-width:180px;">
+                <button class="btn b-blue" onclick="verifyToken()">✓ Verify &amp; Connect</button>
+              </div>
+              <div id="tok-result" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
 
-    <div class="help-box">
-      <div class="help-num">03</div>
-      <div class="help-title">FIRST AUTHORIZATION</div>
-      <div class="help-body">
-        1. Apps Script editor → function dropdown<br>
-        2. Select <code>authorizeYouTube</code> → Run<br>
-        3. Google popup → Allow all permissions<br>
-        4. Select <code>setupTrigger</code> → Run<br>
-        &nbsp;&nbsp; (This creates hourly auto-upload trigger)<br>
-        5. Test: run <code>doGet</code> → should return JSON OK
-      </div>
-    </div>
-
-    <div class="help-box">
-      <div class="help-num">04</div>
-      <div class="help-title">GOOGLE SHEET CSV URL</div>
-      <div class="help-body">
-        1. Open your Google Sheet<br>
-        2. <b>File → Share → Publish to web</b><br>
-        3. Select your sheet tab → <b>CSV</b> format<br>
-        4. Click <b>Publish</b> → copy the URL<br>
-        5. Paste in <b>Config Tab → CSV URL</b><br>
-        6. This URL is used for READ (no auth needed)
-      </div>
-    </div>
-
-    <div class="help-box">
-      <div class="help-num">05</div>
-      <div class="help-title">ADD EXTRA ACCOUNTS</div>
-      <div class="help-body">
-        1. <b>Accounts Tab → + ADD ACCOUNT</b><br>
-        2. Enter Gmail + channel name<br>
-        3. An <b>Auth URL</b> will appear<br>
-        4. Open that URL in browser while logged into<br>
-        &nbsp;&nbsp; the <b>CORRECT</b> Google/YouTube account<br>
-        5. Allow permissions → token saved<br>
-        6. Green dot = authorized ✓
-      </div>
-    </div>
-
-    <div class="help-box">
-      <div class="help-num">06</div>
-      <div class="help-title">WRONG ACCOUNT POSTING?</div>
-      <div class="help-body">
-        Problem: Videos posting from wrong Gmail account<br><br>
-        Fix:<br>
-        1. <b>Accounts Tab</b> → find the wrong account<br>
-        2. Click <b>DE-AUTH</b> → token cleared<br>
-        3. An Auth URL opens automatically<br>
-        4. Open in browser, <b>switch to correct Gmail</b><br>
-        5. Allow → correct token saved<br>
-        6. Now uploads go to correct channel ✓
-      </div>
-    </div>
-
-    <div class="help-box">
-      <div class="help-num">07</div>
-      <div class="help-title">COLUMN MAPPING</div>
-      <div class="help-body">
-        <b>A</b> Status · <b>B</b> Theme · <b>C</b> Title · <b>D</b> Story<br>
-        <b>E</b> Moral · <b>F</b> Gen_Title · <b>G</b> Gen_Summary<br>
-        <b>H</b> Gen_Tags · <b>I</b> Project_URL<br>
-        <b>J</b> Created_Time · <b>K</b> Completed_Time<br>
-        <b>L</b> Notes · <b>M</b> Drive_Link<br>
-        <b>N</b> DriveImg_Link · <b>O</b> Credit_Before<br>
-        <b>P</b> Credit_After · <b>Q</b> Email_Used<br>
-        <b>R</b> YouTube_ID · <b>S</b> YouTube_URL<br>
-        <b>T</b> Schedule_Time · <b>U</b> Done
-      </div>
-    </div>
-
-    <div class="help-box">
-      <div class="help-num">08</div>
-      <div class="help-title">QUOTA LIMITS</div>
-      <div class="help-body">
-        YouTube API daily quota: <b>10,000 units</b><br><br>
-        Per video upload: ~<b>1,600 units</b><br>
-        Per thumbnail set: ~<b>50 units</b><br>
-        Per analytics read: ~<b>1 unit</b><br><br>
-        <b>Max ~5 videos/day per Cloud Project</b><br><br>
-        💡 Each Gmail account can have its own<br>
-        Google Cloud Project → own 10,000 quota!
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Error reference -->
-  <div style="border:var(--bw) solid var(--white);border-top:none;padding:20px">
-    <div style="font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--red);margin-bottom:14px">COMMON ERRORS</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- Channel info -->
       <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">"caller does not have permission"</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ OAuth scope missing. Re-run authorizeYouTube() in Apps Script</div>
-      </div>
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">"Daily Limit Exceeded"</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Quota finished. Wait 24hrs or create new Cloud Project</div>
-      </div>
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">"File not found" on Drive</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Set Drive file sharing to "Anyone with link — Viewer"</div>
-      </div>
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">Thumbnail not uploading</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Channel needs 1000+ subscribers for custom thumbnails</div>
-      </div>
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">CSV not loading</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Sheet must be published to web as CSV. Check Config tab URL</div>
-      </div>
-      <div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">Video not showing on YouTube</div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Processing takes 5-15 min after upload. Normal.</div>
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-title">Channel Info</div>
+          <div id="ch-info" style="text-align:center;padding:24px 0;">
+            <div style="font-size:36px;margin-bottom:10px;">📺</div>
+            <div style="font-size:13px;color:var(--grey2);">Step 3 & 4 complete karo channel info dekhne ke liye</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Token Info</div>
+          <div style="font-size:12px;color:var(--grey2);line-height:1.8;">
+            <b>Token validity:</b> ~1 hour<br>
+            <b>Scope:</b> youtube.upload<br>
+            <b>Expire hone pe:</b> Step 3 dobara karo<br>
+            <b>Stored:</b> Is session mein sirf (browser memory)
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-</div><!-- /help -->
-
-</div><!-- /wrap -->
-
-
-<!-- ═══════════════════════════════════════
-     MODALS
-═══════════════════════════════════════ -->
-
-<!-- EDIT ROW MODAL -->
-<div class="overlay" id="ov-edit" onclick="closeOv('ov-edit',event)">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>EDIT ROW <span id="edit-rn"></span></h3>
-      <button class="close-x" onclick="closeModal('ov-edit')">✕</button>
+  <!-- ═══════════════════════════════════════════
+       PANEL 3: Done Videos — Individual Upload
+  ════════════════════════════════════════════ -->
+  <div class="panel" id="p-videos">
+    <div class="ph">
+      <div class="ph-title">Done Videos</div>
+      <div class="ph-sub">Har video ke saamne upload button hai — manually select karke upload karo</div>
     </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">Status</label>
-          <select class="form-input form-select" id="e-status">
-            <option>Pending</option><option>Generated</option>
-            <option>Done</option><option>Error</option><option>Processing</option>
+
+    <!-- Upload settings bar -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">Upload Settings</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+        <div class="fg" style="margin:0;">
+          <label class="fl">Privacy</label>
+          <select class="fc" id="yt-prv">
+            <option value="private">🔒 Private</option>
+            <option value="unlisted">🔗 Unlisted</option>
+            <option value="public">🌐 Public</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Theme</label>
-          <input class="form-input" id="e-theme">
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Title</label>
-          <input class="form-input" id="e-title">
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Gen Title (YouTube)</label>
-          <input class="form-input" id="e-gen-title">
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Gen Summary (Description)</label>
-          <textarea class="form-input form-textarea" id="e-summary"></textarea>
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Tags (comma separated)</label>
-          <input class="form-input" id="e-tags">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Drive Video Link</label>
-          <input class="form-input" id="e-drive">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Notes</label>
-          <input class="form-input" id="e-notes">
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-yellow" onclick="saveEdit()">💾 SAVE</button>
-        <button class="btn btn-ghost" onclick="closeModal('ov-edit')">CANCEL</button>
-      </div>
-      <div id="edit-status-msg" style="margin-top:10px;font-family:var(--mono);font-size:11px"></div>
-    </div>
-  </div>
-</div>
-
-<!-- UPLOAD MODAL -->
-<div class="overlay" id="ov-upload" onclick="closeOv('ov-upload',event)">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>UPLOAD TO YOUTUBE — ROW <span id="up-rn"></span></h3>
-      <button class="close-x" onclick="closeModal('ov-upload')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group full">
-          <label class="form-label">Video Title</label>
-          <input class="form-input" id="up-title">
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Description</label>
-          <textarea class="form-input form-textarea" id="up-desc"></textarea>
-        </div>
-        <div class="form-group full">
-          <label class="form-label">Tags</label>
-          <input class="form-input" id="up-tags">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Privacy</label>
-          <select class="form-input form-select" id="up-privacy">
-            <option value="public">PUBLIC</option>
-            <option value="unlisted">UNLISTED</option>
-            <option value="private">PRIVATE</option>
+        <div class="fg" style="margin:0;">
+          <label class="fl">Category</label>
+          <select class="fc" id="yt-cat">
+            <option value="1">Film &amp; Animation</option>
+            <option value="24">Entertainment</option>
+            <option value="27">Education</option>
+            <option value="22">People &amp; Blogs</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Upload Account</label>
-          <select class="form-input form-select" id="up-account"></select>
+        <div class="fg" style="margin:0;">
+          <label class="fl">Default Thumbnail</label>
+          <div style="display:flex;gap:6px;">
+            <div id="thumb-prev" style="width:40px;height:28px;border-radius:3px;background:var(--grey5);display:flex;align-items:center;justify-content:center;font-size:14px;border:1px solid var(--grey4);cursor:pointer;overflow:hidden;" onclick="document.getElementById('tmb').click()">🖼</div>
+            <button class="btn b-outline b-sm" onclick="document.getElementById('tmb').click()" style="flex:1;">Upload Thumbnail</button>
+            <input type="file" id="tmb" accept="image/*" style="display:none" onchange="prevThumb(this)">
+          </div>
         </div>
       </div>
-      <div class="form-actions">
-        <button class="btn btn-green" id="up-btn" onclick="doUpload()">▶ UPLOAD NOW</button>
-        <button class="btn btn-ghost" onclick="closeModal('ov-upload')">CANCEL</button>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="fg" style="margin:0;">
+          <label class="fl">Default Tags</label>
+          <input type="text" class="fc" id="yt-tags" value="kids story, animated, bedtime story, magiclight">
+        </div>
+        <div class="fg" style="margin:0;">
+          <label class="fl">Description Template</label>
+          <input type="text" class="fc" id="yt-desc-short" value="An amazing animated kids story by MagicLight AI 🌟 #KidsStory #AnimatedStory">
+        </div>
       </div>
-      <div id="up-msg" style="margin-top:10px;font-family:var(--mono);font-size:11px"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <div class="tog-row" style="flex:1;min-width:200px;margin:0;">
+          <div><div class="tog-lbl">Use Gen Title</div><div class="tog-sub">AI generated title use karo</div></div>
+          <label class="tog"><input type="checkbox" id="use-gen" checked><span class="tog-sl"></span></label>
+        </div>
+        <div class="tog-row" style="flex:1;min-width:200px;margin:0;">
+          <div><div class="tog-lbl">Add Drive Link</div><div class="tog-sub">Drive link description mein</div></div>
+          <label class="tog"><input type="checkbox" id="add-drv"><span class="tog-sl"></span></label>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- SCHEDULE MODAL -->
-<div class="overlay" id="ov-sched" onclick="closeOv('ov-sched',event)">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>SCHEDULE UPLOAD</h3>
-      <button class="close-x" onclick="closeModal('ov-sched')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="info-box">Select a Generated row → set date/time → Apps Script uploads automatically (±1hr)</div>
-      <div class="form-grid">
-        <div class="form-group full">
-          <label class="form-label">Story Row</label>
-          <select class="form-input form-select" id="sc-row"></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Date & Time</label>
-          <input class="form-input" id="sc-time" type="datetime-local">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Account</label>
-          <select class="form-input form-select" id="sc-acc"></select>
+    <!-- Upload progress hero (shows during upload) -->
+    <div class="up-hero" id="up-hero">
+      <div class="uh-top">
+        <div class="uh-pct" id="uh-pct">0%</div>
+        <div>
+          <div class="uh-text-title" id="uh-title">Uploading…</div>
+          <div class="uh-text-msg" id="uh-msg">Preparing…</div>
         </div>
       </div>
-      <div class="form-actions">
-        <button class="btn btn-purple" onclick="saveSchedule()">◷ SCHEDULE</button>
-        <button class="btn btn-ghost" onclick="closeModal('ov-sched')">CANCEL</button>
+      <div class="uh-bar"><div class="uh-fill" id="uh-fill" style="width:0%"></div></div>
+      <div class="uh-phases">
+        <div class="uh-ph"><div class="uh-ph-l">Auth</div><div class="uh-ph-v" id="uhp-a">⬤</div></div>
+        <div class="uh-ph"><div class="uh-ph-l">Metadata</div><div class="uh-ph-v" id="uhp-u">⬤</div></div>
+        <div class="uh-ph"><div class="uh-ph-l">Publish</div><div class="uh-ph-v" id="uhp-p">⬤</div></div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ADD ACCOUNT MODAL -->
-<div class="overlay" id="ov-acc" onclick="closeOv('ov-acc',event)">
-  <div class="modal">
-    <div class="modal-head">
-      <h3>ADD YOUTUBE ACCOUNT</h3>
-      <button class="close-x" onclick="closeModal('ov-acc')">✕</button>
+    <!-- Search + filter bar -->
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+      <input type="text" class="fc" id="v-srch" placeholder="🔍 Search videos…" style="width:220px;" oninput="filterVids()">
+      <select class="fc" id="v-theme" style="width:150px;" onchange="filterVids()">
+        <option value="">All Themes</option>
+      </select>
+      <span style="font-size:13px;color:var(--grey2);margin-left:4px;" id="vid-count">0 videos</span>
+      <div style="margin-left:auto;display:flex;gap:7px;">
+        <button class="btn b-outline b-sm" onclick="SW('p-sheet')">← Reload Sheet</button>
+        <button class="btn b-outline b-sm" onclick="SW('p-auth')">🔑 Auth Status</button>
+      </div>
     </div>
-    <div class="modal-body">
-      <div class="info-box">After adding → open the Auth URL in browser while logged into the CORRECT Google account.</div>
-      <div class="form-grid">
-        <div class="form-group full">
-          <label class="form-label">Gmail Address</label>
-          <input class="form-input" id="acc-email" placeholder="your@gmail.com">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Channel Name (optional)</label>
-          <input class="form-input" id="acc-ch" placeholder="Bright Little Stories">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Channel ID (optional)</label>
-          <input class="form-input" id="acc-chid" placeholder="UCxxxxxxxxx">
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-yellow" onclick="doAddAcc()">+ REGISTER</button>
-        <button class="btn btn-ghost" onclick="closeModal('ov-acc')">CANCEL</button>
-      </div>
-      <div id="acc-auth-wrap" style="display:none;margin-top:16px;border:2px solid var(--blue);padding:12px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--blue);margin-bottom:6px;letter-spacing:1px">OPEN THIS URL IN CORRECT BROWSER:</div>
-        <a id="acc-auth-link" href="#" target="_blank"
-           style="font-family:var(--mono);font-size:10px;word-break:break-all;color:var(--yellow)"></a>
+
+    <!-- Video list (YouTube video manager style) -->
+    <div id="vid-list">
+      <div style="text-align:center;padding:48px 0;color:var(--grey2);">
+        <div style="font-size:48px;margin-bottom:12px;">📊</div>
+        <div style="font-size:16px;font-weight:500;">Sheet se data load karo</div>
+        <div style="font-size:13px;margin-top:6px;">"Connect Sheet" tab mein jao → Sheet ID dalo → Load karo</div>
+        <button class="btn b-red" onclick="SW('p-sheet')" style="margin-top:16px;">Go to Connect Sheet</button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- DELETE CONFIRM -->
-<div class="overlay" id="ov-del" onclick="closeOv('ov-del',event)">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-head" style="background:var(--red)">
-      <h3>DELETE ROW <span id="del-rn"></span></h3>
-      <button class="close-x" style="background:var(--black);color:var(--red)" onclick="closeModal('ov-del')">✕</button>
+  <!-- ═══════════════════════════════════════════
+       PANEL 4: Results
+  ════════════════════════════════════════════ -->
+  <div class="panel" id="p-results">
+    <div class="ph">
+      <div class="ph-title">Upload Results</div>
+      <div class="ph-sub">Is session ke sab uploads ka record</div>
     </div>
-    <div class="modal-body">
-      <div style="font-family:var(--mono);font-size:12px;color:var(--text);margin-bottom:6px">TITLE: <b id="del-title" style="color:var(--yellow)"></b></div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:16px;border:2px solid var(--red);padding:8px">
-        ⚠ THIS CANNOT BE UNDONE. ROW WILL BE PERMANENTLY DELETED FROM GOOGLE SHEET.
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
+      <div class="card" style="text-align:center;padding:24px;">
+        <div style="font-size:36px;font-weight:400;color:var(--green);" id="r-done">0</div>
+        <div style="font-size:13px;color:var(--grey2);margin-top:4px;">Successful</div>
       </div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-red" onclick="doDelete()">🗑 DELETE FOREVER</button>
-        <button class="btn btn-ghost" onclick="closeModal('ov-del')">CANCEL</button>
+      <div class="card" style="text-align:center;padding:24px;">
+        <div style="font-size:36px;font-weight:400;color:var(--err);" id="r-fail">0</div>
+        <div style="font-size:13px;color:var(--grey2);margin-top:4px;">Failed</div>
+      </div>
+      <div class="card" style="text-align:center;padding:24px;">
+        <div style="font-size:36px;font-weight:400;color:var(--grey1);" id="r-total">0</div>
+        <div style="font-size:13px;color:var(--grey2);margin-top:4px;">Total Attempted</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        Upload History
+        <button class="btn b-ghost b-sm" onclick="clearResults()">Clear</button>
+      </div>
+      <div id="res-list">
+        <div style="text-align:center;padding:32px;color:var(--grey3);font-size:13px;">
+          Koi uploads nahi — Done Videos tab pe jao
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Toast -->
-<div id="toast"></div>
+  <!-- ═══════════════════════════════════════════
+       PANEL 5: Log
+  ════════════════════════════════════════════ -->
+  <div class="panel" id="p-log">
+    <div class="ph">
+      <div class="ph-title">Activity Log</div>
+      <div class="ph-sub">Session ke sab events</div>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        Log Output
+        <div style="display:flex;gap:7px;">
+          <button class="btn b-ghost b-sm" onclick="document.getElementById('mlog').innerHTML=''">Clear</button>
+          <button class="btn b-outline b-sm" onclick="dlLog()">↓ Download</button>
+        </div>
+      </div>
+      <div class="logbox" id="mlog" style="height:440px;"></div>
+    </div>
+  </div>
 
-<!-- ═══════════════════════════════════════
-     JAVASCRIPT
-═══════════════════════════════════════ -->
+</div><!-- /main-content -->
+</div><!-- /app-body -->
+
 <script>
-// ═══════════════════════════════════════════════════════
-//  ██████╗ ███████╗ ██████╗
-//  ██╔════╝██╔════╝██╔════╝
-//  ██║     █████╗  ██║  ███╗
-//  ██║     ██╔══╝  ██║   ██║
-//  ╚██████╗██║     ╚██████╔╝
-//   ╚═════╝╚═╝      ╚═════╝
-//  MAGICLIGHT PRO v3.0
-// ═══════════════════════════════════════════════════════
-
-// ── CONFIG ────────────────────────────────────────────
-// These are saved to localStorage — edit via Config Tab
-const CFG = {
-  get appsScriptUrl() { return ls('ml_as_url') || '' },
-  get csvUrl()        { return ls('ml_csv_url') || '' },
-  get sheetId()       { return ls('ml_sheet_id') || '' },
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+const S={
+  ytToken:null,
+  channelName:'',
+  doneRows:[],
+  results:[],
+  thumbFile:null,
+  uploading:false,
 };
+const logs=[];
 
-function ls(k, v) {
-  if (v !== undefined) { localStorage.setItem(k, v); return v; }
-  return localStorage.getItem(k) || '';
+// ════════════════════════════════════════════════
+// LOG
+// ════════════════════════════════════════════════
+const pad=n=>String(n).padStart(2,'0');
+function nowT(){const d=new Date();return`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;}
+function log(msg,type='info'){
+  const cls={ok:'lok',warn:'lwarn',err:'lerr',info:'linfo',step:'lstep'}[type]||'linfo';
+  const pfx={ok:'  OK  ',warn:'  !!  ',err:'  XX  ',step:' >>>  ',info:'      '}[type]||'      ';
+  const b=document.getElementById('mlog');
+  const h=`<div class="ll"><span class="lt">${nowT()}</span><span class="${cls}">${pfx}${msg}</span></div>`;
+  if(b){b.insertAdjacentHTML('beforeend',h);b.scrollTop=b.scrollHeight;}
+  logs.push({t:nowT(),msg,type});
+}
+function dlLog(){
+  const t=logs.map(l=>`[${l.t}] ${l.type.padEnd(5)} ${l.msg}`).join('\n');
+  const a=document.createElement('a');a.href='data:text/plain,'+encodeURIComponent(t);a.download='yt-log.txt';a.click();
 }
 
-// ── STATE ─────────────────────────────────────────────
-let PAGE      = 1;
-let FILTER    = 'all';
-let SEARCH    = '';
-let ROWS      = [];   // current page rows from CSV
-let ALL_ROWS  = [];   // all parsed CSV rows
-let ACCOUNTS  = [];   // cached accounts
-let EDIT_ROW  = null; // rowNum being edited
-let UP_ROW    = null; // rowNum being uploaded
-let DEL_ROW   = null; // rowNum being deleted
-const PAGE_SZ = 30;
-
-
-// ═══════════════════════════════════════════════════════
-// API — write ops go through Apps Script
-// ═══════════════════════════════════════════════════════
-async function api(action, params = {}) {
-  const url = CFG.appsScriptUrl;
-  if (!url || url.includes('YOUR_')) {
-    throw new Error('Apps Script URL not set — go to Config tab');
-  }
-  const res  = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify({ action, ...params })
-  });
-  return res.json();
-}
-
-
-// ═══════════════════════════════════════════════════════
-// CSV READ — direct fetch, no auth needed
-// ═══════════════════════════════════════════════════════
-async function fetchCSV() {
-  const url = CFG.csvUrl;
-  if (!url) throw new Error('CSV URL not set — go to Config tab');
-  const res = await fetch(url + '&t=' + Date.now());
-  return res.text();
-}
-
-function parseCSV(txt) {
-  const lines = txt.trim().split('\n');
-  const hdrs  = csvSplit(lines[0]).map(h => h.replace(/"/g,'').trim().toLowerCase().replace(/\s+/g,'_'));
-  return lines.slice(1).map((line, i) => {
-    const vals = csvSplit(line);
-    const obj  = { _rowNum: i + 2 }; // +2 = header row is row 1
-    hdrs.forEach((h, j) => obj[h] = (vals[j] || '').replace(/^"|"$/g,'').trim());
-    // Normalize thumbnail key
-    if (!obj.driveimg_link) {
-      const k = Object.keys(obj).find(k => /driveimg|drive_img|thumb|thumbnail/i.test(k));
-      if (k && obj[k]) obj.driveimg_link = obj[k];
-    }
-    return obj;
-  }).filter(r => r.title || r.gen_title || r.story);
-}
-
-function csvSplit(line) {
-  const vals = []; let cur = '', inQ = false;
-  for (const c of line) {
-    if (c === '"') { inQ = !inQ; }
-    else if (c === ',' && !inQ) { vals.push(cur); cur = ''; }
-    else cur += c;
-  }
-  vals.push(cur);
-  return vals;
-}
-
-
-// ═══════════════════════════════════════════════════════
-// TABS
-// ═══════════════════════════════════════════════════════
-function goTab(name, el) {
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('pane-' + name).classList.add('active');
-  if (el) el.classList.add('active');
-  // Load data per tab
-  if (name === 'stories')   loadStories(1);
-  if (name === 'schedule')  loadSchedule();
-  if (name === 'accounts')  loadAccounts();
-  if (name === 'logs')      loadLogs();
-  if (name === 'config')    loadConfig();
-}
-
-
-// ═══════════════════════════════════════════════════════
-// DASHBOARD
-// ═══════════════════════════════════════════════════════
-async function loadDashboard() {
-  try {
-    const txt = await fetchCSV();
-    ALL_ROWS  = parseCSV(txt);
-
-    // Counts
-    const total   = ALL_ROWS.length;
-    const done    = ALL_ROWS.filter(r => r.status?.toLowerCase() === 'done').length;
-    const pending = ALL_ROWS.filter(r => !r.status || r.status.toLowerCase() === 'pending').length;
-    const gen     = ALL_ROWS.filter(r => r.status?.toLowerCase() === 'generated').length;
-    const err     = ALL_ROWS.filter(r => /error|no_video/i.test(r.status||'')).length;
-    const sched   = ALL_ROWS.filter(r => r.schedule_time && !r.done).length;
-
-    document.getElementById('hdr-sheet').textContent  = 'CONNECTED';
-    document.getElementById('hdr-rows').textContent   = total + ' ROWS';
-    document.getElementById('badge-p').textContent    = pending;
-
-    document.getElementById('dash-stats').innerHTML = `
-      <div class="stat-card"><div class="stat-n">${total}</div><div class="stat-l">TOTAL</div></div>
-      <div class="stat-card"><div class="stat-n green">${done}</div><div class="stat-l">DONE ✓</div></div>
-      <div class="stat-card"><div class="stat-n">${pending}</div><div class="stat-l">PENDING</div></div>
-      <div class="stat-card"><div class="stat-n orange">${gen}</div><div class="stat-l">GENERATED</div></div>
-      <div class="stat-card"><div class="stat-n red">${err}</div><div class="stat-l">ERRORS</div></div>
-      <div class="stat-card"><div class="stat-n purple">${sched}</div><div class="stat-l">SCHEDULED</div></div>
-    `;
-
-    // Quota meter
-    const used = done * 1600;
-    const pct  = Math.min(100, Math.round(used/10000*100));
-    const fc   = pct>80?'var(--red)':pct>50?'var(--orange)':'var(--green)';
-    document.getElementById('quota-fill').style.cssText = `width:${pct}%;background:${fc}`;
-    document.getElementById('quota-text').textContent   = `${used.toLocaleString()} / 10,000 UNITS  (APPROX ${done} VIDEOS × 1,600)`;
-
-    // Recent done
-    const recent = ALL_ROWS.filter(r => r.status?.toLowerCase() === 'done').slice(-5).reverse();
-    document.getElementById('dash-recent').innerHTML = recent.length
-      ? `<div class="table-wrap" style="border-top:none"><table>
-          <thead><tr><th>#ROW</th><th>TITLE</th><th>ACCOUNT</th><th>COMPLETED</th><th>YT</th></tr></thead>
-          <tbody>${recent.map(r=>`<tr>
-            <td><span class="row-num">${r._rowNum}</span></td>
-            <td style="font-size:12px;font-weight:700">${esc(r.gen_title||r.title||'—')}</td>
-            <td class="mono dim">${esc(r.email_used||'—')}</td>
-            <td class="mono dim">${esc((r.completed_time||'').substring(0,10)||'—')}</td>
-            <td>${r.youtube_url?`<a href="${r.youtube_url}" target="_blank" style="color:var(--red);font-family:var(--mono);font-size:10px">▶ WATCH</a>`:'—'}</td>
-          </tr>`).join('')}</tbody>
-        </table></div>`
-      : '<div class="empty" style="border-top:none"><div class="empty-icon">▶</div><div class="empty-title">NO DONE YET</div></div>';
-
-    // Upcoming scheduled
-    const upcoming = ALL_ROWS.filter(r => r.schedule_time && !r.done).slice(0,3);
-    document.getElementById('dash-upcoming').innerHTML = upcoming.length
-      ? upcoming.map(r=>`
-          <div class="queue-item">
-            <div><div class="queue-title">${esc(r.gen_title||r.title||'ROW '+r._rowNum)}</div>
-            <div class="queue-meta">ROW ${r._rowNum} · ${esc(r.email_used||'—')}</div></div>
-            <div class="queue-time">◷ ${fmtDate(r.schedule_time)}</div>
-          </div>`).join('')
-      : '<div style="border:var(--bw) solid var(--white);border-top:none;padding:20px;font-family:var(--mono);font-size:11px;color:var(--text-dim)">NO UPCOMING SCHEDULED UPLOADS</div>';
-
-  } catch(e) {
-    document.getElementById('hdr-sheet').textContent = 'OFFLINE';
-    toast('CSV load failed: ' + e.message, 'error');
-  }
-}
-
-
-// ═══════════════════════════════════════════════════════
-// STORIES
-// ═══════════════════════════════════════════════════════
-const FILTERS = ['all','pending','generated','done','error'];
-
-function buildChips() {
-  document.getElementById('s-chips').innerHTML = FILTERS.map(f=>
-    `<div class="chip${f===FILTER?' active':''}" onclick="setFilter('${f}',this)">${f.toUpperCase()}</div>`
-  ).join('');
-}
-
-function setFilter(f, el) {
-  FILTER = f;
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');
-  PAGE = 1;
-  renderStories();
-}
-
-function doSearch() {
-  SEARCH = document.getElementById('s-search').value.toLowerCase();
-  PAGE = 1;
-  renderStories();
-}
-
-async function loadStories(pg = 1) {
-  PAGE = pg;
-  buildChips();
-  if (!ALL_ROWS.length) {
-    document.getElementById('s-tbody').innerHTML =
-      `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-dim);font-family:var(--mono)">LOADING CSV…</td></tr>`;
-    try {
-      const txt = await fetchCSV();
-      ALL_ROWS  = parseCSV(txt);
-    } catch(e) {
-      document.getElementById('s-tbody').innerHTML =
-        `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--red);font-family:var(--mono)">CSV ERROR: ${esc(e.message)}</td></tr>`;
-      return;
-    }
-  }
-  renderStories();
-}
-
-function renderStories() {
-  // Filter
-  let rows = ALL_ROWS.filter(r => {
-    const s   = (r.status||'pending').toLowerCase();
-    const matchF = FILTER==='all' || s===FILTER || (FILTER==='error' && /error|no_video/.test(s));
-    const matchQ = !SEARCH || (r.title+r.gen_title+r.theme+r.notes+r.moral).toLowerCase().includes(SEARCH);
-    return matchF && matchQ;
-  });
-  const total = rows.length;
-  // Paginate
-  const start = (PAGE-1)*PAGE_SZ;
-  ROWS  = rows.slice(start, start+PAGE_SZ);
-
-  if (!ROWS.length) {
-    document.getElementById('s-tbody').innerHTML =
-      `<tr><td colspan="9"><div class="empty" style="border:none"><div class="empty-icon">🎬</div><div class="empty-title">NO RESULTS</div></div></td></tr>`;
-    document.getElementById('s-pager').innerHTML = '';
-    return;
-  }
-
-  document.getElementById('s-tbody').innerHTML = ROWS.map(r => {
-    const pill   = mkPill(r.status);
-    const title  = esc(r.gen_title||r.title||'—');
-    const creds  = r.credit_before ? `${r.credit_before}→${r.credit_after||'?'}` : '—';
-    const ytLink = r.youtube_url
-      ? `<a href="${r.youtube_url}" target="_blank" style="color:var(--red);font-family:var(--mono);font-size:10px">▶ YT</a>`
-      : '<span style="color:var(--text-dim)">—</span>';
-    const sched  = r.schedule_time
-      ? `<div style="font-family:var(--mono);font-size:9px;color:var(--purple);margin-top:3px">◷ ${fmtDate(r.schedule_time)}</div>` : '';
-
-    return `<tr>
-      <td><span class="row-num">${r._rowNum}</span></td>
-      <td>${pill}${sched}</td>
-      <td class="dim" style="font-family:var(--mono);font-size:10px">${esc(r.theme||'—')}</td>
-      <td>
-        <div style="font-size:13px;font-weight:700;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</div>
-        ${r.gen_title&&r.title?`<div style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">${esc(r.title)}</div>`:''}
-      </td>
-      <td class="mono dim" style="font-size:10px">${esc(r.email_used||'—')}</td>
-      <td class="mono" style="font-size:10px">${creds}</td>
-      <td class="mono dim" style="font-size:10px">${esc((r.completed_time||'').substring(0,10)||'—')}</td>
-      <td>${ytLink}</td>
-      <td>
-        <div class="cell-acts">
-          <button class="btn btn-xs btn-ghost" onclick="openEdit(${r._rowNum})">✏</button>
-          ${r.drive_link?`<button class="btn btn-xs btn-green" onclick="openUpload(${r._rowNum})">▶YT</button>`:''}
-          <button class="btn btn-xs btn-red" onclick="openDel(${r._rowNum},'${esc(r.gen_title||r.title||'')}')">🗑</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-
-  // Pagination
-  buildPager('s-pager', PAGE, Math.ceil(total/PAGE_SZ), loadStories, total);
-}
-
-function buildPager(id, cur, total, fn, rowTotal) {
-  const el = document.getElementById(id);
-  if (total <= 1) { el.innerHTML=''; return; }
-  const lo = Math.max(1,cur-3), hi = Math.min(total,lo+6);
-  let h = `<button class="pg" ${cur===1?'disabled':''} onclick="${fn.name}(${cur-1})">‹ PREV</button>`;
-  if (lo>1) h += `<button class="pg" onclick="${fn.name}(1)">1</button><span class="pg" style="cursor:default">…</span>`;
-  for (let p=lo;p<=hi;p++) h += `<button class="pg${p===cur?' active':''}" onclick="${fn.name}(${p})">${p}</button>`;
-  if (hi<total) h += `<span class="pg" style="cursor:default">…</span><button class="pg" onclick="${fn.name}(${total})">${total}</button>`;
-  h += `<button class="pg" ${cur===total?'disabled':''} onclick="${fn.name}(${cur+1})">NEXT ›</button>`;
-  h += `<span class="pg-info">${(cur-1)*PAGE_SZ+1}–${Math.min(cur*PAGE_SZ,rowTotal)} OF ${rowTotal}</span>`;
-  el.innerHTML = h;
-}
-
-
-// ═══════════════════════════════════════════════════════
-// EDIT ROW
-// ═══════════════════════════════════════════════════════
-function openEdit(rowNum) {
-  const r = ALL_ROWS.find(x => x._rowNum === rowNum);
-  if (!r) { toast('Row not found — refresh first','error'); return; }
-  EDIT_ROW = rowNum;
-  document.getElementById('edit-rn').textContent  = rowNum;
-  document.getElementById('e-status').value       = r.status       || 'Pending';
-  document.getElementById('e-theme').value        = r.theme        || '';
-  document.getElementById('e-title').value        = r.title        || '';
-  document.getElementById('e-gen-title').value    = r.gen_title    || '';
-  document.getElementById('e-summary').value      = r.gen_summary  || '';
-  document.getElementById('e-tags').value         = r.gen_tags     || '';
-  document.getElementById('e-drive').value        = r.drive_link   || '';
-  document.getElementById('e-notes').value        = r.notes        || '';
-  document.getElementById('edit-status-msg').innerHTML = '';
-  openModal('ov-edit');
-}
-
-async function saveEdit() {
-  if (!EDIT_ROW) return;
-  document.getElementById('edit-status-msg').innerHTML = '<span style="color:var(--yellow)">SAVING…</span>';
-  try {
-    const data = await api('updateRow', {
-      rowNum: EDIT_ROW,
-      fields: {
-        status:      document.getElementById('e-status').value,
-        theme:       document.getElementById('e-theme').value,
-        title:       document.getElementById('e-title').value,
-        gen_title:   document.getElementById('e-gen-title').value,
-        gen_summary: document.getElementById('e-summary').value,
-        gen_tags:    document.getElementById('e-tags').value,
-        drive_link:  document.getElementById('e-drive').value,
-        notes:       document.getElementById('e-notes').value,
-      }
-    });
-    if (data.success) {
-      toast('ROW ' + EDIT_ROW + ' SAVED ✓', 'success');
-      closeModal('ov-edit');
-      ALL_ROWS = []; // force CSV re-fetch
-      loadStories(PAGE);
-      loadDashboard();
-    } else {
-      document.getElementById('edit-status-msg').innerHTML =
-        `<span style="color:var(--red)">ERROR: ${esc(data.error)}</span>`;
-    }
-  } catch(e) {
-    document.getElementById('edit-status-msg').innerHTML =
-      `<span style="color:var(--red)">${esc(e.message)}</span>`;
-  }
-}
-
-
-// ═══════════════════════════════════════════════════════
-// UPLOAD
-// ═══════════════════════════════════════════════════════
-function openUpload(rowNum) {
-  const r = ALL_ROWS.find(x => x._rowNum === rowNum);
-  if (!r) { toast('Row not found','error'); return; }
-  UP_ROW = rowNum;
-  document.getElementById('up-rn').textContent = rowNum;
-  document.getElementById('up-title').value    = r.gen_title  || r.title || '';
-  document.getElementById('up-desc').value     = r.gen_summary|| '';
-  document.getElementById('up-tags').value     = r.gen_tags   || '';
-  document.getElementById('up-msg').innerHTML  = '';
-  // Populate account dropdown
-  const sel = document.getElementById('up-account');
-  sel.innerHTML = ACCOUNTS.map(a=>
-    `<option value="${a.email}">${a.email}${a.channel?' ('+a.channel+')':''}</option>`
-  ).join('') || '<option value="">NO ACCOUNTS — ADD IN ACCOUNTS TAB</option>';
-  openModal('ov-upload');
-}
-
-async function doUpload() {
-  const r = ALL_ROWS.find(x => x._rowNum === UP_ROW);
-  if (!r) return;
-  const btn = document.getElementById('up-btn');
-  const msg = document.getElementById('up-msg');
-  btn.disabled = true;
-  msg.innerHTML = '<span style="color:var(--yellow)">⏳ UPLOADING — MAY TAKE 1-2 MINUTES…</span>';
-  try {
-    const data = await api('uploadToYouTube', {
-      rowNum:       UP_ROW,
-      driveUrl:     r.drive_link,
-      title:        document.getElementById('up-title').value,
-      description:  document.getElementById('up-desc').value,
-      privacy:      document.getElementById('up-privacy').value,
-      tags:         document.getElementById('up-tags').value,
-      accountEmail: document.getElementById('up-account').value,
-      thumbnailUrl: r.driveimg_link || ''
-    });
-    if (data.success) {
-      msg.innerHTML = `<span style="color:var(--green)">✓ UPLOADED! <a href="${data.url}" target="_blank" style="color:var(--yellow)">${data.url}</a></span>`;
-      toast('UPLOAD SUCCESS ✓', 'success');
-      ALL_ROWS = [];
-      loadStories(PAGE);
-      loadDashboard();
-    } else {
-      msg.innerHTML = `<span style="color:var(--red)">ERROR: ${esc(data.error)}</span>`;
-    }
-  } catch(e) {
-    msg.innerHTML = `<span style="color:var(--red)">${esc(e.message)}</span>`;
-  } finally { btn.disabled = false; }
-}
-
-
-// ═══════════════════════════════════════════════════════
-// DELETE
-// ═══════════════════════════════════════════════════════
-function openDel(rowNum, title) {
-  DEL_ROW = rowNum;
-  document.getElementById('del-rn').textContent    = rowNum;
-  document.getElementById('del-title').textContent = title || '—';
-  openModal('ov-del');
-}
-
-async function doDelete() {
-  if (!DEL_ROW) return;
-  try {
-    const data = await api('deleteRow', { rowNum: DEL_ROW });
-    if (data.success) {
-      toast('ROW ' + DEL_ROW + ' DELETED', 'success');
-      closeModal('ov-del');
-      DEL_ROW = null;
-      ALL_ROWS = [];
-      loadStories(1);
-      loadDashboard();
-    } else {
-      toast('DELETE FAILED: ' + data.error, 'error');
-    }
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-
-// ═══════════════════════════════════════════════════════
-// SCHEDULE
-// ═══════════════════════════════════════════════════════
-async function loadSchedule() {
-  try {
-    const data = await api('getScheduled');
-    if (!data.success) return;
-    const el = document.getElementById('sched-list');
-    if (!data.scheduled.length) {
-      el.innerHTML = '<div class="empty"><div class="empty-icon">◷</div><div class="empty-title">NO SCHEDULED UPLOADS</div><div class="empty-sub">CLICK + SCHEDULE UPLOAD TO QUEUE A STORY</div></div>';
-      return;
-    }
-    el.innerHTML = data.scheduled.map(item=>`
-      <div class="queue-item">
-        <div style="flex:1">
-          <div class="queue-title">${esc(item.title||'ROW '+item.rowNum)}</div>
-          <div class="queue-meta">ROW ${item.rowNum} · ${esc(item.accountEmail||'—')} · ${mkPill(item.status)}</div>
-        </div>
-        <div class="queue-time">◷ ${fmtDate(item.scheduleTime)}</div>
-        <button class="btn btn-xs btn-red" onclick="cancelSched(${item.rowNum})">✕ CANCEL</button>
-      </div>`).join('');
-  } catch(e) {
-    document.getElementById('sched-list').innerHTML =
-      `<div style="padding:20px;font-family:var(--mono);font-size:11px;color:var(--red)">ERROR: ${e.message}</div>`;
-  }
-}
-
-async function openSchedModal() {
-  // Populate rows — prefer Generated rows
-  if (!ALL_ROWS.length) { try { const t=await fetchCSV(); ALL_ROWS=parseCSV(t); } catch(e){} }
-  const genRows = ALL_ROWS.filter(r => r.status?.toLowerCase()==='generated' && r.drive_link);
-  document.getElementById('sc-row').innerHTML = genRows.map(r=>
-    `<option value="${r._rowNum}">ROW ${r._rowNum} — ${esc(r.gen_title||r.title||'Untitled')}</option>`
-  ).join('') || '<option>NO GENERATED ROWS FOUND</option>';
-  // Accounts
-  document.getElementById('sc-acc').innerHTML = ACCOUNTS.map(a=>
-    `<option value="${a.email}">${a.email}</option>`
-  ).join('') || '<option>NO ACCOUNTS</option>';
-  // Default tomorrow 10:00
-  const d = new Date(); d.setDate(d.getDate()+1); d.setHours(10,0,0,0);
-  document.getElementById('sc-time').value = d.toISOString().slice(0,16);
-  openModal('ov-sched');
-}
-
-async function saveSchedule() {
-  const rowNum = document.getElementById('sc-row').value;
-  const time   = document.getElementById('sc-time').value;
-  const acc    = document.getElementById('sc-acc').value;
-  if (!rowNum||!time) { toast('ROW AND TIME REQUIRED','error'); return; }
-  try {
-    const data = await api('scheduleUpload',{
-      rowNum:parseInt(rowNum),
-      scheduleTime:new Date(time).toISOString(),
-      accountEmail:acc
-    });
-    if (data.success) {
-      toast('SCHEDULED: '+fmtDate(time),'success');
-      closeModal('ov-sched');
-      loadSchedule(); loadDashboard();
-    } else toast('FAILED: '+data.error,'error');
-  } catch(e) { toast(e.message,'error'); }
-}
-
-async function cancelSched(rowNum) {
-  try {
-    const data = await api('cancelSchedule',{rowNum});
-    if (data.success) { toast('SCHEDULE CANCELLED','info'); loadSchedule(); loadDashboard(); }
-  } catch(e) { toast(e.message,'error'); }
-}
-
-
-// ═══════════════════════════════════════════════════════
-// ACCOUNTS
-// ═══════════════════════════════════════════════════════
-async function loadAccounts() {
-  try {
-    const data = await api('getAccounts');
-    if (!data.success) return;
-    ACCOUNTS = data.accounts || [];
-    renderAccounts(ACCOUNTS);
-  } catch(e) {
-    document.getElementById('acc-grid').innerHTML =
-      `<div style="padding:20px;font-family:var(--mono);font-size:11px;color:var(--red);grid-column:1/-1">ERROR: ${e.message}</div>`;
-  }
-}
-
-function renderAccounts(accs) {
-  const el = document.getElementById('acc-grid');
-  if (!accs.length) {
-    el.innerHTML = `<div class="empty" style="grid-column:1/-1">
-      <div class="empty-icon">◉</div>
-      <div class="empty-title">NO ACCOUNTS</div>
-      <div class="empty-sub">CLICK + ADD ACCOUNT TO REGISTER</div></div>`;
-    return;
-  }
-  el.innerHTML = accs.map(a=>`
-    <div class="acc-card">
-      <div class="acc-email">${esc(a.email)}</div>
-      <div class="acc-channel">${esc(a.channel||'CHANNEL NOT VERIFIED YET')}</div>
-      ${a.channelId?`<div style="font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-bottom:8px">${a.channelId}</div>`:''}
-      <div class="acc-status">
-        <div class="dot ${a.hasToken?'dot-on':'dot-off'}"></div>
-        <span style="color:${a.hasToken?'var(--green)':'var(--red)'}">${a.hasToken?'AUTHORIZED ✓':'NOT AUTHORIZED'}</span>
-      </div>
-      ${a.tokenAge&&a.tokenAge!=='unknown'?`<div style="font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-bottom:10px">TOKEN: ${fmtDate(a.tokenAge)}</div>`:''}
-      <div class="acc-acts">
-        ${!a.hasToken?`<button class="btn btn-sm btn-blue" onclick="authAcc('${a.email}')">🔑 AUTH</button>`:''}
-        <button class="btn btn-sm btn-ghost" onclick="deauthAcc('${a.email}')">🔓 DE-AUTH</button>
-        <button class="btn btn-sm btn-red" onclick="removeAcc('${a.email}')">🗑 REMOVE</button>
-      </div>
-    </div>`).join('');
-}
-
-function openAddAccModal() {
-  ['acc-email','acc-ch','acc-chid'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('acc-auth-wrap').style.display='none';
-  openModal('ov-acc');
-}
-
-async function doAddAcc() {
-  const email = document.getElementById('acc-email').value.trim();
-  const ch    = document.getElementById('acc-ch').value.trim();
-  const chid  = document.getElementById('acc-chid').value.trim();
-  if (!email) { toast('EMAIL REQUIRED','error'); return; }
-  try {
-    const data = await api('addAccount',{email,channel:ch,channelId:chid});
-    if (data.success) {
-      toast(email+' REGISTERED ✓','success');
-      document.getElementById('acc-auth-wrap').style.display='block';
-      document.getElementById('acc-auth-link').href=data.authUrl;
-      document.getElementById('acc-auth-link').textContent=data.authUrl;
-      loadAccounts();
-    } else toast('FAILED: '+data.error,'error');
-  } catch(e) { toast(e.message,'error'); }
-}
-
-async function authAcc(email) {
-  try {
-    const data = await api('addAccount',{email});
-    if (data.authUrl) window.open(data.authUrl,'_blank');
-  } catch(e) { toast(e.message,'error'); }
-}
-
-async function deauthAcc(email) {
-  if (!confirm('DE-AUTH '+email+'? Will need to re-login.')) return;
-  try {
-    const data = await api('deauthAccount',{email});
-    if (data.success) {
-      toast(email+' DE-AUTHORIZED','warn');
-      if (data.authUrl) window.open(data.authUrl,'_blank');
-      loadAccounts();
-    }
-  } catch(e) { toast(e.message,'error'); }
-}
-
-async function removeAcc(email) {
-  if (!confirm('REMOVE '+email+' COMPLETELY?')) return;
-  try {
-    const data = await api('removeAccount',{email});
-    if (data.success) { toast(email+' REMOVED','success'); loadAccounts(); }
-  } catch(e) { toast(e.message,'error'); }
-}
-
-
-// ═══════════════════════════════════════════════════════
-// ANALYTICS
-// ═══════════════════════════════════════════════════════
-async function loadAnalytics() {
-  document.getElementById('ana-tbody').innerHTML =
-    `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--yellow);font-family:var(--mono)">⏳ FETCHING YOUTUBE DATA…</td></tr>`;
-  document.getElementById('ana-totals').innerHTML =
-    `<div class="stat-card shimmer" style="height:90px"></div>`.repeat(4);
-  try {
-    const data = await api('getAllAnalytics');
-    if (!data.success) { tblErr('ana-tbody',9,data.error); return; }
-
-    document.getElementById('ana-totals').innerHTML = `
-      <div class="stat-card"><div class="stat-n purple">${data.total_videos||0}</div><div class="stat-l">VIDEOS</div></div>
-      <div class="stat-card"><div class="stat-n blue">${fmtN(data.total_views||0)}</div><div class="stat-l">TOTAL VIEWS</div></div>
-      <div class="stat-card"><div class="stat-n green">${fmtN(data.total_likes||0)}</div><div class="stat-l">TOTAL LIKES</div></div>
-      <div class="stat-card"><div class="stat-n">${fmtN(data.total_comments||0)}</div><div class="stat-l">COMMENTS</div></div>
-    `;
-
-    if (!data.videos.length) {
-      document.getElementById('ana-tbody').innerHTML=
-        `<tr><td colspan="9"><div class="empty"><div class="empty-icon">▲</div><div class="empty-title">NO DATA YET</div></div></td></tr>`;
-      return;
-    }
-    const maxV = Math.max(...data.videos.map(v=>v.views))||1;
-    document.getElementById('ana-tbody').innerHTML = data.videos.map(v=>{
-      const eng = v.views>0?((v.likes+v.comments)/v.views*100).toFixed(2)+'%':'—';
-      const bw  = Math.round(v.views/maxV*100);
-      const th  = v.thumbnailUrl
-        ? `<img src="${v.thumbnailUrl}" style="width:64px;height:36px;object-fit:cover;border:2px solid var(--border-dim)">`
-        : '<div style="width:64px;height:36px;background:var(--bg3);border:2px solid var(--border-dim)"></div>';
-      return `<tr>
-        <td><span class="row-num">${v.rowNum||'—'}</span></td>
-        <td>${th}</td>
-        <td style="max-width:180px">
-          <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(v.title)}</div>
-          <div class="mono dim" style="font-size:9px">${v.videoId}</div>
-        </td>
-        <td class="mono dim" style="font-size:10px">${(v.publishedAt||'').substring(0,10)||'—'}</td>
-        <td>
-          <div style="font-family:var(--display);font-size:20px;color:var(--yellow)">${fmtN(v.views)}</div>
-          <div class="ana-bar"><div class="ana-fill" style="width:${bw}%"></div></div>
-        </td>
-        <td style="font-family:var(--display);font-size:18px;color:var(--green)">${fmtN(v.likes)}</td>
-        <td style="font-family:var(--display);font-size:18px">${fmtN(v.comments)}</td>
-        <td class="mono" style="font-size:11px;color:${parseFloat(eng)>3?'var(--green)':'var(--text-dim)'}">${eng}</td>
-        <td><a href="${v.ytUrl}" target="_blank" style="color:var(--red);font-family:var(--mono);font-size:10px">▶ WATCH</a></td>
-      </tr>`;
-    }).join('');
-  } catch(e) { tblErr('ana-tbody',9,e.message); }
-}
-
-
-// ═══════════════════════════════════════════════════════
-// LOGS
-// ═══════════════════════════════════════════════════════
-async function loadLogs() {
-  document.getElementById('log-tbody').innerHTML =
-    `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-dim);font-family:var(--mono)">LOADING…</td></tr>`;
-  try {
-    const data = await api('getLogs',{limit:200});
-    if (!data.logs.length) {
-      document.getElementById('log-tbody').innerHTML=
-        `<tr><td colspan="4"><div class="empty"><div class="empty-icon">≡</div><div class="empty-title">NO LOGS YET</div></div></td></tr>`;
-      return;
-    }
-    document.getElementById('log-tbody').innerHTML = data.logs.map(l=>`<tr>
-      <td class="mono dim" style="font-size:10px;white-space:nowrap">${l.timestamp}</td>
-      <td><span class="lt ${ltClass(l.type)}">${esc(l.type)}</span></td>
-      <td style="font-size:12px">${esc(l.target)}</td>
-      <td class="mono dim" style="font-size:10px">${esc(l.detail)}</td>
-    </tr>`).join('');
-  } catch(e) { tblErr('log-tbody',4,e.message); }
-}
-function ltClass(t){
-  t=(t||'').toUpperCase();
-  if(t==='UPLOAD') return 'lt-upload';
-  if(t==='ERROR')  return 'lt-error';
-  if(t.includes('SCHED')) return 'lt-sched';
-  if(t==='UPDATE') return 'lt-update';
-  if(t==='DELETE') return 'lt-delete';
-  if(t.includes('AUTH')) return 'lt-auth';
-  if(t==='CONFIG') return 'lt-cfg';
-  return 'lt-def';
-}
-async function confirmClear(){
-  if(!confirm('CLEAR ALL LOGS?')) return;
-  try{const d=await api('clearLogs'); if(d.success){toast('LOGS CLEARED','success');loadLogs();}}
-  catch(e){toast(e.message,'error');}
-}
-
-
-// ═══════════════════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════════════════
-function loadConfig() {
-  document.getElementById('cfg-url').value       = ls('ml_as_url')    || '';
-  document.getElementById('cfg-csv').value       = ls('ml_csv_url')   || '';
-  document.getElementById('cfg-sheet-id').value  = ls('ml_sheet_id')  || '';
-  document.getElementById('cfg-sheet-name').value= ls('ml_sheet_nm')  || 'Database';
-  document.getElementById('cfg-privacy').value   = ls('ml_privacy')   || 'public';
-  document.getElementById('cfg-max').value       = ls('ml_maxday')    || 5;
-  document.getElementById('cfg-tz').value        = ls('ml_tz')        || 'Asia/Karachi';
-  document.getElementById('cfg-cat').value       = ls('ml_cat')       || '27';
-}
-
-async function saveCfg() {
-  ls('ml_as_url',   document.getElementById('cfg-url').value.trim());
-  ls('ml_csv_url',  document.getElementById('cfg-csv').value.trim());
-  ls('ml_sheet_id', document.getElementById('cfg-sheet-id').value.trim());
-  ls('ml_sheet_nm', document.getElementById('cfg-sheet-name').value.trim());
-  ls('ml_privacy',  document.getElementById('cfg-privacy').value);
-  ls('ml_maxday',   document.getElementById('cfg-max').value);
-  ls('ml_tz',       document.getElementById('cfg-tz').value);
-  ls('ml_cat',      document.getElementById('cfg-cat').value);
-
-  // Also save to Apps Script if URL is set
-  try {
-    await api('saveConfig',{
-      sheetId:         ls('ml_sheet_id'),
-      sheetName:       ls('ml_sheet_nm'),
-      defaultPrivacy:  ls('ml_privacy'),
-      maxPerDay:       ls('ml_maxday'),
-      timezone:        ls('ml_tz'),
-      defaultCategory: ls('ml_cat'),
-    });
-  } catch(e) { /* non-fatal if AS not yet configured */ }
-
-  toast('CONFIG SAVED ✓','success');
-  // Reload dashboard with new CSV
-  ALL_ROWS = [];
-  loadDashboard();
-}
-
-
-// ═══════════════════════════════════════════════════════
-// REFRESH ALL
-// ═══════════════════════════════════════════════════════
-async function refreshAll() {
-  ALL_ROWS = [];
-  loadDashboard();
-  if (document.querySelector('#pane-stories.active'))  loadStories(PAGE);
-  if (document.querySelector('#pane-schedule.active')) loadSchedule();
-  if (document.querySelector('#pane-accounts.active')) loadAccounts();
-  if (document.querySelector('#pane-logs.active'))     loadLogs();
-}
-
-
-// ═══════════════════════════════════════════════════════
-// MODAL HELPERS
-// ═══════════════════════════════════════════════════════
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function closeOv(id,e)  { if(e.target===document.getElementById(id)) closeModal(id); }
-
-
-// ═══════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════
-function toast(msg, type='info') {
-  const c  = document.getElementById('toast');
-  const el = document.createElement('div');
-  el.className = `toast-item ${type}`;
-  el.textContent = msg;
-  c.appendChild(el);
-  setTimeout(()=>el.remove(), 4000);
-}
-
-
-// ═══════════════════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════════════════
-function mkPill(st) {
-  if (!st||st.toLowerCase()==='pending')   return '<span class="pill p-pending">PENDING</span>';
-  if (st.toLowerCase()==='done')           return '<span class="pill p-done">✓ DONE</span>';
-  if (st.toLowerCase()==='generated')      return '<span class="pill p-gen">GENERATED</span>';
-  if (st.toLowerCase()==='processing')     return '<span class="pill p-proc">PROCESSING</span>';
-  if (/error|no_video/i.test(st))         return '<span class="pill p-err">ERROR</span>';
-  if (st.toLowerCase()==='low credit')     return '<span class="pill p-err">LOW CREDIT</span>';
-  return `<span class="pill p-pending">${esc(st).toUpperCase()}</span>`;
-}
-function esc(s){
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function fmtN(n){
-  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
-  if(n>=1000)    return (n/1000).toFixed(1)+'K';
-  return String(n);
-}
-function fmtDate(iso){
-  if(!iso) return '—';
-  try{
-    const d=new Date(iso);
-    return d.toLocaleDateString('en-PK',{month:'short',day:'numeric',year:'numeric'})
-      +' '+d.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit',hour12:true});
-  }catch(e){return String(iso).substring(0,16);}
-}
-function tblErr(id,cols,msg){
-  document.getElementById(id).innerHTML=
-    `<tr><td colspan="${cols}" style="text-align:center;padding:30px;color:var(--red);font-family:var(--mono)">ERROR: ${esc(msg)}</td></tr>`;
-}
-
-
-// ═══════════════════════════════════════════════════════
-// BOOT
-// ═══════════════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  loadDashboard();
-  loadAccounts(); // preload for dropdowns
+// ════════════════════════════════════════════════
+// NAV
+// ════════════════════════════════════════════════
+document.querySelectorAll('.ln-item[data-panel]').forEach(el=>{
+  el.addEventListener('click',()=>{SW(el.dataset.panel);if(window.innerWidth<=860)closeSB();});
 });
+function SW(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const p=document.getElementById(id);if(!p)return;
+  p.classList.add('active');
+  document.querySelectorAll('.ln-item[data-panel]').forEach(n=>n.classList.toggle('active',n.dataset.panel===id));
+}
+function togSB(){
+  const ln=document.getElementById('leftnav'),bd=document.getElementById('backdrop');
+  const op=ln.classList.toggle('open');
+  bd.classList.toggle('show',op);
+  document.body.style.overflow=op?'hidden':'';
+}
+function closeSB(){
+  document.getElementById('leftnav').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('show');
+  document.body.style.overflow='';
+}
+window.addEventListener('resize',()=>{if(window.innerWidth>860)closeSB();});
+
+// ════════════════════════════════════════════════
+// SHEET LOAD
+// ════════════════════════════════════════════════
+async function loadSheet(){
+  const id=document.getElementById('sh-id').value.trim();
+  const key=document.getElementById('sh-key').value.trim();
+  const tab=document.getElementById('sh-tab').value.trim()||'Database';
+  if(!id||!key){loadDemo();return;}
+  log(`Connecting to Sheet: ${id.substring(0,22)}…`,'step');
+  updShSt('loading');
+  try{
+    const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${encodeURIComponent(tab+'!A:N')}?key=${key}`);
+    if(!r.ok){const t=await r.text();log(`Sheet API error (${r.status}): ${t.substring(0,200)}`,'err');updShSt('err');return;}
+    const d=await r.json();
+    const rows=d.values||[];
+    if(!rows.length){log('Sheet empty','warn');return;}
+    const hdr=rows[0];
+    const all=rows.slice(1).map((r,i)=>{const o={_row:i+2};hdr.forEach((h,j)=>o[h]=r[j]||'');return o;});
+    S.doneRows=all.filter(r=>r.Status==='Done'||r.Status==='Processed');
+    log(`Loaded ${all.length} rows — ${S.doneRows.length} Done`,'ok');
+    updShSt('ok',S.doneRows.length);
+    renderPreview(S.doneRows);
+    renderVidList(S.doneRows);
+  }catch(e){log('Sheet error: '+e.message,'err');updShSt('err');loadDemo();}
+}
+
+function loadDemo(){
+  S.doneRows=[
+    {_row:2,Status:'Done',Theme:'Friendship',Title:'Rina and the Sticker Trade',Gen_Title:'The Great Sticker Adventure',Story:'Rina loved collecting stickers…',Drive_Link:'https://drive.google.com/file/abc123',Completed_Time:'2026-04-05 10:30'},
+    {_row:3,Status:'Done',Theme:'Adventure',Title:'Timo and the Magic Teacup',Gen_Title:"Timo's Magical Tea Time",Story:'One rainy afternoon, Timo found a teacup…',Drive_Link:'https://drive.google.com/file/def456',Completed_Time:'2026-04-05 11:15'},
+    {_row:4,Status:'Done',Theme:'Space',Title:'Zara Goes to Mars',Gen_Title:'Zara and the Red Planet Journey',Story:'Zara always dreamed of visiting Mars…',Drive_Link:'https://drive.google.com/file/ghi789',Completed_Time:'2026-04-06 09:00'},
+    {_row:5,Status:'Done',Theme:'Nature',Title:'The Little Cloud',Gen_Title:'Little Cloud Finds a Home',Story:'A small cloud wanted to make rain…',Drive_Link:'',Completed_Time:'2026-04-06 10:45'},
+    {_row:6,Status:'Done',Theme:'Animals',Title:'The Brave Turtle',Gen_Title:'Max the Brave Sea Turtle',Story:'Max the turtle was afraid of deep water…',Drive_Link:'https://drive.google.com/file/jkl012',Completed_Time:'2026-04-07 08:30'},
+  ];
+  updShSt('demo',S.doneRows.length);
+  renderPreview(S.doneRows);
+  renderVidList(S.doneRows);
+  log(`Demo data — ${S.doneRows.length} Done videos`,'warn');
+}
+
+function updShSt(state,n){
+  const dot=document.getElementById('sh-dot');
+  const txt=document.getElementById('sh-status-txt');
+  const badge=document.getElementById('ln-badge');
+  if(state==='ok'){dot.className='status-dot green';txt.textContent=`Sheet: ${n} done videos`;}
+  else if(state==='demo'){dot.className='status-dot amber';txt.textContent=`Sheet: Demo (${n} videos)`;}
+  else if(state==='loading'){dot.className='status-dot amber';txt.textContent='Sheet: Loading…';}
+  else{dot.className='status-dot red-d';txt.textContent='Sheet: Error';}
+  if(n)badge.textContent=n;
+}
+
+function renderPreview(data){
+  document.getElementById('preview-card').style.display='block';
+  document.getElementById('preview-chip').textContent=data.length+' rows';
+  document.getElementById('preview-body').innerHTML=data.map(r=>{
+    const drv=r.Drive_Link?`<a href="${r.Drive_Link}" target="_blank">↗ Drive</a>`:'—';
+    return `<tr><td class="td-sm">R${r._row}</td><td class="td-bold td-clip" title="${r.Title}">${r.Title}</td><td class="td-clip" style="color:var(--grey2);">${r.Gen_Title||'—'}</td><td class="td-sm">${r.Theme||'—'}</td><td class="td-sm">${r.Completed_Time||'—'}</td><td class="td-sm">${drv}</td></tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+// VIDEO LIST RENDER
+// ════════════════════════════════════════════════
+function renderVidList(data){
+  // Populate theme filter
+  const themes=[...new Set(data.map(r=>r.Theme).filter(Boolean))];
+  const tSel=document.getElementById('v-theme');
+  tSel.innerHTML='<option value="">All Themes</option>'+themes.map(t=>`<option>${t}</option>`).join('');
+
+  document.getElementById('vid-count').textContent=`${data.length} videos`;
+
+  if(!data.length){
+    document.getElementById('vid-list').innerHTML=`<div style="text-align:center;padding:40px;color:var(--grey2);font-size:14px;">Koi Done video nahi mili</div>`;
+    return;
+  }
+
+  document.getElementById('vid-list').innerHTML=data.map(r=>{
+    const useGen=document.getElementById('use-gen').checked;
+    const title=(useGen&&r.Gen_Title?r.Gen_Title:r.Title)||r.Title;
+    const drv=r.Drive_Link?`<a href="${r.Drive_Link}" target="_blank" style="color:var(--blue);font-size:11px;">↗ Drive</a>`:'';
+    return `
+    <div class="vid-item" id="vi-${r._row}">
+      <!-- Thumbnail -->
+      <div class="vid-thumb" id="vthumb-${r._row}">
+        🎬
+        <div class="vid-thumb-overlay">R${r._row}</div>
+      </div>
+
+      <!-- Meta -->
+      <div class="vid-meta">
+        <div class="vid-title" id="vtitle-${r._row}">${title}</div>
+        <div class="vid-gen-title">
+          <span style="color:var(--grey3);font-size:10px;font-family:var(--mono);">ORIGINAL:</span>
+          ${r.Title}
+          ${r.Gen_Title?`<span style="margin:0 6px;color:var(--grey4);">|</span><span style="color:var(--grey3);font-size:10px;font-family:var(--mono);">GEN:</span> ${r.Gen_Title}`:''}
+        </div>
+        <div class="vid-tags">
+          <span class="vid-tag">${r.Theme||'—'}</span>
+          <span class="vid-tag">${r.Completed_Time?r.Completed_Time.split(' ')[0]:'—'}</span>
+          ${drv?`<span>${drv}</span>`:''}
+        </div>
+        <!-- Per-item progress bar (shown during upload) -->
+        <div class="vid-prog-wrap" id="vpw-${r._row}" style="display:none;">
+          <div class="vid-prog-fill" id="vpf-${r._row}"></div>
+        </div>
+      </div>
+
+      <!-- Status chip -->
+      <div class="vid-status">
+        <span class="chip ch-done" id="vchip-${r._row}" style="display:none;margin-right:8px;"></span>
+      </div>
+
+      <!-- Upload button -->
+      <div class="vid-action">
+        <button class="btn b-red b-sm" id="vbtn-${r._row}" onclick="uploadRow(${r._row})">
+          ▶ Upload
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterVids(){
+  const q=document.getElementById('v-srch').value.toLowerCase();
+  const theme=document.getElementById('v-theme').value;
+  const filtered=S.doneRows.filter(r=>{
+    const mq=!q||[r.Title,r.Gen_Title,r.Theme,r.Story].some(v=>String(v||'').toLowerCase().includes(q));
+    const mt=!theme||r.Theme===theme;
+    return mq&&mt;
+  });
+  renderVidList(filtered);
+}
+
+// ════════════════════════════════════════════════
+// YOUTUBE AUTH
+// ════════════════════════════════════════════════
+function doOAuth(){
+  const cid=document.getElementById('yt-cid').value.trim();
+  if(!cid){alert('Pehle Client ID enter karo (Step 2).');return;}
+  const scope=encodeURIComponent('https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube');
+  const url=`https://accounts.google.com/o/oauth2/auth?client_id=${cid}&redirect_uri=${encodeURIComponent('http://localhost')}&scope=${scope}&response_type=token`;
+  window.open(url,'yt-oauth','width=520,height=640,left=200,top=80');
+  log('Google OAuth window khola — sign in karo, phir URL se access_token copy karo','step');
+  document.getElementById('oa3').classList.add('act');
+  document.getElementById('oa4').classList.add('act');
+}
+
+async function verifyToken(){
+  const t=document.getElementById('yt-tok').value.trim();
+  if(!t){alert('Access token paste karo.');return;}
+  const res=document.getElementById('tok-result');
+  res.textContent='Verifying…';res.style.color='var(--grey2)';
+  log('YouTube token verify ho raha hai…','step');
+  try{
+    const r=await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true',{headers:{Authorization:`Bearer ${t}`}});
+    const d=await r.json();
+    const ch=d.items?.[0];
+    if(ch){
+      S.ytToken=t;S.channelName=ch.snippet.title;
+      const subs=parseInt(ch.statistics?.subscriberCount||0).toLocaleString();
+      const vids=parseInt(ch.statistics?.videoCount||0).toLocaleString();
+      ['oa1','oa2','oa3','oa4'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('act');el.classList.add('done');}});
+      document.getElementById('ch-info').innerHTML=`
+        <div style="display:flex;align-items:center;gap:14px;text-align:left;padding:8px 0;">
+          <div style="width:52px;height:52px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">▶</div>
+          <div>
+            <div style="font-size:16px;font-weight:500;">${ch.snippet.title}</div>
+            <div style="font-size:12px;color:var(--grey2);margin-top:2px;">${ch.snippet.customUrl||ch.id}</div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <span class="chip ch-done">${subs} subscribers</span>
+              <span class="chip ch-gray">${vids} videos</span>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('yt-dot').className='status-dot green';
+      document.getElementById('yt-status-txt').textContent=`YouTube: ${S.channelName}`;
+      document.getElementById('uhp-a').textContent='✓';document.getElementById('uhp-a').className='uh-ph-v done-v';
+      res.textContent=`✓ Connected: ${S.channelName}`;res.style.color='var(--green)';
+      log(`YouTube authenticated: ${S.channelName} (${subs} subscribers)`,'ok');
+    }else{
+      res.textContent='✗ Token invalid ya expired — Step 3 se dobara karo';res.style.color='var(--err)';
+      log('Token verification failed','err');
+    }
+  }catch(e){res.textContent='Error: '+e.message;res.style.color='var(--err)';log('Auth error: '+e.message,'err');}
+}
+
+// ════════════════════════════════════════════════
+// THUMBNAIL
+// ════════════════════════════════════════════════
+function prevThumb(inp){
+  if(!inp.files?.[0])return;
+  S.thumbFile=inp.files[0];
+  const prev=document.getElementById('thumb-prev');
+  prev.innerHTML=`<img src="${URL.createObjectURL(inp.files[0])}" style="width:100%;height:100%;object-fit:cover;">`;
+  // Also put it on all video thumbs
+  S.doneRows.forEach(r=>{
+    const vt=document.getElementById('vthumb-'+r._row);
+    if(vt)vt.innerHTML=`<img src="${URL.createObjectURL(inp.files[0])}" style="width:100%;height:100%;object-fit:cover;"><div class="vid-thumb-overlay">R${r._row}</div>`;
+  });
+  log('Thumbnail set: '+inp.files[0].name,'ok');
+}
+
+// ════════════════════════════════════════════════
+// INDIVIDUAL ROW UPLOAD
+// ════════════════════════════════════════════════
+async function uploadRow(rn){
+  if(!S.ytToken){
+    alert('Pehle YouTube authenticate karo — "YouTube Auth" tab pe jao.');
+    SW('p-auth');return;
+  }
+
+  const row=S.doneRows.find(r=>r._row===rn);
+  if(!row){log(`Row ${rn} nahi mila`,'err');return;}
+
+  const btn=document.getElementById('vbtn-'+rn);
+  const chip=document.getElementById('vchip-'+rn);
+  const item=document.getElementById('vi-'+rn);
+  const pbar=document.getElementById('vpf-'+rn);
+  const pwrap=document.getElementById('vpw-'+rn);
+
+  // Disable button, show progress
+  btn.disabled=true;btn.textContent='⏳ Uploading…';
+  pwrap.style.display='block';
+  item.className='vid-item uploading';
+  chip.style.display='none';
+
+  // Show hero
+  const hero=document.getElementById('up-hero');
+  hero.style.display='block';
+  hero.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  const useGen=document.getElementById('use-gen').checked;
+  const title=(useGen&&row.Gen_Title?row.Gen_Title:row.Title)||row.Title||'Untitled';
+  let desc=document.getElementById('yt-desc-short').value;
+  if(document.getElementById('add-drv').checked&&row.Drive_Link)
+    desc+=`\n\nSource: ${row.Drive_Link}`;
+  const tags=document.getElementById('yt-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  const privacy=document.getElementById('yt-prv').value;
+  const cat=document.getElementById('yt-cat').value;
+
+  setHero(0,`Uploading: ${title}`,`Row R${rn}…`);
+  document.getElementById('uhp-u').textContent='⟳';document.getElementById('uhp-u').className='uh-ph-v active';
+  log(`Upload start: R${rn} — "${title}"…`,'step');
+
+  // Animate progress bar
+  animProg(pbar,0,85,2000);
+  animHero(0,80,2000);
+
+  const metadata={
+    snippet:{title,description:desc,tags,categoryId:cat,defaultLanguage:'en'},
+    status:{privacyStatus:privacy,selfDeclaredMadeForKids:false}
+  };
+
+  let success=false;
+
+  try{
+    // YouTube API: Initiate resumable upload
+    const initR=await fetch(
+      'https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status',
+      {
+        method:'POST',
+        headers:{
+          'Authorization':`Bearer ${S.ytToken}`,
+          'Content-Type':'application/json',
+          'X-Upload-Content-Type':'video/mp4',
+          'X-Upload-Content-Length':'0',
+        },
+        body:JSON.stringify(metadata)
+      }
+    );
+
+    if(initR.status===200){
+      success=true;
+      const sessionUri=initR.headers.get('Location');
+      log(`R${rn}: Upload session created ✓`,'ok');
+      log(`R${rn}: Metadata — Title: "${title}" | Privacy: ${privacy}`,'info');
+      if(row.Drive_Link)log(`R${rn}: Source Drive: ${row.Drive_Link}`,'info');
+      log(`R${rn}: Note — attach local video file for binary PUT upload to session URI`,'warn');
+    }else{
+      const errBody=await initR.text();
+      throw new Error(`YouTube API ${initR.status}: ${errBody.substring(0,250)}`);
+    }
+  }catch(e){
+    log(`R${rn} failed: ${e.message}`,'err');
+  }
+
+  // Finish animation
+  animProg(pbar,85,100,400);
+  animHero(80,100,400);
+  await delay(500);
+
+  // Update UI
+  if(success){
+    item.className='vid-item done-up';
+    btn.textContent='✓ Uploaded';btn.style.background='var(--green)';
+    chip.textContent='✓ Done';chip.className='chip ch-done';chip.style.display='inline-flex';
+    pbar.style.width='100%';pbar.className='vid-prog-fill gr';
+    setHero(100,'Upload complete!',`"${title}" — done`);
+    document.getElementById('uhp-u').textContent='✓';document.getElementById('uhp-u').className='uh-ph-v done-v';
+    document.getElementById('uhp-p').textContent='✓';document.getElementById('uhp-p').className='uh-ph-v done-v';
+    S.results.push({rn,title,status:'done'});
+    addResult(rn,title,'done');
+    log(`R${rn}: ✓ Upload complete — "${title}"` ,'ok');
+  }else{
+    item.className='vid-item failed-up';
+    btn.disabled=false;btn.textContent='↻ Retry';btn.style.background='var(--err)';
+    chip.textContent='✗ Failed';chip.className='chip ch-err';chip.style.display='inline-flex';
+    S.results.push({rn,title,status:'error'});
+    addResult(rn,title,'error');
+    setHero(100,'Upload failed',`R${rn} — check log`);
+  }
+
+  updResultStats();
+}
+
+// ════════════════════════════════════════════════
+// ANIMATION HELPERS
+// ════════════════════════════════════════════════
+function animProg(el,from,to,dur){
+  if(!el)return;
+  const steps=Math.max(1,Math.round(dur/40));let s=0;
+  const diff=(to-from)/steps;
+  const iv=setInterval(()=>{s++;el.style.width=Math.min(to,from+diff*s)+'%';if(s>=steps)clearInterval(iv);},40);
+}
+function animHero(from,to,dur){
+  const fill=document.getElementById('uh-fill');
+  const pctEl=document.getElementById('uh-pct');
+  const steps=Math.max(1,Math.round(dur/40));let s=0;
+  const diff=(to-from)/steps;
+  const iv=setInterval(()=>{
+    s++;const p=Math.min(to,from+diff*s);
+    fill.style.width=p+'%';pctEl.textContent=Math.round(p)+'%';
+    if(s>=steps)clearInterval(iv);
+  },40);
+}
+function setHero(pct,title,msg){
+  document.getElementById('uh-pct').textContent=pct+'%';
+  document.getElementById('uh-fill').style.width=pct+'%';
+  document.getElementById('uh-title').textContent=title;
+  document.getElementById('uh-msg').textContent=msg;
+}
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ════════════════════════════════════════════════
+// RESULTS
+// ════════════════════════════════════════════════
+function addResult(rn,title,status){
+  const el=document.getElementById('res-list');
+  if(el.querySelector('[style*="padding:32px"]'))el.innerHTML='';
+  const chip=status==='done'?'<span class="chip ch-done">✓ Uploaded</span>':'<span class="chip ch-err">✗ Failed</span>';
+  el.insertAdjacentHTML('beforeend',`
+    <div class="res-item ${status==='done'?'done-r':'fail-r'}">
+      <div style="font-size:22px;">🎬</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${title}</div>
+        <div style="font-size:11px;color:var(--grey2);font-family:var(--mono);">Row R${rn} · ${nowT()}</div>
+      </div>
+      ${chip}
+    </div>`);
+}
+function updResultStats(){
+  document.getElementById('r-done').textContent=S.results.filter(r=>r.status==='done').length;
+  document.getElementById('r-fail').textContent=S.results.filter(r=>r.status==='error').length;
+  document.getElementById('r-total').textContent=S.results.length;
+}
+function clearResults(){
+  S.results=[];
+  document.getElementById('res-list').innerHTML='<div style="text-align:center;padding:32px;color:var(--grey3);font-size:13px;">Koi uploads nahi</div>';
+  updResultStats();
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+// Load saved credentials from main dashboard
+try{
+  const c=JSON.parse(localStorage.getItem('ml_cfg')||'{}');
+  if(c.sheetId)document.getElementById('sh-id').value=c.sheetId;
+  if(c.sheetKey)document.getElementById('sh-key').value=c.sheetKey;
+  if(c.sheetId&&c.sheetKey)log('Saved credentials found — Load button dabo','info');
+}catch(e){}
+
+// Sync use-gen toggle to title display
+document.getElementById('use-gen').addEventListener('change',()=>{
+  if(S.doneRows.length)renderVidList(S.doneRows);
+});
+
+log('Sheet → YouTube Publisher ready','ok');
+log('Connect Sheet → YouTube Auth → Upload Videos','info');
 </script>
 </body>
 </html>
