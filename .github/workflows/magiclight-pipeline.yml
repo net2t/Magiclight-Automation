@@ -149,17 +149,19 @@ jobs:
           $loop = "${{ github.event.inputs.loop }}"
           if (-not $loop) { $loop = "false" }
 
-          $argsStr = "--mode $mode --max $qty --headless"
+          # Build arguments as array for proper passing to Python
+          $argsList = @("--mode", $mode, "--max", $qty, "--headless")
           if ($uploadDrive -eq "true") {
-              $argsStr += " --upload-drive"
+              $argsList += "--upload-drive"
           }
           if ($loop -eq "true") {
-              $argsStr += " --loop"
+              $argsList += "--loop"
           }
 
+          $argsStr = $argsList -join " "
           # Always produce a log artifact, and preserve the python exit code
           "[run] python main.py $argsStr" | Out-File -FilePath pipeline.log -Encoding utf8
-          & python main.py $argsStr 2>&1 | Tee-Object -FilePath pipeline.log -Append
+          & python main.py $argsList 2>&1 | Tee-Object -FilePath pipeline.log -Append
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Upload Pipeline Artifacts
