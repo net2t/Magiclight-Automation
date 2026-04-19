@@ -27,39 +27,52 @@ on:
         required: true
         default: false
         type: boolean
+
+  # ── Scheduled Run ──────────────────────────────────────────────────
+  # Har 15 minute mein automatically chalta hai
+  # Loop + Headless hamesha ON rahega scheduled run mein
   schedule:
     - cron: "*/15 * * * *"
 
 concurrency:
   group: magiclight-pipeline
-  cancel-in-progress: true
+  cancel-in-progress: true  # Naya run aaye toh purana cancel ho
 
 jobs:
   run-pipeline:
     runs-on: windows-latest
-    timeout-minutes: 360
-    
+    timeout-minutes: 360  # Max 6 hours per run
+
     steps:
+      # ── Step 1: Code checkout ────────────────────────────────────────
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # ── Step 2: Python setup ─────────────────────────────────────────
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
 
+      # ── Step 3: Dependencies install ─────────────────────────────────
       - name: Install Dependencies
         run: pip install -r requirements.txt
-        
+
+      # ── Step 4: Playwright browser download ──────────────────────────
       - name: Install Playwright Browsers
         run: playwright install chromium
 
+      # ── Step 5: FFmpeg setup ─────────────────────────────────────────
       - name: Set up FFmpeg
         uses: FedericoCarboni/setup-ffmpeg@v3
         with:
           architecture: x64
 
+      # ── Step 6: Secrets decode karo ──────────────────────────────────
+      # GCP_CREDENTIALS = Google service account JSON
+      # ENV_FILE        = poori .env file ka content
+      # ACCOUNTS_TXT    = email:password list
       - name: Decode API Credentials
         env:
           GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
@@ -76,6 +89,8 @@ jobs:
               $env:ACCOUNTS_TXT | Out-File -FilePath accounts.txt -Encoding utf8 -NoNewline
           }
 
+      # ── Step 7: .env mein SHEET_ID check ─────────────────────────────
+      # Agar ENV_FILE mein SHEET_ID nahi toh repo Variables se inject karo
       - name: "Preflight: Ensure .env has SHEET_ID"
         shell: pwsh
         env:
@@ -96,74 +111,99 @@ jobs:
               $lines = Get-Content -LiteralPath $path -ErrorAction SilentlyContinue
             }
             if ($lines -match "^$escapedKey=") {
-              $lines = $lines | ForEach-Object { if ($_ -match "^$escapedKey=") { "$key=$value" } else { $_ } }
+              $lines = $lines | ForEach-Object {
+                if ($_ -match "^$escapedKey=") { "$key=$value" } else { $_ }
+              }
             } else {
               $lines += "$key=$value"
             }
             Set-Content -LiteralPath $path -Value $lines -Encoding utf8
           }
 
-          # Ensure the file exists (dotenv loader expects it next to main.py)
           if (-not (Test-Path .env)) {
             '' | Out-File -FilePath .env -Encoding utf8
           }
 
-          # Prefer repo variables, but allow secrets fallback
-          $sheetId = if ($env:SHEET_ID) { $env:SHEET_ID } else { $env:SHEET_ID_SECRET }
-          $sheetName = if ($env:SHEET_NAME) { $env:SHEET_NAME } else { $env:SHEET_NAME_SECRET }
-          $driveFolderId = if ($env:DRIVE_FOLDER_ID) { $env:DRIVE_FOLDER_ID } else { $env:DRIVE_FOLDER_ID_SECRET }
+          # Repo Variables ko prefer karo, Secret fallback hai
+          $sheetId      = if ($env:SHEET_ID)       { $env:SHEET_ID }       else { $env:SHEET_ID_SECRET }
+          $sheetName    = if ($env:SHEET_NAME)      { $env:SHEET_NAME }     else { $env:SHEET_NAME_SECRET }
+          $driveFolderId= if ($env:DRIVE_FOLDER_ID) { $env:DRIVE_FOLDER_ID} else { $env:DRIVE_FOLDER_ID_SECRET }
 
-          Append-Or-Replace-EnvLine -path .env -key 'SHEET_ID' -value $sheetId
-          Append-Or-Replace-EnvLine -path .env -key 'SHEET_NAME' -value $sheetName
+          Append-Or-Replace-EnvLine -path .env -key 'SHEET_ID'        -value $sheetId
+          Append-Or-Replace-EnvLine -path .env -key 'SHEET_NAME'      -value $sheetName
           Append-Or-Replace-EnvLine -path .env -key 'DRIVE_FOLDER_ID' -value $driveFolderId
 
-          $envText = Get-Content -LiteralPath .env -Raw -ErrorAction SilentlyContinue
-          $hasSheetId = $false
+          $envText  = Get-Content -LiteralPath .env -Raw -ErrorAction SilentlyContinue
+          $hasSheet = $false
           if ($envText) {
-            $hasSheetId = [regex]::IsMatch($envText, '(?m)^\s*SHEET_ID\s*=\s*.+\s*$')
+            $hasSheet = [regex]::IsMatch($envText, '(?m)^\s*SHEET_ID\s*=\s*.+\s*$')
           }
 
-          $envSize = (Get-Item .env).Length
-          Write-Host "[preflight] .env exists: $true"
-          Write-Host "[preflight] .env size: $envSize bytes"
-          Write-Host "[preflight] SHEET_ID present: $hasSheetId"
+          Write-Host "[preflight] .env size: $((Get-Item .env).Length) bytes"
+          Write-Host "[preflight] SHEET_ID present: $hasSheet"
 
-          if (-not $hasSheetId) {
-            throw "SHEET_ID is missing. Set repo Variable SHEET_ID (recommended) or Secrets ENV_FILE / SHEET_ID to include it."
+          if (-not $hasSheet) {
+            throw "SHEET_ID missing. Set repo Variable SHEET_ID or Secret ENV_FILE."
           }
 
+      # ── Step 8: Main pipeline run ─────────────────────────────────────
+      # KEY FIX:
+      #   Scheduled run  → mode=combined, loop=true,  headless=true, upload_drive=true
+      #   Manual trigger → jo bhi aap inputs mein dalo
       - name: Run MagicLight Pipeline
         shell: pwsh
         env:
           GITHUB_ACTIONS: "true"
         run: |
-          $mode = "${{ github.event.inputs.mode }}"
-          if (-not $mode) { $mode = "combined" }
 
-          $qty = "${{ github.event.inputs.quantity }}"
-          if (-not $qty) { $qty = "1" }
+          # ── Scheduled vs Manual detection ──────────────────────────
+          # github.event_name = "schedule" for cron runs
+          # github.event_name = "workflow_dispatch" for manual runs
+          $isScheduled = "${{ github.event_name }}" -eq "schedule"
 
-          $uploadDrive = "${{ github.event.inputs.upload_drive }}"
-          if (-not $uploadDrive) { $uploadDrive = "true" }
+          if ($isScheduled) {
+            # Scheduled run: hamesha combined + loop + headless + drive upload
+            $mode        = "combined"
+            $qty         = "1"          # Har cycle mein 1 story (loop handle karta hai)
+            $uploadDrive = "true"
+            $loop        = "true"
+            Write-Host "[scheduler] Auto mode: combined --loop --headless --upload-drive"
+          } else {
+            # Manual run: dashboard ya GitHub UI se jo inputs diye
+            $mode = "${{ github.event.inputs.mode }}"
+            if (-not $mode) { $mode = "combined" }
 
-          $loop = "${{ github.event.inputs.loop }}"
-          if (-not $loop) { $loop = "false" }
+            $qty = "${{ github.event.inputs.quantity }}"
+            if (-not $qty) { $qty = "1" }
 
-          # Build arguments as array for proper passing to Python
+            $uploadDrive = "${{ github.event.inputs.upload_drive }}"
+            if (-not $uploadDrive) { $uploadDrive = "true" }
+
+            $loop = "${{ github.event.inputs.loop }}"
+            if (-not $loop) { $loop = "false" }
+
+            Write-Host "[manual] Mode=$mode Qty=$qty Drive=$uploadDrive Loop=$loop"
+          }
+
+          # ── Build argument list ─────────────────────────────────────
           $argsList = @("--mode", $mode, "--max", $qty, "--headless")
+
           if ($uploadDrive -eq "true") {
-              $argsList += "--upload-drive"
+            $argsList += "--upload-drive"
           }
           if ($loop -eq "true") {
-              $argsList += "--loop"
+            $argsList += "--loop"
           }
 
           $argsStr = $argsList -join " "
-          # Always produce a log artifact, and preserve the python exit code
+          Write-Host "[run] python main.py $argsStr"
+
+          # ── Execute ─────────────────────────────────────────────────
           "[run] python main.py $argsStr" | Out-File -FilePath pipeline.log -Encoding utf8
           & python main.py $argsList 2>&1 | Tee-Object -FilePath pipeline.log -Append
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      # ── Step 9: Artifacts save (hamesha, even on failure) ────────────
       - name: Upload Pipeline Artifacts
         if: always()
         uses: actions/upload-artifact@v4
