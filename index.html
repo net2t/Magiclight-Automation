@@ -3,537 +3,639 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MagicLight Pro — Dashboard v3</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>MAGICLIGHT PRO</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600;700&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-/* ══════════════════════════════════════════════════════════════
-   ROOT VARIABLES — NeoBrutalist Dark
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   RAW NEOBRUTALISM — No mercy, no rounded corners
+═══════════════════════════════════════════════════ */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0a0a;         /* near-black base */
-  --panel:#111;         /* card/panel background */
-  --border:#222;        /* subtle borders */
-  --border2:#333;       /* slightly visible borders */
-  --accent:#FFE500;     /* primary yellow */
-  --accent2:#00D97E;    /* green for done/success */
-  --red:#FF3B3B;        /* error/danger */
-  --blue:#3B82F6;       /* info/schedule */
-  --purple:#A855F7;     /* analytics */
-  --orange:#F97316;     /* warning */
-  --text:#F0F0F0;       /* primary text */
-  --muted:#666;         /* secondary text */
-  --muted2:#444;        /* very subtle text */
-  --card:#141414;       /* card bg */
-  --input:#0d0d0d;      /* input bg */
-  --mono:'JetBrains Mono',monospace;
-  --sans:'Syne',sans-serif;
+  --black:#000;
+  --white:#fff;
+  --yellow:#FFE500;
+  --red:#FF1F1F;
+  --green:#00FF7F;
+  --blue:#0066FF;
+  --purple:#CC00FF;
+  --orange:#FF6600;
+  --bg:#0D0D0D;
+  --bg2:#111;
+  --bg3:#161616;
+  --border:#fff;
+  --border-dim:#333;
+  --text:#fff;
+  --text-dim:#888;
+  --mono:'IBM Plex Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Barlow Condensed',sans-serif;
+  --bw:3px;  /* brutal border width */
 }
 
-/* ── Base ── */
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-input,select,textarea,button{font-family:var(--sans)}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
+body{
+  font-family:var(--body);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+/* ── BRUTALIST SCROLLBAR ── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--yellow);border:2px solid var(--black)}
 
-/* ══════════════════════════════════════════════════════════════
-   TOPBAR
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   TOP BAR — thick border bottom, brutal type
+═══════════════════════════════════════════════════ */
 .topbar{
-  background:var(--panel);
-  border-bottom:1px solid var(--border);
-  padding:0 24px;
-  height:56px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  position:sticky;top:0;z-index:100;
+  background:var(--black);
+  border-bottom:var(--bw) solid var(--yellow);
+  padding:0 20px;
+  height:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  gap:12px;flex-wrap:wrap;
 }
 .logo{
-  font-family:var(--sans);
-  font-size:18px;font-weight:800;
-  letter-spacing:2px;
-  color:var(--accent);
+  font-family:var(--display);
+  font-size:28px;letter-spacing:4px;
+  color:var(--yellow);
   display:flex;align-items:center;gap:8px;
+  white-space:nowrap;
 }
-.logo-dot{
-  width:8px;height:8px;
-  background:var(--red);
-  border-radius:50%;
-  animation:blink 1.4s infinite;
-}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
-.logo span{color:var(--text);font-weight:400;font-size:13px;margin-left:4px;opacity:.5}
-.topbar-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.meta-pill{
-  padding:4px 12px;
-  background:var(--card);
-  border:1px solid var(--border2);
-  border-radius:3px;
-  font-size:11px;
+.logo-red{color:var(--red)}
+.logo-badge{
   font-family:var(--mono);
-  color:var(--muted);
+  font-size:9px;font-weight:700;
+  background:var(--red);color:var(--white);
+  padding:2px 6px;
+  border:2px solid var(--white);
+  letter-spacing:1px;
 }
-.meta-pill b{color:var(--accent2)}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hdr-pill{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  padding:4px 10px;
+  background:var(--bg3);
+  border:2px solid var(--border-dim);
+  color:var(--text-dim);
+  white-space:nowrap;
+}
+.hdr-pill b{color:var(--green)}
+.mode-badge{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:3px 8px;
+  border:2px solid var(--yellow);
+  color:var(--yellow);
+  letter-spacing:1px;
+}
 
-/* ══════════════════════════════════════════════════════════════
-   TABS
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   TABS — brutal block tabs
+═══════════════════════════════════════════════════ */
 .tabs{
-  background:var(--panel);
-  border-bottom:1px solid var(--border);
-  padding:0 24px;
-  display:flex;gap:0;
+  background:var(--black);
+  border-bottom:var(--bw) solid var(--white);
+  padding:0;
+  display:flex;
   overflow-x:auto;
 }
+.tabs::-webkit-scrollbar{height:4px}
 .tab{
   padding:14px 20px;
-  font-size:12px;font-weight:700;
-  letter-spacing:.8px;
-  text-transform:uppercase;
-  color:var(--muted);
+  font-family:var(--display);
+  font-size:16px;letter-spacing:2px;
+  color:var(--text-dim);
   cursor:pointer;
-  border-bottom:2px solid transparent;
-  transition:.15s;
+  border-right:2px solid var(--border-dim);
   white-space:nowrap;
-  display:flex;align-items:center;gap:6px;
+  display:flex;align-items:center;gap:7px;
+  transition:background .1s,color .1s;
   user-select:none;
+  position:relative;
 }
-.tab:hover{color:var(--text)}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:hover{background:var(--bg2);color:var(--white)}
+.tab.active{
+  background:var(--yellow);
+  color:var(--black);
+  border-right:2px solid var(--black);
+}
+.tab.active .tab-icon{filter:none}
+.tab-icon{font-size:14px}
 .tab-badge{
-  background:var(--red);
-  color:#fff;
-  font-size:9px;font-weight:700;
-  padding:1px 5px;border-radius:2px;
-  min-width:16px;text-align:center;
+  background:var(--red);color:var(--white);
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:1px 5px;
+  border:1.5px solid var(--white);
+  min-width:18px;text-align:center;
 }
+.tab.active .tab-badge{border-color:var(--black)}
 
-/* ══════════════════════════════════════════════════════════════
-   MAIN CONTAINER
-══════════════════════════════════════════════════════════════ */
-.container{max-width:1500px;margin:0 auto;padding:24px}
+/* ═══════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════ */
+.wrap{max-width:1600px;margin:0 auto;padding:20px}
 .tab-pane{display:none}
 .tab-pane.active{display:block}
 
-/* ══════════════════════════════════════════════════════════════
-   BUTTONS
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   BUTTONS — pure brutalist
+═══════════════════════════════════════════════════ */
 .btn{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 16px;
-  font-weight:700;font-size:11px;letter-spacing:.5px;
-  cursor:pointer;border:none;border-radius:3px;
-  font-family:var(--sans);transition:.12s;
-  text-transform:uppercase;white-space:nowrap;
-}
-.btn-primary{background:var(--accent);color:#000}
-.btn-primary:hover{background:#ffe94d}
-.btn-success{background:var(--accent2);color:#000}
-.btn-success:hover{filter:brightness(1.1)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-danger:hover{filter:brightness(1.1)}
-.btn-blue{background:var(--blue);color:#fff}
-.btn-blue:hover{filter:brightness(1.1)}
-.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2)}
-.btn-ghost:hover{background:var(--border);color:var(--text)}
-.btn-purple{background:var(--purple);color:#fff}
-.btn:disabled{opacity:.35;cursor:not-allowed}
-.btn-sm{padding:5px 12px;font-size:10px}
-.btn-xs{padding:3px 8px;font-size:9px}
-
-/* ══════════════════════════════════════════════════════════════
-   STAT CARDS
-══════════════════════════════════════════════════════════════ */
-.stats-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:12px;margin-bottom:28px;
-}
-.stat-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:6px;
-  padding:18px 20px;
-  position:relative;overflow:hidden;
-}
-.stat-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:var(--accent);
-}
-.stat-card.green::before{background:var(--accent2)}
-.stat-card.red::before{background:var(--red)}
-.stat-card.blue::before{background:var(--blue)}
-.stat-card.purple::before{background:var(--purple)}
-.stat-card.orange::before{background:var(--orange)}
-.stat-n{
-  font-family:var(--mono);
-  font-size:36px;font-weight:700;
-  line-height:1;margin-bottom:6px;
-  color:var(--accent);
-}
-.stat-card.green .stat-n{color:var(--accent2)}
-.stat-card.red   .stat-n{color:var(--red)}
-.stat-card.blue  .stat-n{color:var(--blue)}
-.stat-card.purple .stat-n{color:var(--purple)}
-.stat-card.orange .stat-n{color:var(--orange)}
-.stat-l{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
-
-/* ══════════════════════════════════════════════════════════════
-   SECTION HEADER
-══════════════════════════════════════════════════════════════ */
-.sec-head{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:16px;flex-wrap:wrap;gap:10px;
-}
-.sec-title{font-size:14px;font-weight:700;letter-spacing:.5px}
-.sec-sub{font-size:12px;color:var(--muted);margin-top:2px}
-
-/* ══════════════════════════════════════════════════════════════
-   TOOLBAR (search + filters)
-══════════════════════════════════════════════════════════════ */
-.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.search-box{
-  flex:1;min-width:200px;
-  background:var(--input);
-  border:1px solid var(--border2);
-  border-radius:3px;
-  padding:8px 14px;
-  color:var(--text);
-  font-size:12px;font-family:var(--mono);
+  display:inline-flex;align-items:center;gap:5px;
+  padding:8px 18px;
+  font-family:var(--display);
+  font-size:16px;letter-spacing:1.5px;
+  cursor:pointer;
+  border:var(--bw) solid var(--white);
+  background:var(--black);
+  color:var(--white);
+  transition:.08s;
+  white-space:nowrap;
   outline:none;
 }
-.search-box:focus{border-color:var(--accent)}
-.search-box::placeholder{color:var(--muted2)}
-.filter-chip{
-  padding:6px 14px;
-  border:1px solid var(--border2);
-  border-radius:20px;
+.btn:hover{background:var(--white);color:var(--black)}
+.btn:active{transform:translate(2px,2px)}
+
+.btn-yellow{background:var(--yellow);color:var(--black);border-color:var(--black)}
+.btn-yellow:hover{background:var(--black);color:var(--yellow);border-color:var(--yellow)}
+.btn-red{background:var(--red);color:var(--white);border-color:var(--white)}
+.btn-red:hover{background:var(--white);color:var(--red)}
+.btn-green{background:var(--green);color:var(--black);border-color:var(--black)}
+.btn-green:hover{background:var(--black);color:var(--green);border-color:var(--green)}
+.btn-blue{background:var(--blue);color:var(--white);border-color:var(--white)}
+.btn-blue:hover{background:var(--white);color:var(--blue)}
+.btn-purple{background:var(--purple);color:var(--white);border-color:var(--white)}
+.btn-ghost{background:transparent;color:var(--text-dim);border-color:var(--border-dim)}
+.btn-ghost:hover{background:var(--bg3);color:var(--white);border-color:var(--white)}
+
+.btn-sm{padding:5px 12px;font-size:13px}
+.btn-xs{padding:3px 8px;font-size:11px}
+.btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+
+/* ═══════════════════════════════════════════════════
+   STAT CARDS — heavy borders
+═══════════════════════════════════════════════════ */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:0;
+  border:var(--bw) solid var(--white);
+  margin-bottom:20px;
+}
+.stat-card{
+  padding:16px 18px;
+  border-right:var(--bw) solid var(--white);
+  background:var(--black);
+}
+.stat-card:last-child{border-right:none}
+.stat-n{
+  font-family:var(--display);
+  font-size:52px;line-height:1;
+  color:var(--yellow);
+}
+.stat-n.green{color:var(--green)}
+.stat-n.red{color:var(--red)}
+.stat-n.blue{color:var(--blue)}
+.stat-n.purple{color:var(--purple)}
+.stat-n.orange{color:var(--orange)}
+.stat-l{
+  font-family:var(--mono);
+  font-size:9px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-dim);margin-top:4px;
+}
+@media(max-width:640px){
+  .stats-row{grid-template-columns:repeat(3,1fr)}
+  .stat-card{border-bottom:var(--bw) solid var(--white)}
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION HEADER
+═══════════════════════════════════════════════════ */
+.sec-head{
+  display:flex;align-items:stretch;justify-content:space-between;
+  border:var(--bw) solid var(--white);
+  border-bottom:none;
+  background:var(--black);
+  flex-wrap:wrap;
+}
+.sec-head-left{
+  padding:10px 16px;
+  border-right:var(--bw) solid var(--white);
+  flex:1;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.sec-head-right{
+  padding:10px 16px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.sec-title{
+  font-family:var(--display);
+  font-size:20px;letter-spacing:2px;color:var(--yellow);
+}
+.sec-sub{
+  font-family:var(--mono);
+  font-size:9px;color:var(--text-dim);letter-spacing:.5px;margin-top:2px;
+}
+
+/* ═══════════════════════════════════════════════════
+   TOOLBAR
+═══════════════════════════════════════════════════ */
+.toolbar{
+  border:var(--bw) solid var(--white);
+  border-bottom:none;
+  display:flex;align-items:stretch;flex-wrap:wrap;
+}
+.search-box{
+  flex:1;min-width:200px;
+  background:var(--black);
+  border:none;border-right:var(--bw) solid var(--white);
+  color:var(--white);
+  padding:10px 14px;
+  font-family:var(--mono);font-size:12px;
+  outline:none;
+}
+.search-box::placeholder{color:var(--text-dim)}
+.filter-chips{display:flex;flex-wrap:wrap}
+.chip{
+  padding:10px 14px;
+  font-family:var(--display);font-size:14px;letter-spacing:1px;
   cursor:pointer;
-  font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.4px;
-  background:transparent;color:var(--muted);
+  border-right:2px solid var(--border-dim);
+  color:var(--text-dim);
+  background:transparent;
   transition:.1s;white-space:nowrap;
 }
-.filter-chip.active,.filter-chip:hover{
-  background:var(--accent);color:#000;border-color:var(--accent);
-}
+.chip:hover{background:var(--bg2);color:var(--white)}
+.chip.active{background:var(--yellow);color:var(--black)}
 
-/* ══════════════════════════════════════════════════════════════
-   TABLE
-══════════════════════════════════════════════════════════════ */
-.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px}
+/* ═══════════════════════════════════════════════════
+   TABLE — pure brutalist
+═══════════════════════════════════════════════════ */
+.table-wrap{
+  border:var(--bw) solid var(--white);
+  overflow-x:auto;
+}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead tr{background:var(--panel);border-bottom:1px solid var(--border2)}
+thead tr{
+  background:var(--yellow);
+  border-bottom:var(--bw) solid var(--black);
+}
 th{
-  padding:10px 14px;
-  font-size:10px;font-weight:700;letter-spacing:.6px;
-  text-transform:uppercase;color:var(--muted);
-  text-align:left;white-space:nowrap;
+  padding:10px 12px;
+  font-family:var(--display);font-size:14px;letter-spacing:1px;
+  color:var(--black);text-align:left;white-space:nowrap;
 }
-tbody tr{
-  border-bottom:1px solid var(--border);
-  transition:.1s;cursor:pointer;
-}
-tbody tr:hover{background:rgba(255,229,0,.03)}
+tbody tr{border-bottom:2px solid var(--border-dim);transition:background .08s}
+tbody tr:hover{background:rgba(255,229,0,.05)}
 tbody tr:last-child{border-bottom:none}
-td{padding:10px 14px;color:var(--text);vertical-align:middle}
-td.mono{font-family:var(--mono);font-size:11px}
-td.muted{color:var(--muted)}
+td{padding:9px 12px;color:var(--text);vertical-align:middle}
+.mono{font-family:var(--mono);font-size:11px}
+.dim{color:var(--text-dim)}
+
+/* Row number badge */
 .row-num{
-  font-family:var(--mono);font-size:10px;
-  color:var(--muted2);
-  background:var(--card);
-  border:1px solid var(--border);
-  padding:2px 6px;border-radius:2px;
-  display:inline-block;
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  background:var(--yellow);color:var(--black);
+  padding:2px 6px;
+  border:2px solid var(--black);
+  display:inline-block;white-space:nowrap;
 }
-.cell-actions{display:flex;gap:6px;align-items:center}
 
-/* ── Status pills ── */
+/* Status pills */
 .pill{
-  display:inline-block;
-  padding:2px 8px;
-  font-size:9px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.5px;
-  border-radius:2px;
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:3px 8px;letter-spacing:.8px;text-transform:uppercase;
+  border:2px solid;display:inline-block;white-space:nowrap;
 }
-.pill-done{background:rgba(0,217,126,.15);color:var(--accent2);border:1px solid rgba(0,217,126,.3)}
-.pill-pending{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border2)}
-.pill-generated{background:rgba(255,229,0,.15);color:var(--accent);border:1px solid rgba(255,229,0,.3)}
-.pill-processing{background:rgba(59,130,246,.15);color:var(--blue);border:1px solid rgba(59,130,246,.3)}
-.pill-error{background:rgba(255,59,59,.15);color:var(--red);border:1px solid rgba(255,59,59,.3)}
-.pill-scheduled{background:rgba(168,85,247,.15);color:var(--purple);border:1px solid rgba(168,85,247,.3)}
+.p-done    {background:var(--green);color:var(--black);border-color:var(--black)}
+.p-pending {background:transparent;color:var(--text-dim);border-color:var(--border-dim)}
+.p-gen     {background:var(--yellow);color:var(--black);border-color:var(--black)}
+.p-proc    {background:var(--blue);color:var(--white);border-color:var(--white)}
+.p-err     {background:var(--red);color:var(--white);border-color:var(--white)}
+.p-sched   {background:var(--purple);color:var(--white);border-color:var(--white)}
 
-/* ══════════════════════════════════════════════════════════════
+/* Cell actions */
+.cell-acts{display:flex;gap:4px;align-items:center}
+
+/* ═══════════════════════════════════════════════════
    PAGINATION
-══════════════════════════════════════════════════════════════ */
-.pagination{
-  display:flex;align-items:center;justify-content:center;
-  gap:6px;margin-top:20px;flex-wrap:wrap;
+═══════════════════════════════════════════════════ */
+.pager{
+  display:flex;align-items:stretch;
+  border:var(--bw) solid var(--white);border-top:none;
+  flex-wrap:wrap;
 }
-.pg-btn{
-  min-width:32px;height:32px;padding:0 8px;
-  background:var(--card);border:1px solid var(--border2);
-  border-radius:3px;color:var(--muted);
-  font-size:11px;font-weight:600;font-family:var(--mono);
-  cursor:pointer;transition:.12s;
-  display:inline-flex;align-items:center;justify-content:center;
+.pg{
+  padding:8px 14px;
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  cursor:pointer;
+  border-right:2px solid var(--border-dim);
+  background:var(--black);color:var(--text-dim);
+  transition:.08s;
+  display:inline-flex;align-items:center;
 }
-.pg-btn:hover{border-color:var(--accent);color:var(--accent)}
-.pg-btn.active{background:var(--accent);border-color:var(--accent);color:#000}
-.pg-btn:disabled{opacity:.3;cursor:not-allowed}
-.pg-info{font-size:11px;color:var(--muted);font-family:var(--mono);padding:0 6px}
+.pg:hover{background:var(--bg2);color:var(--white)}
+.pg.active{background:var(--yellow);color:var(--black)}
+.pg:disabled,.pg[disabled]{opacity:.3;cursor:not-allowed;pointer-events:none}
+.pg-info{padding:8px 14px;font-family:var(--mono);font-size:10px;color:var(--text-dim);display:flex;align-items:center;margin-left:auto}
 
-/* ══════════════════════════════════════════════════════════════
-   MODAL
-══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════════════ */
 .overlay{
   display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.85);z-index:1000;
+  background:rgba(0,0,0,.9);z-index:1000;
   align-items:center;justify-content:center;padding:16px;
 }
 .overlay.open{display:flex}
 .modal{
-  background:var(--panel);
-  border:1px solid var(--border2);
-  border-radius:8px;
-  width:100%;max-width:640px;max-height:92vh;overflow-y:auto;
+  background:var(--black);
+  border:var(--bw) solid var(--white);
+  width:100%;max-width:680px;max-height:92vh;overflow-y:auto;
 }
 .modal-head{
-  padding:16px 22px;
-  border-bottom:1px solid var(--border);
+  padding:14px 20px;
+  border-bottom:var(--bw) solid var(--white);
   display:flex;justify-content:space-between;align-items:center;
-  position:sticky;top:0;background:var(--panel);z-index:5;
+  position:sticky;top:0;background:var(--yellow);z-index:5;
 }
-.modal-head h3{font-size:14px;font-weight:700}
-.modal-body{padding:20px 22px}
+.modal-head h3{
+  font-family:var(--display);font-size:22px;letter-spacing:2px;color:var(--black);
+}
 .close-x{
-  background:transparent;border:none;
-  color:var(--muted);cursor:pointer;
-  font-size:18px;line-height:1;padding:4px;
+  background:var(--black);border:2px solid var(--black);
+  color:var(--yellow);cursor:pointer;
+  font-size:18px;font-weight:700;line-height:1;
+  width:30px;height:30px;
+  display:flex;align-items:center;justify-content:center;
 }
-.close-x:hover{color:var(--text)}
+.close-x:hover{background:var(--red);border-color:var(--red);color:var(--white)}
+.modal-body{padding:20px}
 
-/* ══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    FORM ELEMENTS
-══════════════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════ */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:520px){.form-grid{grid-template-columns:1fr}}
-.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group{display:flex;flex-direction:column;gap:6px}
 .form-group.full{grid-column:1/-1}
-.form-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.form-label{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--yellow);
+}
 .form-input{
-  background:var(--input);
-  border:1px solid var(--border2);
-  border-radius:3px;
-  color:var(--text);
-  padding:8px 12px;
-  font-size:12px;font-family:var(--mono);
+  background:var(--bg3);
+  border:2px solid var(--border-dim);
+  color:var(--white);
+  padding:9px 12px;
+  font-family:var(--mono);font-size:12px;
   outline:none;width:100%;
 }
-.form-input:focus{border-color:var(--accent)}
+.form-input:focus{border-color:var(--yellow)}
 .form-textarea{resize:vertical;min-height:80px}
 .form-select{appearance:none;cursor:pointer}
-.form-actions{display:flex;gap:8px;margin-top:16px}
+.form-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
 
-/* ══════════════════════════════════════════════════════════════
-   ACCOUNTS CARDS
-══════════════════════════════════════════════════════════════ */
-.accounts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.account-card{
-  background:var(--card);
-  border:1px solid var(--border2);
-  border-radius:6px;
-  padding:18px 20px;
-}
-.account-email{font-size:13px;font-weight:700;margin-bottom:4px;word-break:break-all}
-.account-channel{font-size:11px;color:var(--muted);margin-bottom:12px}
-.account-status{
-  display:inline-flex;align-items:center;gap:6px;
-  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
-  margin-bottom:14px;
-}
-.status-dot{width:7px;height:7px;border-radius:50%}
-.dot-green{background:var(--accent2)}
-.dot-red{background:var(--red)}
-.account-actions{display:flex;gap:6px;flex-wrap:wrap}
-
-/* ══════════════════════════════════════════════════════════════
-   ANALYTICS
-══════════════════════════════════════════════════════════════ */
-.analytics-header{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-  gap:12px;margin-bottom:24px;
-}
-.analytics-table td.big{
-  font-family:var(--mono);
-  font-size:13px;font-weight:600;
-  color:var(--text);
-}
-.progress-bar{
-  height:4px;background:var(--border2);
-  border-radius:2px;overflow:hidden;margin-top:4px;
-}
-.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:.3s}
-
-/* ══════════════════════════════════════════════════════════════
-   LOG TABLE
-══════════════════════════════════════════════════════════════ */
-.log-type{
-  font-family:var(--mono);font-size:9px;font-weight:700;
-  padding:2px 6px;border-radius:2px;
-  text-transform:uppercase;letter-spacing:.4px;
-}
-.lt-upload{background:rgba(0,217,126,.15);color:var(--accent2)}
-.lt-error{background:rgba(255,59,59,.15);color:var(--red)}
-.lt-schedule{background:rgba(168,85,247,.15);color:var(--purple)}
-.lt-update{background:rgba(59,130,246,.15);color:var(--blue)}
-.lt-delete{background:rgba(255,59,59,.2);color:var(--red)}
-.lt-auth{background:rgba(255,229,0,.15);color:var(--accent)}
-.lt-config{background:rgba(255,255,255,.07);color:var(--muted)}
-.lt-default{background:rgba(255,255,255,.05);color:var(--muted)}
-
-/* ══════════════════════════════════════════════════════════════
-   SCHEDULE QUEUE
-══════════════════════════════════════════════════════════════ */
-.queue-item{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-left:3px solid var(--purple);
-  border-radius:4px;
-  padding:14px 16px;
-  display:flex;align-items:center;justify-content:space-between;
-  gap:12px;flex-wrap:wrap;
-  margin-bottom:10px;
-}
-.queue-time{
-  font-family:var(--mono);
-  font-size:11px;color:var(--purple);font-weight:600;
-}
-.queue-title{font-size:13px;font-weight:600}
-.queue-meta{font-size:11px;color:var(--muted);margin-top:2px}
-
-/* ══════════════════════════════════════════════════════════════
-   ALERTS / TOASTS
-══════════════════════════════════════════════════════════════ */
-#toast{
-  position:fixed;bottom:24px;right:24px;z-index:9999;
-  display:flex;flex-direction:column;gap:8px;
-  pointer-events:none;
-}
-.toast-item{
-  background:var(--panel);
-  border:1px solid var(--border2);
-  border-radius:4px;
-  padding:12px 18px;
-  font-size:12px;font-weight:600;
-  max-width:320px;
-  animation:slideIn .25s ease;
-  pointer-events:all;
-}
-.toast-item.success{border-left:3px solid var(--accent2);color:var(--accent2)}
-.toast-item.error{border-left:3px solid var(--red);color:var(--red)}
-.toast-item.info{border-left:3px solid var(--blue);color:var(--blue)}
-@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
-
-/* ══════════════════════════════════════════════════════════════
-   EMPTY / LOADING STATES
-══════════════════════════════════════════════════════════════ */
-.empty-state{
-  text-align:center;padding:48px 20px;color:var(--muted);
-}
-.empty-state .ei{font-size:32px;margin-bottom:12px}
-.empty-state h3{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px}
-.shimmer{
-  background:linear-gradient(90deg,var(--card) 25%,#1a1a1a 50%,var(--card) 75%);
-  background-size:200% 100%;animation:shimmer 1.4s infinite;
-  border-radius:4px;
-}
-@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
-
-/* ══════════════════════════════════════════════════════════════
-   DIVIDER / MISC
-══════════════════════════════════════════════════════════════ */
-.divider{height:1px;background:var(--border);margin:16px 0}
-.tag{
-  display:inline-block;
-  background:rgba(255,229,0,.1);
-  border:1px solid rgba(255,229,0,.2);
-  color:var(--accent);
-  font-size:9px;font-weight:700;
-  padding:2px 7px;border-radius:2px;
-  letter-spacing:.4px;text-transform:uppercase;
-}
+/* ═══════════════════════════════════════════════════
+   BRUTALIST INFO / WARN BOXES
+═══════════════════════════════════════════════════ */
 .info-box{
-  background:rgba(59,130,246,.08);
-  border:1px solid rgba(59,130,246,.2);
-  border-radius:4px;
+  border:2px solid var(--blue);
+  background:rgba(0,102,255,.08);
   padding:12px 16px;
-  font-size:12px;color:var(--blue);
-  line-height:1.6;
+  font-family:var(--mono);font-size:11px;color:var(--blue);
+  line-height:1.7;margin-bottom:16px;
 }
 .warn-box{
-  background:rgba(249,115,22,.08);
-  border:1px solid rgba(249,115,22,.2);
-  border-radius:4px;
+  border:2px solid var(--orange);
+  background:rgba(255,102,0,.08);
   padding:12px 16px;
-  font-size:12px;color:var(--orange);
-  line-height:1.6;margin-bottom:16px;
+  font-family:var(--mono);font-size:11px;color:var(--orange);
+  line-height:1.7;margin-bottom:16px;
+}
+.success-box{
+  border:2px solid var(--green);
+  background:rgba(0,255,127,.06);
+  padding:12px 16px;
+  font-family:var(--mono);font-size:11px;color:var(--green);
+  line-height:1.7;margin-bottom:16px;
+}
+
+/* ═══════════════════════════════════════════════════
+   ACCOUNTS GRID
+═══════════════════════════════════════════════════ */
+.accounts-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:0;
+  border:var(--bw) solid var(--white);
+}
+.acc-card{
+  padding:18px 20px;
+  border-right:var(--bw) solid var(--white);
+  border-bottom:var(--bw) solid var(--white);
+  background:var(--black);
+}
+.acc-email{
+  font-family:var(--mono);font-size:12px;font-weight:700;
+  color:var(--white);margin-bottom:4px;word-break:break-all;
+}
+.acc-channel{
+  font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-bottom:10px;
+}
+.acc-status{
+  display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:12px;
+}
+.dot{width:8px;height:8px;border:2px solid}
+.dot-on{background:var(--green);border-color:var(--green)}
+.dot-off{background:transparent;border-color:var(--red)}
+.acc-acts{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ═══════════════════════════════════════════════════
+   QUEUE / SCHEDULE ITEMS
+═══════════════════════════════════════════════════ */
+.queue-item{
+  border:2px solid var(--border-dim);
+  border-left:var(--bw) solid var(--purple);
+  background:var(--black);
+  padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+  margin-bottom:0;
+  border-top:none;
+}
+.queue-item:first-child{border-top:var(--bw) solid var(--white)}
+.queue-title{
+  font-family:var(--body);font-size:14px;font-weight:700;
+  color:var(--white);
+}
+.queue-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:3px}
+.queue-time{
+  font-family:var(--mono);font-size:11px;
+  color:var(--purple);font-weight:700;white-space:nowrap;
+}
+
+/* ═══════════════════════════════════════════════════
+   ANALYTICS
+═══════════════════════════════════════════════════ */
+.ana-bar{height:4px;background:var(--border-dim);margin-top:4px}
+.ana-fill{height:100%;background:var(--yellow);transition:.3s}
+
+/* ═══════════════════════════════════════════════════
+   LOG TYPES
+═══════════════════════════════════════════════════ */
+.lt{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:2px 7px;text-transform:uppercase;letter-spacing:.5px;
+  border:1.5px solid;display:inline-block;
+}
+.lt-upload {color:var(--green);border-color:var(--green)}
+.lt-error  {color:var(--red);border-color:var(--red)}
+.lt-sched  {color:var(--purple);border-color:var(--purple)}
+.lt-update {color:var(--blue);border-color:var(--blue)}
+.lt-delete {color:var(--red);border-color:var(--red)}
+.lt-auth   {color:var(--yellow);border-color:var(--yellow)}
+.lt-cfg    {color:var(--text-dim);border-color:var(--border-dim)}
+.lt-def    {color:var(--text-dim);border-color:var(--border-dim)}
+
+/* ═══════════════════════════════════════════════════
+   QUOTA BAR
+═══════════════════════════════════════════════════ */
+.quota-wrap{
+  border:var(--bw) solid var(--white);
+  padding:16px 20px;
+  margin-bottom:20px;
+  background:var(--black);
+  display:flex;gap:20px;align-items:center;flex-wrap:wrap;
+}
+.quota-label{font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--white);white-space:nowrap}
+.quota-bar-wrap{flex:1;min-width:200px}
+.quota-bar-bg{height:12px;background:var(--bg3);border:2px solid var(--border-dim)}
+.quota-bar-fill{height:100%;background:var(--green);transition:.5s}
+.quota-text{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:5px}
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:20px;right:20px;z-index:9999;
+  display:flex;flex-direction:column;gap:6px;pointer-events:none;
+}
+.toast-item{
+  background:var(--black);
+  border:var(--bw) solid var(--white);
+  padding:10px 16px;
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  max-width:300px;pointer-events:all;
+  animation:tIn .2s ease;
+}
+.toast-item.success{border-color:var(--green);color:var(--green)}
+.toast-item.error  {border-color:var(--red);color:var(--red)}
+.toast-item.info   {border-color:var(--blue);color:var(--blue)}
+.toast-item.warn   {border-color:var(--orange);color:var(--orange)}
+@keyframes tIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+
+/* ═══════════════════════════════════════════════════
+   HELP PAGE STYLING
+═══════════════════════════════════════════════════ */
+.help-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:var(--bw) solid var(--white)}
+@media(max-width:700px){.help-grid{grid-template-columns:1fr}}
+.help-box{
+  padding:20px;
+  border-right:var(--bw) solid var(--white);
+  border-bottom:var(--bw) solid var(--white);
+}
+.help-box:nth-child(even){border-right:none}
+.help-num{
+  font-family:var(--display);font-size:48px;color:var(--yellow);
+  line-height:1;margin-bottom:8px;
+}
+.help-title{
+  font-family:var(--display);font-size:20px;letter-spacing:2px;
+  color:var(--white);margin-bottom:10px;
+}
+.help-body{
+  font-family:var(--mono);font-size:11px;color:var(--text-dim);
+  line-height:1.8;
+}
+.help-body code{
+  background:var(--bg3);border:1px solid var(--border-dim);
+  padding:1px 6px;color:var(--yellow);font-family:var(--mono);
+}
+.help-body b{color:var(--white)}
+
+/* ═══════════════════════════════════════════════════
+   EMPTY / LOADING
+═══════════════════════════════════════════════════ */
+.empty{text-align:center;padding:48px 20px;border:var(--bw) solid var(--white)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-family:var(--display);font-size:24px;letter-spacing:2px;color:var(--yellow);margin-bottom:6px}
+.empty-sub{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+.shimmer{
+  background:linear-gradient(90deg,var(--black) 25%,var(--bg3) 50%,var(--black) 75%);
+  background-size:200% 100%;animation:shim 1.4s infinite;
+}
+@keyframes shim{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* ═══════════════════════════════════════════════════
+   DIVIDER
+═══════════════════════════════════════════════════ */
+.div-line{height:var(--bw);background:var(--border-dim);margin:16px 0}
+.tag{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  background:var(--yellow);color:var(--black);
+  padding:2px 7px;border:none;letter-spacing:.5px;
+  display:inline-block;
 }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════
      TOPBAR
-════════════════════════════════════════════════════════════ -->
+═══════════════════════════════════════ -->
 <div class="topbar">
   <div class="logo">
-    <div class="logo-dot"></div>
-    MAGICLIGHT PRO
-    <span>v3.0</span>
+    MAGIC<span class="logo-red">▶</span>LIGHT
+    <span class="logo-badge">PRO V3</span>
   </div>
-  <div class="topbar-meta">
-    <div class="meta-pill">Sheet: <b id="hdr-sheet">—</b></div>
-    <div class="meta-pill" id="hdr-status">Connecting…</div>
-    <button class="btn btn-primary btn-sm" onclick="refreshAll()">↻ Refresh</button>
+  <div class="topbar-right">
+    <div class="hdr-pill">SHEET: <b id="hdr-sheet">—</b></div>
+    <div class="hdr-pill" id="hdr-rows">— ROWS</div>
+    <div class="mode-badge" id="mode-badge">CSV + API</div>
+    <button class="btn btn-sm btn-yellow" onclick="refreshAll()">↻ REFRESH</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════
      TABS
-════════════════════════════════════════════════════════════ -->
+═══════════════════════════════════════ -->
 <div class="tabs">
-  <div class="tab active" onclick="switchTab('dashboard',this)">📊 Dashboard</div>
-  <div class="tab" onclick="switchTab('stories',this)">🎬 Stories <span class="tab-badge" id="badge-pending">0</span></div>
-  <div class="tab" onclick="switchTab('schedule',this)">📅 Schedule</div>
-  <div class="tab" onclick="switchTab('accounts',this)">👤 Accounts</div>
-  <div class="tab" onclick="switchTab('analytics',this)">📈 Analytics</div>
-  <div class="tab" onclick="switchTab('logs',this)">📋 Logs</div>
-  <div class="tab" onclick="switchTab('config',this)">⚙️ Config</div>
+  <div class="tab active"  onclick="goTab('dashboard',this)"> <span class="tab-icon">▣</span> DASHBOARD</div>
+  <div class="tab"         onclick="goTab('stories',this)">   <span class="tab-icon">▶</span> STORIES <span class="tab-badge" id="badge-p">0</span></div>
+  <div class="tab"         onclick="goTab('schedule',this)">  <span class="tab-icon">◷</span> SCHEDULE</div>
+  <div class="tab"         onclick="goTab('accounts',this)">  <span class="tab-icon">◉</span> ACCOUNTS</div>
+  <div class="tab"         onclick="goTab('analytics',this)"> <span class="tab-icon">▲</span> ANALYTICS</div>
+  <div class="tab"         onclick="goTab('logs',this)">      <span class="tab-icon">≡</span> LOGS</div>
+  <div class="tab"         onclick="goTab('config',this)">    <span class="tab-icon">◈</span> CONFIG</div>
+  <div class="tab"         onclick="goTab('help',this)">      <span class="tab-icon">?</span> HELP</div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════
-     MAIN
-════════════════════════════════════════════════════════════ -->
-<div class="container">
+<!-- ═══════════════════════════════════════
+     MAIN WRAP
+═══════════════════════════════════════ -->
+<div class="wrap">
 
-<!-- ════════════════════════════════════════
-     TAB: DASHBOARD
-════════════════════════════════════════ -->
+<!-- ════════════════════ TAB: DASHBOARD ════════════════════ -->
 <div class="tab-pane active" id="pane-dashboard">
 
-  <div class="stats-grid" id="dash-stats">
-    <!-- Filled by JS -->
+  <div class="stats-row" id="dash-stats">
     <div class="stat-card shimmer" style="height:90px"></div>
     <div class="stat-card shimmer" style="height:90px"></div>
     <div class="stat-card shimmer" style="height:90px"></div>
@@ -542,171 +644,145 @@ td.muted{color:var(--muted)}
     <div class="stat-card shimmer" style="height:90px"></div>
   </div>
 
-  <!-- Quick upload quota meter -->
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:18px 20px;margin-bottom:20px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;letter-spacing:.5px">DAILY QUOTA METER</div>
-      <div style="font-size:11px;font-family:var(--mono);color:var(--muted)" id="quota-text">0 / 10,000 units</div>
+  <div class="quota-wrap">
+    <div class="quota-label">DAILY QUOTA</div>
+    <div class="quota-bar-wrap">
+      <div class="quota-bar-bg"><div class="quota-bar-fill" id="quota-fill" style="width:0%"></div></div>
+      <div class="quota-text" id="quota-text">0 / 10,000 UNITS — ~5 videos/day per account</div>
     </div>
-    <div class="progress-bar" style="height:8px">
-      <div class="progress-fill" id="quota-bar" style="width:0%;background:var(--accent2)"></div>
-    </div>
-    <div style="font-size:10px;color:var(--muted);margin-top:6px">Each YouTube upload ≈ 1,600 units · Max ~5 videos/day per account</div>
   </div>
 
-  <!-- Recent uploads quick view -->
+  <!-- Recent -->
   <div class="sec-head">
-    <div>
-      <div class="sec-title">RECENT UPLOADS</div>
-      <div class="sec-sub">Last 5 completed stories</div>
+    <div class="sec-head-left">
+      <div class="sec-title">RECENT DONE</div>
+      <div class="sec-sub">LAST 5 COMPLETED UPLOADS</div>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="switchTab('stories',document.querySelectorAll('.tab')[1])">View All →</button>
+    <div class="sec-head-right">
+      <button class="btn btn-sm btn-ghost" onclick="goTab('stories',document.querySelectorAll('.tab')[1])">VIEW ALL →</button>
+    </div>
   </div>
-  <div id="dash-recent">
-    <div style="height:120px" class="shimmer"></div>
-  </div>
+  <div id="dash-recent"><div class="shimmer" style="height:120px;border:var(--bw) solid var(--white);border-top:none"></div></div>
 
-  <!-- Scheduled upcoming -->
-  <div class="divider"></div>
-  <div class="sec-head">
-    <div>
-      <div class="sec-title">UPCOMING SCHEDULED</div>
-      <div class="sec-sub">Next 3 queued uploads</div>
+  <div class="div-line"></div>
+
+  <!-- Upcoming scheduled -->
+  <div class="sec-head" style="margin-top:0">
+    <div class="sec-head-left">
+      <div class="sec-title">UPCOMING SCHEDULE</div>
+      <div class="sec-sub">NEXT 3 QUEUED UPLOADS</div>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="switchTab('schedule',document.querySelectorAll('.tab')[2])">Manage →</button>
+    <div class="sec-head-right">
+      <button class="btn btn-sm btn-ghost" onclick="goTab('schedule',document.querySelectorAll('.tab')[2])">MANAGE →</button>
+    </div>
   </div>
-  <div id="dash-upcoming">
-    <div style="height:80px" class="shimmer"></div>
-  </div>
+  <div id="dash-upcoming"><div class="shimmer" style="height:80px;border:var(--bw) solid var(--white);border-top:none"></div></div>
 
 </div><!-- /dashboard -->
 
 
-<!-- ════════════════════════════════════════
-     TAB: STORIES
-════════════════════════════════════════ -->
+<!-- ════════════════════ TAB: STORIES ════════════════════ -->
 <div class="tab-pane" id="pane-stories">
 
   <div class="toolbar">
-    <input class="search-box" id="story-search" placeholder="Search title, theme, notes…" oninput="handleStorySearch()">
-    <div id="story-filters" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-    <button class="btn btn-primary btn-sm" onclick="loadStories(1)">↻</button>
+    <input class="search-box" id="s-search" placeholder="SEARCH TITLE / THEME / NOTES…" oninput="doSearch()">
+    <div class="filter-chips" id="s-chips"></div>
+    <button class="btn btn-sm btn-yellow" style="border:none" onclick="loadStories(1)">↻</button>
   </div>
 
   <div class="table-wrap">
     <table>
-      <thead>
-        <tr>
-          <th>#Row</th>
-          <th>Status</th>
-          <th>Theme</th>
-          <th>Title / Gen Title</th>
-          <th>Account</th>
-          <th>Credits</th>
-          <th>Completed</th>
-          <th>YouTube</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="story-tbody">
-        <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr>
+      <thead><tr>
+        <th>#ROW</th><th>STATUS</th><th>THEME</th>
+        <th>TITLE / GEN TITLE</th><th>ACCOUNT</th>
+        <th>CREDITS</th><th>DONE</th><th>YOUTUBE</th><th>ACTIONS</th>
+      </tr></thead>
+      <tbody id="s-tbody">
+        <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-dim);font-family:var(--mono)">LOADING…</td></tr>
       </tbody>
     </table>
   </div>
-
-  <div class="pagination" id="story-pagination"></div>
+  <div class="pager" id="s-pager"></div>
 
 </div><!-- /stories -->
 
 
-<!-- ════════════════════════════════════════
-     TAB: SCHEDULE
-════════════════════════════════════════ -->
+<!-- ════════════════════ TAB: SCHEDULE ════════════════════ -->
 <div class="tab-pane" id="pane-schedule">
 
   <div class="sec-head">
-    <div>
+    <div class="sec-head-left">
       <div class="sec-title">UPLOAD QUEUE</div>
-      <div class="sec-sub">Rows scheduled for auto-upload</div>
+      <div class="sec-sub">ROWS SCHEDULED FOR AUTO-UPLOAD</div>
     </div>
-    <button class="btn btn-purple btn-sm" onclick="openScheduleModal()">+ Schedule Upload</button>
+    <div class="sec-head-right">
+      <button class="btn btn-sm btn-purple" onclick="openSchedModal()">+ SCHEDULE UPLOAD</button>
+    </div>
   </div>
 
-  <div class="info-box" style="margin-bottom:20px">
-    ℹ️ Scheduled uploads run automatically every hour via Apps Script trigger.
-    To activate: open Apps Script editor → run <code>setupTrigger()</code> once.
+  <div class="info-box" style="border-top:none">
+    ⚙ Scheduled uploads run automatically every hour via Apps Script trigger.<br>
+    To activate: Apps Script editor → run <code>setupTrigger()</code> once.
   </div>
-
-  <div id="schedule-list">
-    <div style="height:100px" class="shimmer"></div>
-  </div>
+  <div id="sched-list"><div class="shimmer" style="height:100px"></div></div>
 
 </div><!-- /schedule -->
 
 
-<!-- ════════════════════════════════════════
-     TAB: ACCOUNTS
-════════════════════════════════════════ -->
+<!-- ════════════════════ TAB: ACCOUNTS ════════════════════ -->
 <div class="tab-pane" id="pane-accounts">
 
   <div class="sec-head">
-    <div>
+    <div class="sec-head-left">
       <div class="sec-title">YOUTUBE ACCOUNTS</div>
-      <div class="sec-sub">OAuth 2.0 — each account logs in once, token saved</div>
+      <div class="sec-sub">OAUTH 2.0 — TOKEN SAVED PER ACCOUNT</div>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="openAddAccountModal()">+ Add Account</button>
+    <div class="sec-head-right">
+      <button class="btn btn-sm btn-yellow" onclick="openAddAccModal()">+ ADD ACCOUNT</button>
+    </div>
   </div>
 
-  <div class="warn-box">
-    ⚠️ <b>Wrong account posting?</b> Click <b>De-Auth</b> on that account to clear its token,
-    then re-authorize with the correct Google account. Do not share OAuth tokens between channels.
+  <div class="warn-box" style="border-top:none">
+    ⚠ WRONG ACCOUNT POSTING? → Click <b>DE-AUTH</b> on that account → Re-open Auth URL in the CORRECT browser account.
   </div>
 
-  <div class="accounts-grid" id="accounts-grid">
-    <div style="height:160px" class="shimmer"></div>
-    <div style="height:160px" class="shimmer"></div>
+  <div class="accounts-grid" id="acc-grid">
+    <div class="acc-card shimmer" style="height:160px"></div>
+    <div class="acc-card shimmer" style="height:160px"></div>
   </div>
 
 </div><!-- /accounts -->
 
 
-<!-- ════════════════════════════════════════
-     TAB: ANALYTICS
-════════════════════════════════════════ -->
+<!-- ════════════════════ TAB: ANALYTICS ════════════════════ -->
 <div class="tab-pane" id="pane-analytics">
 
   <div class="sec-head">
-    <div>
+    <div class="sec-head-left">
       <div class="sec-title">YOUTUBE REACH</div>
-      <div class="sec-sub">Views · Likes · Comments for all uploaded videos</div>
+      <div class="sec-sub">VIEWS · LIKES · COMMENTS — ALL UPLOADED VIDEOS</div>
     </div>
-    <button class="btn btn-purple btn-sm" onclick="loadAnalytics()">↻ Refresh Analytics</button>
+    <div class="sec-head-right">
+      <button class="btn btn-sm btn-purple" onclick="loadAnalytics()">↻ FETCH ANALYTICS</button>
+    </div>
   </div>
 
-  <div class="analytics-header" id="analytics-totals">
+  <div class="stats-row" id="ana-totals" style="border-top:none">
     <div class="stat-card shimmer" style="height:90px"></div>
     <div class="stat-card shimmer" style="height:90px"></div>
     <div class="stat-card shimmer" style="height:90px"></div>
     <div class="stat-card shimmer" style="height:90px"></div>
   </div>
 
-  <div class="table-wrap">
+  <div class="table-wrap" style="border-top:none">
     <table>
-      <thead>
-        <tr>
-          <th>#Row</th>
-          <th>Thumbnail</th>
-          <th>Title</th>
-          <th>Published</th>
-          <th>Views</th>
-          <th>Likes</th>
-          <th>Comments</th>
-          <th>Engagement</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-      <tbody id="analytics-tbody">
-        <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--muted)">Click Refresh Analytics →</td></tr>
+      <thead><tr>
+        <th>#ROW</th><th>THUMB</th><th>TITLE</th>
+        <th>PUBLISHED</th><th>VIEWS</th><th>LIKES</th>
+        <th>COMMENTS</th><th>ENGAGE%</th><th>LINK</th>
+      </tr></thead>
+      <tbody id="ana-tbody">
+        <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-dim);font-family:var(--mono)">CLICK FETCH ANALYTICS →</td></tr>
       </tbody>
     </table>
   </div>
@@ -714,34 +790,25 @@ td.muted{color:var(--muted)}
 </div><!-- /analytics -->
 
 
-<!-- ════════════════════════════════════════
-     TAB: LOGS
-════════════════════════════════════════ -->
+<!-- ════════════════════ TAB: LOGS ════════════════════ -->
 <div class="tab-pane" id="pane-logs">
 
   <div class="sec-head">
-    <div>
+    <div class="sec-head-left">
       <div class="sec-title">ACTIVITY LOG</div>
-      <div class="sec-sub">All uploads, edits, errors, account changes</div>
+      <div class="sec-sub">ALL UPLOADS · EDITS · ERRORS · AUTH CHANGES</div>
     </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-ghost btn-sm" onclick="loadLogs()">↻ Refresh</button>
-      <button class="btn btn-danger btn-sm" onclick="confirmClearLogs()">🗑 Clear</button>
+    <div class="sec-head-right">
+      <button class="btn btn-sm btn-ghost" onclick="loadLogs()">↻ REFRESH</button>
+      <button class="btn btn-sm btn-red" onclick="confirmClear()">🗑 CLEAR</button>
     </div>
   </div>
 
-  <div class="table-wrap">
+  <div class="table-wrap" style="border-top:none">
     <table>
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Type</th>
-          <th>Target</th>
-          <th>Detail</th>
-        </tr>
-      </thead>
-      <tbody id="logs-tbody">
-        <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--muted)">Loading…</td></tr>
+      <thead><tr><th>TIMESTAMP</th><th>TYPE</th><th>TARGET</th><th>DETAIL</th></tr></thead>
+      <tbody id="log-tbody">
+        <tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-dim);font-family:var(--mono)">LOADING…</td></tr>
       </tbody>
     </table>
   </div>
@@ -749,98 +816,75 @@ td.muted{color:var(--muted)}
 </div><!-- /logs -->
 
 
-<!-- ════════════════════════════════════════
-     TAB: CONFIG
-════════════════════════════════════════ -->
+<!-- ════════════════════ TAB: CONFIG ════════════════════ -->
 <div class="tab-pane" id="pane-config">
 
   <div class="sec-head">
-    <div class="sec-title">CONFIGURATION</div>
-    <div class="sec-sub">Apps Script URL, Sheet settings, defaults</div>
+    <div class="sec-head-left">
+      <div class="sec-title">CONFIGURATION</div>
+      <div class="sec-sub">SHEET URL · APPS SCRIPT · DEFAULTS</div>
+    </div>
+    <div class="sec-head-right">
+      <button class="btn btn-sm btn-green" onclick="saveCfg()">💾 SAVE CONFIG</button>
+    </div>
   </div>
 
-  <div style="max-width:700px">
+  <div style="border:var(--bw) solid var(--white);border-top:none;padding:20px;max-width:800px">
 
-    <!-- Apps Script URL -->
-    <div style="background:var(--card);border:1px solid var(--border2);border-radius:6px;padding:20px;margin-bottom:16px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:12px;letter-spacing:.5px">APPS SCRIPT CONNECTION</div>
+    <div style="font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--yellow);margin-bottom:14px;border-bottom:2px solid var(--border-dim);padding-bottom:8px">APPS SCRIPT CONNECTION</div>
+    <div class="form-group full" style="margin-bottom:16px">
+      <label class="form-label">Apps Script Web App URL (for WRITE operations — edit/delete/upload)</label>
+      <input class="form-input" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-top:4px">Code.gs deploy → New Deployment → Web App → copy URL here</div>
+    </div>
+
+    <div style="font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--yellow);margin:20px 0 14px;border-bottom:2px solid var(--border-dim);padding-bottom:8px">GOOGLE SHEET (READ — CSV)</div>
+    <div class="form-grid" style="margin-bottom:16px">
       <div class="form-group">
-        <label class="form-label">Apps Script Web App URL</label>
-        <input class="form-input" id="cfg-url" placeholder="https://script.google.com/macros/s/…/exec">
+        <label class="form-label">Public CSV Export URL (for READ)</label>
+        <input class="form-input" id="cfg-csv" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?…output=csv">
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:8px">
-        After deploying Code.gs → Deploy → New Deployment → Web App → copy URL here
+      <div class="form-group">
+        <label class="form-label">Sheet Tab Name</label>
+        <input class="form-input" id="cfg-sheet-name" placeholder="Database">
       </div>
-    </div>
-
-    <!-- Sheet settings -->
-    <div style="background:var(--card);border:1px solid var(--border2);border-radius:6px;padding:20px;margin-bottom:16px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:12px;letter-spacing:.5px">GOOGLE SHEET</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">Sheet ID</label>
-          <input class="form-input" id="cfg-sheet-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Sheet Tab Name</label>
-          <input class="form-input" id="cfg-sheet-name" placeholder="Database">
-        </div>
+      <div class="form-group">
+        <label class="form-label">Sheet ID (for Apps Script write)</label>
+        <input class="form-input" id="cfg-sheet-id" placeholder="1BxiMVs0XRA5…">
       </div>
     </div>
 
-    <!-- Upload defaults -->
-    <div style="background:var(--card);border:1px solid var(--border2);border-radius:6px;padding:20px;margin-bottom:16px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:12px;letter-spacing:.5px">UPLOAD DEFAULTS</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">Default Privacy</label>
-          <select class="form-input form-select" id="cfg-privacy">
-            <option value="public">🌐 Public</option>
-            <option value="unlisted">🔗 Unlisted</option>
-            <option value="private">🔒 Private</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Max Videos / Day</label>
-          <input class="form-input" id="cfg-max-per-day" type="number" min="1" max="5" value="5">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Timezone</label>
-          <select class="form-input form-select" id="cfg-timezone">
-            <option value="Asia/Karachi">Asia/Karachi (PKT)</option>
-            <option value="UTC">UTC</option>
-            <option value="America/New_York">America/New_York (EST)</option>
-            <option value="Europe/London">Europe/London (GMT)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Default Category</label>
-          <select class="form-input form-select" id="cfg-category">
-            <option value="27">27 — Education</option>
-            <option value="1">1 — Film & Animation</option>
-            <option value="22">22 — People & Blogs</option>
-            <option value="24">24 — Entertainment</option>
-            <option value="28">28 — Science & Technology</option>
-          </select>
-        </div>
+    <div style="font-family:var(--display);font-size:18px;letter-spacing:2px;color:var(--yellow);margin:20px 0 14px;border-bottom:2px solid var(--border-dim);padding-bottom:8px">UPLOAD DEFAULTS</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Default Privacy</label>
+        <select class="form-input form-select" id="cfg-privacy">
+          <option value="public">PUBLIC</option>
+          <option value="unlisted">UNLISTED</option>
+          <option value="private">PRIVATE</option>
+        </select>
       </div>
-    </div>
-
-    <button class="btn btn-primary" onclick="saveConfig()">💾 Save Config</button>
-
-    <div class="divider"></div>
-
-    <!-- Setup guide -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:12px;letter-spacing:.5px">SETUP GUIDE</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.9">
-        <b style="color:var(--text)">Step 1:</b> Google Cloud Console → Enable YouTube Data API v3<br>
-        <b style="color:var(--text)">Step 2:</b> Apps Script → Services → Add YouTube Data API v3<br>
-        <b style="color:var(--text)">Step 3:</b> Deploy Code.gs as Web App (Execute as: Me, Access: Anyone)<br>
-        <b style="color:var(--text)">Step 4:</b> Run <code style="color:var(--accent)">authorizeYouTube()</code> function once in Apps Script editor<br>
-        <b style="color:var(--text)">Step 5:</b> Run <code style="color:var(--accent)">setupTrigger()</code> to enable hourly auto-uploads<br>
-        <b style="color:var(--text)">Step 6:</b> Paste Web App URL in Config tab above → Save<br>
-        <b style="color:var(--text)">For each extra account:</b> Accounts tab → Add Account → Open Auth URL in browser
+      <div class="form-group">
+        <label class="form-label">Max Uploads / Day</label>
+        <input class="form-input" id="cfg-max" type="number" min="1" max="5" value="5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Timezone</label>
+        <select class="form-input form-select" id="cfg-tz">
+          <option value="Asia/Karachi">ASIA/KARACHI (PKT)</option>
+          <option value="UTC">UTC</option>
+          <option value="America/New_York">AMERICA/NEW_YORK</option>
+          <option value="Europe/London">EUROPE/LONDON</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Default Category</label>
+        <select class="form-input form-select" id="cfg-cat">
+          <option value="27">27 — EDUCATION</option>
+          <option value="1">1 — FILM & ANIMATION</option>
+          <option value="22">22 — PEOPLE & BLOGS</option>
+          <option value="24">24 — ENTERTAINMENT</option>
+        </select>
       </div>
     </div>
 
@@ -848,72 +892,241 @@ td.muted{color:var(--muted)}
 
 </div><!-- /config -->
 
-</div><!-- /container -->
+
+<!-- ════════════════════ TAB: HELP ════════════════════ -->
+<div class="tab-pane" id="pane-help">
+
+  <div class="sec-head">
+    <div class="sec-head-left">
+      <div class="sec-title">SETUP GUIDE</div>
+      <div class="sec-sub">MAGICLIGHT PRO V3 — FULL DOCUMENTATION</div>
+    </div>
+  </div>
+
+  <!-- 2-WAY EXPLANATION -->
+  <div class="success-box" style="border-top:none;margin-bottom:0">
+    ✅ <b>HOW 2-WAY WORKS:</b><br>
+    <b>READ (CSV) →</b> Dashboard directly fetches your Google Sheet CSV — no login, no Apps Script needed. Instant.<br>
+    <b>WRITE (Apps Script) →</b> Edit/Delete/Upload/Schedule all go through Apps Script backend. One-time deploy.
+  </div>
+
+  <div class="help-grid" style="border-top:none">
+
+    <div class="help-box">
+      <div class="help-num">01</div>
+      <div class="help-title">GOOGLE CLOUD SETUP</div>
+      <div class="help-body">
+        1. Go to <b>console.cloud.google.com</b><br>
+        2. Create new project: <code>MagicLight-Pro</code><br>
+        3. <b>APIs & Services → Library</b><br>
+        4. Search & Enable: <code>YouTube Data API v3</code><br>
+        5. <b>OAuth consent screen</b> → Add your Gmail as test user<br>
+        6. Do this separately for each YouTube account
+      </div>
+    </div>
+
+    <div class="help-box">
+      <div class="help-num">02</div>
+      <div class="help-title">APPS SCRIPT DEPLOY</div>
+      <div class="help-body">
+        1. Open your Google Sheet<br>
+        2. <b>Extensions → Apps Script</b><br>
+        3. Replace Code.gs with the provided file<br>
+        4. Set <code>SHEET_ID</code> at top of Code.gs<br>
+        5. <b>Services (+)</b> → Add <code>YouTube Data API v3</code><br>
+        6. <b>Deploy → New Deployment → Web App</b><br>
+        &nbsp;&nbsp; Execute as: <b>Me</b> · Access: <b>Anyone</b><br>
+        7. Copy URL → paste in <b>Config Tab</b>
+      </div>
+    </div>
+
+    <div class="help-box">
+      <div class="help-num">03</div>
+      <div class="help-title">FIRST AUTHORIZATION</div>
+      <div class="help-body">
+        1. Apps Script editor → function dropdown<br>
+        2. Select <code>authorizeYouTube</code> → Run<br>
+        3. Google popup → Allow all permissions<br>
+        4. Select <code>setupTrigger</code> → Run<br>
+        &nbsp;&nbsp; (This creates hourly auto-upload trigger)<br>
+        5. Test: run <code>doGet</code> → should return JSON OK
+      </div>
+    </div>
+
+    <div class="help-box">
+      <div class="help-num">04</div>
+      <div class="help-title">GOOGLE SHEET CSV URL</div>
+      <div class="help-body">
+        1. Open your Google Sheet<br>
+        2. <b>File → Share → Publish to web</b><br>
+        3. Select your sheet tab → <b>CSV</b> format<br>
+        4. Click <b>Publish</b> → copy the URL<br>
+        5. Paste in <b>Config Tab → CSV URL</b><br>
+        6. This URL is used for READ (no auth needed)
+      </div>
+    </div>
+
+    <div class="help-box">
+      <div class="help-num">05</div>
+      <div class="help-title">ADD EXTRA ACCOUNTS</div>
+      <div class="help-body">
+        1. <b>Accounts Tab → + ADD ACCOUNT</b><br>
+        2. Enter Gmail + channel name<br>
+        3. An <b>Auth URL</b> will appear<br>
+        4. Open that URL in browser while logged into<br>
+        &nbsp;&nbsp; the <b>CORRECT</b> Google/YouTube account<br>
+        5. Allow permissions → token saved<br>
+        6. Green dot = authorized ✓
+      </div>
+    </div>
+
+    <div class="help-box">
+      <div class="help-num">06</div>
+      <div class="help-title">WRONG ACCOUNT POSTING?</div>
+      <div class="help-body">
+        Problem: Videos posting from wrong Gmail account<br><br>
+        Fix:<br>
+        1. <b>Accounts Tab</b> → find the wrong account<br>
+        2. Click <b>DE-AUTH</b> → token cleared<br>
+        3. An Auth URL opens automatically<br>
+        4. Open in browser, <b>switch to correct Gmail</b><br>
+        5. Allow → correct token saved<br>
+        6. Now uploads go to correct channel ✓
+      </div>
+    </div>
+
+    <div class="help-box">
+      <div class="help-num">07</div>
+      <div class="help-title">COLUMN MAPPING</div>
+      <div class="help-body">
+        <b>A</b> Status · <b>B</b> Theme · <b>C</b> Title · <b>D</b> Story<br>
+        <b>E</b> Moral · <b>F</b> Gen_Title · <b>G</b> Gen_Summary<br>
+        <b>H</b> Gen_Tags · <b>I</b> Project_URL<br>
+        <b>J</b> Created_Time · <b>K</b> Completed_Time<br>
+        <b>L</b> Notes · <b>M</b> Drive_Link<br>
+        <b>N</b> DriveImg_Link · <b>O</b> Credit_Before<br>
+        <b>P</b> Credit_After · <b>Q</b> Email_Used<br>
+        <b>R</b> YouTube_ID · <b>S</b> YouTube_URL<br>
+        <b>T</b> Schedule_Time · <b>U</b> Done
+      </div>
+    </div>
+
+    <div class="help-box">
+      <div class="help-num">08</div>
+      <div class="help-title">QUOTA LIMITS</div>
+      <div class="help-body">
+        YouTube API daily quota: <b>10,000 units</b><br><br>
+        Per video upload: ~<b>1,600 units</b><br>
+        Per thumbnail set: ~<b>50 units</b><br>
+        Per analytics read: ~<b>1 unit</b><br><br>
+        <b>Max ~5 videos/day per Cloud Project</b><br><br>
+        💡 Each Gmail account can have its own<br>
+        Google Cloud Project → own 10,000 quota!
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Error reference -->
+  <div style="border:var(--bw) solid var(--white);border-top:none;padding:20px">
+    <div style="font-family:var(--display);font-size:20px;letter-spacing:2px;color:var(--red);margin-bottom:14px">COMMON ERRORS</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">"caller does not have permission"</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ OAuth scope missing. Re-run authorizeYouTube() in Apps Script</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">"Daily Limit Exceeded"</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Quota finished. Wait 24hrs or create new Cloud Project</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">"File not found" on Drive</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Set Drive file sharing to "Anyone with link — Viewer"</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">Thumbnail not uploading</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Channel needs 1000+ subscribers for custom thumbnails</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">CSV not loading</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Sheet must be published to web as CSV. Check Config tab URL</div>
+      </div>
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--red);font-weight:700;margin-bottom:4px">Video not showing on YouTube</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">→ Processing takes 5-15 min after upload. Normal.</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /help -->
+
+</div><!-- /wrap -->
 
 
-<!-- ══════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════
      MODALS
-════════════════════════════════════════════════════════════ -->
+═══════════════════════════════════════ -->
 
-<!-- Edit Story Modal -->
-<div class="overlay" id="edit-overlay" onclick="closeOverlay('edit-overlay',event)">
+<!-- EDIT ROW MODAL -->
+<div class="overlay" id="ov-edit" onclick="closeOv('ov-edit',event)">
   <div class="modal">
     <div class="modal-head">
-      <h3>✏️ Edit Story — Row <span id="edit-row-num"></span></h3>
-      <button class="close-x" onclick="closeModal('edit-overlay')">✕</button>
+      <h3>EDIT ROW <span id="edit-rn"></span></h3>
+      <button class="close-x" onclick="closeModal('ov-edit')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Status</label>
-          <select class="form-input form-select" id="edit-status">
+          <select class="form-input form-select" id="e-status">
             <option>Pending</option><option>Generated</option>
             <option>Done</option><option>Error</option><option>Processing</option>
           </select>
         </div>
         <div class="form-group">
           <label class="form-label">Theme</label>
-          <input class="form-input" id="edit-theme">
+          <input class="form-input" id="e-theme">
         </div>
         <div class="form-group full">
           <label class="form-label">Title</label>
-          <input class="form-input" id="edit-title">
+          <input class="form-input" id="e-title">
         </div>
         <div class="form-group full">
-          <label class="form-label">Gen Title (YouTube Title)</label>
-          <input class="form-input" id="edit-gen-title">
+          <label class="form-label">Gen Title (YouTube)</label>
+          <input class="form-input" id="e-gen-title">
         </div>
         <div class="form-group full">
           <label class="form-label">Gen Summary (Description)</label>
-          <textarea class="form-input form-textarea" id="edit-gen-summary"></textarea>
+          <textarea class="form-input form-textarea" id="e-summary"></textarea>
         </div>
         <div class="form-group full">
-          <label class="form-label">Tags</label>
-          <input class="form-input" id="edit-tags" placeholder="comma separated">
+          <label class="form-label">Tags (comma separated)</label>
+          <input class="form-input" id="e-tags">
         </div>
         <div class="form-group">
           <label class="form-label">Drive Video Link</label>
-          <input class="form-input" id="edit-drive-link">
+          <input class="form-input" id="e-drive">
         </div>
         <div class="form-group">
           <label class="form-label">Notes</label>
-          <input class="form-input" id="edit-notes">
+          <input class="form-input" id="e-notes">
         </div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveEditRow()">💾 Save Changes</button>
-        <button class="btn btn-ghost" onclick="closeModal('edit-overlay')">Cancel</button>
+        <button class="btn btn-yellow" onclick="saveEdit()">💾 SAVE</button>
+        <button class="btn btn-ghost" onclick="closeModal('ov-edit')">CANCEL</button>
       </div>
+      <div id="edit-status-msg" style="margin-top:10px;font-family:var(--mono);font-size:11px"></div>
     </div>
   </div>
 </div>
 
-<!-- Upload Modal -->
-<div class="overlay" id="upload-overlay" onclick="closeOverlay('upload-overlay',event)">
+<!-- UPLOAD MODAL -->
+<div class="overlay" id="ov-upload" onclick="closeOv('ov-upload',event)">
   <div class="modal">
     <div class="modal-head">
-      <h3>▶ Upload to YouTube — Row <span id="up-row-num"></span></h3>
-      <button class="close-x" onclick="closeModal('upload-overlay')">✕</button>
+      <h3>UPLOAD TO YOUTUBE — ROW <span id="up-rn"></span></h3>
+      <button class="close-x" onclick="closeModal('ov-upload')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
@@ -926,76 +1139,71 @@ td.muted{color:var(--muted)}
           <textarea class="form-input form-textarea" id="up-desc"></textarea>
         </div>
         <div class="form-group full">
-          <label class="form-label">Tags (comma separated)</label>
+          <label class="form-label">Tags</label>
           <input class="form-input" id="up-tags">
         </div>
         <div class="form-group">
           <label class="form-label">Privacy</label>
           <select class="form-input form-select" id="up-privacy">
-            <option value="public">🌐 Public</option>
-            <option value="unlisted">🔗 Unlisted</option>
-            <option value="private">🔒 Private</option>
+            <option value="public">PUBLIC</option>
+            <option value="unlisted">UNLISTED</option>
+            <option value="private">PRIVATE</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Account</label>
+          <label class="form-label">Upload Account</label>
           <select class="form-input form-select" id="up-account"></select>
         </div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-success" id="up-btn" onclick="doUpload()">▶ Upload Now</button>
-        <button class="btn btn-ghost" onclick="closeModal('upload-overlay')">Cancel</button>
+        <button class="btn btn-green" id="up-btn" onclick="doUpload()">▶ UPLOAD NOW</button>
+        <button class="btn btn-ghost" onclick="closeModal('ov-upload')">CANCEL</button>
       </div>
-      <div id="up-status" style="margin-top:10px;font-size:12px;min-height:18px"></div>
+      <div id="up-msg" style="margin-top:10px;font-family:var(--mono);font-size:11px"></div>
     </div>
   </div>
 </div>
 
-<!-- Schedule Modal -->
-<div class="overlay" id="sched-overlay" onclick="closeOverlay('sched-overlay',event)">
+<!-- SCHEDULE MODAL -->
+<div class="overlay" id="ov-sched" onclick="closeOv('ov-sched',event)">
   <div class="modal">
     <div class="modal-head">
-      <h3>📅 Schedule Upload</h3>
-      <button class="close-x" onclick="closeModal('sched-overlay')">✕</button>
+      <h3>SCHEDULE UPLOAD</h3>
+      <button class="close-x" onclick="closeModal('ov-sched')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="info-box" style="margin-bottom:16px">
-        Select a story row and set the date/time. Apps Script will auto-upload at that time (±1 hour).
-      </div>
+      <div class="info-box">Select a Generated row → set date/time → Apps Script uploads automatically (±1hr)</div>
       <div class="form-grid">
         <div class="form-group full">
           <label class="form-label">Story Row</label>
-          <select class="form-input form-select" id="sched-row"></select>
+          <select class="form-input form-select" id="sc-row"></select>
         </div>
         <div class="form-group">
-          <label class="form-label">Schedule Date & Time</label>
-          <input class="form-input" id="sched-time" type="datetime-local">
+          <label class="form-label">Date & Time</label>
+          <input class="form-input" id="sc-time" type="datetime-local">
         </div>
         <div class="form-group">
           <label class="form-label">Account</label>
-          <select class="form-input form-select" id="sched-account"></select>
+          <select class="form-input form-select" id="sc-acc"></select>
         </div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-purple" onclick="saveSchedule()">📅 Schedule</button>
-        <button class="btn btn-ghost" onclick="closeModal('sched-overlay')">Cancel</button>
+        <button class="btn btn-purple" onclick="saveSchedule()">◷ SCHEDULE</button>
+        <button class="btn btn-ghost" onclick="closeModal('ov-sched')">CANCEL</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Add Account Modal -->
-<div class="overlay" id="account-overlay" onclick="closeOverlay('account-overlay',event)">
+<!-- ADD ACCOUNT MODAL -->
+<div class="overlay" id="ov-acc" onclick="closeOv('ov-acc',event)">
   <div class="modal">
     <div class="modal-head">
-      <h3>👤 Add YouTube Account</h3>
-      <button class="close-x" onclick="closeModal('account-overlay')">✕</button>
+      <h3>ADD YOUTUBE ACCOUNT</h3>
+      <button class="close-x" onclick="closeModal('ov-acc')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="info-box" style="margin-bottom:16px">
-        After adding, an <b>Authorization URL</b> will appear.
-        Open that URL in the browser while logged into the correct Google account to grant YouTube access.
-      </div>
+      <div class="info-box">After adding → open the Auth URL in browser while logged into the CORRECT Google account.</div>
       <div class="form-grid">
         <div class="form-group full">
           <label class="form-label">Gmail Address</label>
@@ -1003,532 +1211,426 @@ td.muted{color:var(--muted)}
         </div>
         <div class="form-group">
           <label class="form-label">Channel Name (optional)</label>
-          <input class="form-input" id="acc-channel" placeholder="Bright Little Stories">
+          <input class="form-input" id="acc-ch" placeholder="Bright Little Stories">
         </div>
         <div class="form-group">
           <label class="form-label">Channel ID (optional)</label>
-          <input class="form-input" id="acc-channel-id" placeholder="UCxxxxxxxxx">
+          <input class="form-input" id="acc-chid" placeholder="UCxxxxxxxxx">
         </div>
       </div>
       <div class="form-actions">
-        <button class="btn btn-primary" onclick="doAddAccount()">+ Register Account</button>
-        <button class="btn btn-ghost" onclick="closeModal('account-overlay')">Cancel</button>
+        <button class="btn btn-yellow" onclick="doAddAcc()">+ REGISTER</button>
+        <button class="btn btn-ghost" onclick="closeModal('ov-acc')">CANCEL</button>
       </div>
-      <div id="acc-auth-url" style="margin-top:14px;display:none">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Open this URL in the correct browser to authorize:</div>
+      <div id="acc-auth-wrap" style="display:none;margin-top:16px;border:2px solid var(--blue);padding:12px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--blue);margin-bottom:6px;letter-spacing:1px">OPEN THIS URL IN CORRECT BROWSER:</div>
         <a id="acc-auth-link" href="#" target="_blank"
-           style="font-family:var(--mono);font-size:11px;word-break:break-all;color:var(--blue)"></a>
+           style="font-family:var(--mono);font-size:10px;word-break:break-all;color:var(--yellow)"></a>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Delete Confirm Modal -->
-<div class="overlay" id="delete-overlay" onclick="closeOverlay('delete-overlay',event)">
+<!-- DELETE CONFIRM -->
+<div class="overlay" id="ov-del" onclick="closeOv('ov-del',event)">
   <div class="modal" style="max-width:420px">
-    <div class="modal-head">
-      <h3>⚠️ Delete Row</h3>
-      <button class="close-x" onclick="closeModal('delete-overlay')">✕</button>
+    <div class="modal-head" style="background:var(--red)">
+      <h3>DELETE ROW <span id="del-rn"></span></h3>
+      <button class="close-x" style="background:var(--black);color:var(--red)" onclick="closeModal('ov-del')">✕</button>
     </div>
     <div class="modal-body">
-      <div style="font-size:13px;line-height:1.6;margin-bottom:16px">
-        Are you sure you want to <b style="color:var(--red)">permanently delete</b> row
-        <b id="del-row-num"></b>?<br>
-        <span style="color:var(--muted);font-size:12px">Title: <span id="del-row-title"></span></span><br><br>
-        <span style="color:var(--red);font-size:12px">⚠️ This cannot be undone. All row data will be lost.</span>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--text);margin-bottom:6px">TITLE: <b id="del-title" style="color:var(--yellow)"></b></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:16px;border:2px solid var(--red);padding:8px">
+        ⚠ THIS CANNOT BE UNDONE. ROW WILL BE PERMANENTLY DELETED FROM GOOGLE SHEET.
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-danger" onclick="doDelete()">🗑 Delete Forever</button>
-        <button class="btn btn-ghost" onclick="closeModal('delete-overlay')">Cancel</button>
+        <button class="btn btn-red" onclick="doDelete()">🗑 DELETE FOREVER</button>
+        <button class="btn btn-ghost" onclick="closeModal('ov-del')">CANCEL</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Toast container -->
+<!-- Toast -->
 <div id="toast"></div>
 
-
-<!-- ══════════════════════════════════════════════════════════
+<!-- ═══════════════════════════════════════
      JAVASCRIPT
-════════════════════════════════════════════════════════════ -->
+═══════════════════════════════════════ -->
 <script>
-// ════════════════════════════════════════════════════════════
-// ── CONFIG — edit only this block ──
-// ════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  ██████╗ ███████╗ ██████╗
+//  ██╔════╝██╔════╝██╔════╝
+//  ██║     █████╗  ██║  ███╗
+//  ██║     ██╔══╝  ██║   ██║
+//  ╚██████╗██║     ╚██████╔╝
+//   ╚═════╝╚═╝      ╚═════╝
+//  MAGICLIGHT PRO v3.0
+// ═══════════════════════════════════════════════════════
+
+// ── CONFIG ────────────────────────────────────────────
+// These are saved to localStorage — edit via Config Tab
 const CFG = {
-  // ← Paste your deployed Apps Script Web App URL here
-  APPS_SCRIPT_URL: localStorage.getItem('ml_apps_script_url') ||
-    'https://script.google.com/macros/s/AKfycbwVP8ARZ0YBAsBATJd3X_a-8HEalbPNMxm3ifGznfCvjpU1dqiBHqFfLS7Evx1yJdSDDA/exec',
-
-  // Public CSV export URL of your Google Sheet
-  SHEET_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQrwn7Tei_9QBxtJ-Ka_wGtKNISq4TfafHKu2ANAiACNOZagNrl6uG2WghkPogOQNUXsDb618bFMqbB/pub?output=csv',
+  get appsScriptUrl() { return ls('ml_as_url') || '' },
+  get csvUrl()        { return ls('ml_csv_url') || '' },
+  get sheetId()       { return ls('ml_sheet_id') || '' },
 };
-// ════════════════════════════════════════════════════════════
+
+function ls(k, v) {
+  if (v !== undefined) { localStorage.setItem(k, v); return v; }
+  return localStorage.getItem(k) || '';
+}
+
+// ── STATE ─────────────────────────────────────────────
+let PAGE      = 1;
+let FILTER    = 'all';
+let SEARCH    = '';
+let ROWS      = [];   // current page rows from CSV
+let ALL_ROWS  = [];   // all parsed CSV rows
+let ACCOUNTS  = [];   // cached accounts
+let EDIT_ROW  = null; // rowNum being edited
+let UP_ROW    = null; // rowNum being uploaded
+let DEL_ROW   = null; // rowNum being deleted
+const PAGE_SZ = 30;
 
 
-// ── State ──────────────────────────────────────────────────
-let storyPage      = 1;
-let storyFilter    = 'all';
-let storySearch    = '';
-let currentEditRow = null;    // row being edited
-let currentUpRow   = null;    // row being uploaded
-let currentDelRow  = null;    // row being deleted
-let cachedAccounts = [];      // accounts list cache
-let cachedRows     = [];      // all story rows cache
-
-
-// ════════════════════════════════════════════════════════════
-// API CALL HELPER
-// ════════════════════════════════════════════════════════════
-
-/**
- * api(action, params) — sends POST to Apps Script
- * Returns parsed JSON response
- */
+// ═══════════════════════════════════════════════════════
+// API — write ops go through Apps Script
+// ═══════════════════════════════════════════════════════
 async function api(action, params = {}) {
-  const url = CFG.APPS_SCRIPT_URL;
-  console.log(`[API] Calling ${action} at ${url}`);
-
-  // Warn if URL not configured
-  if (url.includes('YOUR_DEPLOYMENT_ID')) {
-    toast('⚠️ Set Apps Script URL in Config tab', 'error');
-    throw new Error('APPS_SCRIPT_URL not configured');
+  const url = CFG.appsScriptUrl;
+  if (!url || url.includes('YOUR_')) {
+    throw new Error('Apps Script URL not set — go to Config tab');
   }
-
-  try {
-    const payload = JSON.stringify({ action, ...params });
-    console.log(`[API] Payload:`, payload);
-    
-    const res  = await fetch(url, {
-      method: 'POST',
-      body: payload,
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
-    console.log(`[API] Response status: ${res.status} ${res.statusText}`);
-    
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error(`[API] HTTP Error Response:`, errorText);
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    }
-    
-    const data = await res.json();
-    console.log(`[API] Response data:`, data);
-    
-    if (!data.success) {
-      console.error(`[API] Backend error:`, data.error);
-      toast(`🔴 Backend error: ${data.error}`, 'error');
-    }
-    
-    return data;
-  } catch (e) {
-    console.error('[API] Call failed:', e);
-    toast(`🔴 Connection error: ${e.message}`, 'error');
-    throw e;
-  }
-}
-
-// Fallback: Load data directly from Google Sheet CSV
-async function loadSheetCSV() {
-  try {
-    const response = await fetch(CFG.SHEET_URL);
-    if (!response.ok) {
-      throw new Error(`Sheet CSV error: ${response.status}`);
-    }
-    const csv = await response.text();
-    return parseCSV(csv);
-  } catch (e) {
-    console.error('CSV loading failed:', e);
-    toast('🔴 Cannot load Google Sheet data', 'error');
-    return null;
-  }
-}
-
-// Simple CSV parser
-function parseCSV(csv) {
-  const lines = csv.split('\n').filter(line => line.trim());
-  if (lines.length < 2) return [];
-  
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-  const rows = [];
-  
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-    if (values.length >= headers.length) {
-      const row = {};
-      headers.forEach((header, idx) => {
-        row[header] = values[idx] || '';
-      });
-      rows.push(row);
-    }
-  }
-  
-  return rows;
+  const res  = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({ action, ...params })
+  });
+  return res.json();
 }
 
 
-// ════════════════════════════════════════════════════════════
-// TAB NAVIGATION
-// ════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// CSV READ — direct fetch, no auth needed
+// ═══════════════════════════════════════════════════════
+async function fetchCSV() {
+  const url = CFG.csvUrl;
+  if (!url) throw new Error('CSV URL not set — go to Config tab');
+  const res = await fetch(url + '&t=' + Date.now());
+  return res.text();
+}
 
-function switchTab(name, el) {
-  // Hide all panes, deactivate all tabs
+function parseCSV(txt) {
+  const lines = txt.trim().split('\n');
+  const hdrs  = csvSplit(lines[0]).map(h => h.replace(/"/g,'').trim().toLowerCase().replace(/\s+/g,'_'));
+  return lines.slice(1).map((line, i) => {
+    const vals = csvSplit(line);
+    const obj  = { _rowNum: i + 2 }; // +2 = header row is row 1
+    hdrs.forEach((h, j) => obj[h] = (vals[j] || '').replace(/^"|"$/g,'').trim());
+    // Normalize thumbnail key
+    if (!obj.driveimg_link) {
+      const k = Object.keys(obj).find(k => /driveimg|drive_img|thumb|thumbnail/i.test(k));
+      if (k && obj[k]) obj.driveimg_link = obj[k];
+    }
+    return obj;
+  }).filter(r => r.title || r.gen_title || r.story);
+}
+
+function csvSplit(line) {
+  const vals = []; let cur = '', inQ = false;
+  for (const c of line) {
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { vals.push(cur); cur = ''; }
+    else cur += c;
+  }
+  vals.push(cur);
+  return vals;
+}
+
+
+// ═══════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════
+function goTab(name, el) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-
-  // Show selected pane + activate tab
   document.getElementById('pane-' + name).classList.add('active');
   if (el) el.classList.add('active');
-
-  // Load data for tab on first visit
+  // Load data per tab
   if (name === 'stories')   loadStories(1);
   if (name === 'schedule')  loadSchedule();
   if (name === 'accounts')  loadAccounts();
-  if (name === 'analytics') {} // user clicks refresh manually
   if (name === 'logs')      loadLogs();
   if (name === 'config')    loadConfig();
 }
 
 
-// ════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // DASHBOARD
-// ════════════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════
 async function loadDashboard() {
   try {
-    document.getElementById('hdr-status').textContent = 'Loading…';
-    document.getElementById('hdr-sheet').textContent = 'Connecting…';
-    
-    const data = await api('getStats');
-    if (!data.success) {
-      // Try fallback to CSV loading
-      const csvData = await loadSheetCSV();
-      if (csvData) {
-        const stats = calculateStatsFromCSV(csvData);
-        updateDashboardUI(stats);
-        document.getElementById('hdr-sheet').textContent = 'CSV Mode';
-        document.getElementById('hdr-status').textContent = stats.total + ' stories';
-        return;
-      }
-      throw new Error('Backend unavailable and CSV fallback failed');
-    }
-    
-    const s = data.stats;
-    updateDashboardUI(s);
-    document.getElementById('hdr-sheet').textContent = 'Connected';
-    document.getElementById('hdr-status').textContent = s.total + ' stories';
-    
-  } catch (e) {
-    console.error('Dashboard load failed:', e);
-    document.getElementById('hdr-status').textContent = 'Error';
-    document.getElementById('hdr-sheet').textContent = 'Offline';
+    const txt = await fetchCSV();
+    ALL_ROWS  = parseCSV(txt);
+
+    // Counts
+    const total   = ALL_ROWS.length;
+    const done    = ALL_ROWS.filter(r => r.status?.toLowerCase() === 'done').length;
+    const pending = ALL_ROWS.filter(r => !r.status || r.status.toLowerCase() === 'pending').length;
+    const gen     = ALL_ROWS.filter(r => r.status?.toLowerCase() === 'generated').length;
+    const err     = ALL_ROWS.filter(r => /error|no_video/i.test(r.status||'')).length;
+    const sched   = ALL_ROWS.filter(r => r.schedule_time && !r.done).length;
+
+    document.getElementById('hdr-sheet').textContent  = 'CONNECTED';
+    document.getElementById('hdr-rows').textContent   = total + ' ROWS';
+    document.getElementById('badge-p').textContent    = pending;
+
     document.getElementById('dash-stats').innerHTML = `
-      <div class="warn-box">
-        <strong>🔴 Connection Error</strong><br>
-        Cannot load data from backend or Google Sheet.<br>
-        Please check:<br>
-        • Apps Script URL is correct<br>
-        • Google Sheet is publicly accessible<br>
-        • Backend is deployed and running
-      </div>
+      <div class="stat-card"><div class="stat-n">${total}</div><div class="stat-l">TOTAL</div></div>
+      <div class="stat-card"><div class="stat-n green">${done}</div><div class="stat-l">DONE ✓</div></div>
+      <div class="stat-card"><div class="stat-n">${pending}</div><div class="stat-l">PENDING</div></div>
+      <div class="stat-card"><div class="stat-n orange">${gen}</div><div class="stat-l">GENERATED</div></div>
+      <div class="stat-card"><div class="stat-n red">${err}</div><div class="stat-l">ERRORS</div></div>
+      <div class="stat-card"><div class="stat-n purple">${sched}</div><div class="stat-l">SCHEDULED</div></div>
     `;
-  }
-}
 
-function updateDashboardUI(s) {
-  // Update badge
-  document.getElementById('badge-pending').textContent = s.pending || 0;
+    // Quota meter
+    const used = done * 1600;
+    const pct  = Math.min(100, Math.round(used/10000*100));
+    const fc   = pct>80?'var(--red)':pct>50?'var(--orange)':'var(--green)';
+    document.getElementById('quota-fill').style.cssText = `width:${pct}%;background:${fc}`;
+    document.getElementById('quota-text').textContent   = `${used.toLocaleString()} / 10,000 UNITS  (APPROX ${done} VIDEOS × 1,600)`;
 
-  // Stat cards
-  document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card">       <div class="stat-n">${s.total||0}</div>   <div class="stat-l">Total Stories</div></div>
-    <div class="stat-card green"> <div class="stat-n">${s.done||0}</div>    <div class="stat-l">Done ✓</div></div>
-    <div class="stat-card">       <div class="stat-n">${s.pending||0}</div> <div class="stat-l">Pending</div></div>
-    <div class="stat-card orange"><div class="stat-n">${s.generated||0}</div><div class="stat-l">Generated</div></div>
-    <div class="stat-card red">   <div class="stat-n">${s.error||0}</div>  <div class="stat-l">Errors</div></div>
-    <div class="stat-card purple"><div class="stat-n">${s.scheduled||0}</div><div class="stat-l">Scheduled</div></div>
-  `;
-}
+    // Recent done
+    const recent = ALL_ROWS.filter(r => r.status?.toLowerCase() === 'done').slice(-5).reverse();
+    document.getElementById('dash-recent').innerHTML = recent.length
+      ? `<div class="table-wrap" style="border-top:none"><table>
+          <thead><tr><th>#ROW</th><th>TITLE</th><th>ACCOUNT</th><th>COMPLETED</th><th>YT</th></tr></thead>
+          <tbody>${recent.map(r=>`<tr>
+            <td><span class="row-num">${r._rowNum}</span></td>
+            <td style="font-size:12px;font-weight:700">${esc(r.gen_title||r.title||'—')}</td>
+            <td class="mono dim">${esc(r.email_used||'—')}</td>
+            <td class="mono dim">${esc((r.completed_time||'').substring(0,10)||'—')}</td>
+            <td>${r.youtube_url?`<a href="${r.youtube_url}" target="_blank" style="color:var(--red);font-family:var(--mono);font-size:10px">▶ WATCH</a>`:'—'}</td>
+          </tr>`).join('')}</tbody>
+        </table></div>`
+      : '<div class="empty" style="border-top:none"><div class="empty-icon">▶</div><div class="empty-title">NO DONE YET</div></div>';
 
-function calculateStatsFromCSV(rows) {
-  const stats = {
-    total: rows.length,
-    done: 0,
-    pending: 0,
-    generated: 0,
-    error: 0,
-    scheduled: 0
-  };
-  
-  rows.forEach(row => {
-    const status = (row.Status || '').toLowerCase();
-    if (status === 'done') stats.done++;
-    else if (status === 'pending') stats.pending++;
-    else if (status === 'generated') stats.generated++;
-    else if (status.includes('error')) stats.error++;
-    else if (status === 'scheduled') stats.scheduled++;
-  });
-  
-  return stats;
-}
+    // Upcoming scheduled
+    const upcoming = ALL_ROWS.filter(r => r.schedule_time && !r.done).slice(0,3);
+    document.getElementById('dash-upcoming').innerHTML = upcoming.length
+      ? upcoming.map(r=>`
+          <div class="queue-item">
+            <div><div class="queue-title">${esc(r.gen_title||r.title||'ROW '+r._rowNum)}</div>
+            <div class="queue-meta">ROW ${r._rowNum} · ${esc(r.email_used||'—')}</div></div>
+            <div class="queue-time">◷ ${fmtDate(r.schedule_time)}</div>
+          </div>`).join('')
+      : '<div style="border:var(--bw) solid var(--white);border-top:none;padding:20px;font-family:var(--mono);font-size:11px;color:var(--text-dim)">NO UPCOMING SCHEDULED UPLOADS</div>';
 
-// ════════════════════════════════════════════════════════════
-// RECENT & UPCOMING DASHBOARD
-// ════════════════════════════════════════════════════════════
-
-async function loadRecentDash() {
-  try {
-    const data = await api('getRows', { filter: 'done', page: 1, pageSize: 5 });
-    if (!data.success) return;
-    
-    const el = document.getElementById('recent-list');
-    if (!data.rows.length) {
-      el.innerHTML = '<div style="color:var(--muted);font-size:12px">No recent uploads</div>';
-      return;
-    }
-    
-    el.innerHTML = data.rows.map(r => `
-      <div class="queue-item" style="border-left-color:var(--accent2)">
-        <div style="flex:1">
-          <div class="queue-title">${esc(r.gen_title||r.title||'Untitled')}</div>
-          <div class="queue-meta">Row ${r.rowNum} · Completed ${fmtDate(r.completed_time)}</div>
-        </div>
-        <a href="${r.drive_link||'#'}" target="_blank" class="btn btn-ghost btn-xs">▶ View</a>
-      </div>
-    `).join('');
   } catch(e) {
-    document.getElementById('recent-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error loading recent</div>';
+    document.getElementById('hdr-sheet').textContent = 'OFFLINE';
+    toast('CSV load failed: ' + e.message, 'error');
   }
 }
 
-async function loadUpcomingDash() {
-  try {
-    const data = await api('getScheduled');
-    if (!data.success) return;
-    
-    const el = document.getElementById('upcoming-list');
-    if (!data.scheduled.length) {
-      el.innerHTML = '<div style="color:var(--muted);font-size:12px">No scheduled uploads</div>';
-      return;
-    }
-    
-    el.innerHTML = data.scheduled.slice(0, 5).map(item => `
-      <div class="queue-item" style="border-left-color:var(--purple)">
-        <div style="flex:1">
-          <div class="queue-title">${esc(item.title||'Untitled')}</div>
-          <div class="queue-meta">Row ${item.rowNum} · ${fmtDate(item.scheduleTime)}</div>
-        </div>
-        <span class="tag">${statusPill(item.status)}</span>
-      </div>
-    `).join('');
-  } catch(e) {
-    document.getElementById('upcoming-list').innerHTML = '<div style="color:var(--red);font-size:12px">Error loading upcoming</div>';
-  }
-}
 
-// ════════════════════════════════════════════════════════════
-// REFRESH ALL
-// ════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// STORIES
+// ═══════════════════════════════════════════════════════
+const FILTERS = ['all','pending','generated','done','error'];
 
-async function refreshAll() {
-  loadDashboard();
-  if (document.querySelector('#pane-stories.active'))   loadStories(storyPage);
-  if (document.querySelector('#pane-schedule.active'))  loadSchedule();
-  if (document.querySelector('#pane-accounts.active'))  loadAccounts();
-  if (document.querySelector('#pane-logs.active'))      loadLogs();
-}
-
-// ════════════════════════════════════════════════════════════
-// STORIES TAB
-// ════════════════════════════════════════════════════════════
-
-
-// ════════════════════════════════════════════════════════════
-// STORIES TAB
-// ════════════════════════════════════════════════════════════
-
-const STORY_FILTERS = ['all','pending','generated','done','error'];
-
-function initStoryFilters() {
-  const el = document.getElementById('story-filters');
-  el.innerHTML = STORY_FILTERS.map(f =>
-    `<div class="filter-chip${f===storyFilter?' active':''}"
-          onclick="setStoryFilter('${f}',this)">${f}</div>`
+function buildChips() {
+  document.getElementById('s-chips').innerHTML = FILTERS.map(f=>
+    `<div class="chip${f===FILTER?' active':''}" onclick="setFilter('${f}',this)">${f.toUpperCase()}</div>`
   ).join('');
 }
 
-function setStoryFilter(f, el) {
-  storyFilter = f;
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+function setFilter(f, el) {
+  FILTER = f;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
-  storyPage = 1;
-  loadStories(1);
+  PAGE = 1;
+  renderStories();
 }
 
-function handleStorySearch() {
-  storySearch = document.getElementById('story-search').value;
-  storyPage = 1;
-  loadStories(1);
+function doSearch() {
+  SEARCH = document.getElementById('s-search').value.toLowerCase();
+  PAGE = 1;
+  renderStories();
 }
 
-async function loadStories(page = 1) {
-  storyPage = page;
-  initStoryFilters();
-
-  document.getElementById('story-tbody').innerHTML =
-    `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Loading…</td></tr>`;
-
-  try {
-    const q    = document.getElementById('story-search').value;
-    const data = await api('getRows', {
-      page, pageSize: 30,
-      filter: storyFilter,
-      search: q
-    });
-
-    if (!data.success) { showTableError('story-tbody', 9, data.error); return; }
-
-    cachedRows = data.rows;
-    renderStoryTable(data.rows);
-    renderPagination('story-pagination', data.page, data.pages, loadStories);
-
-  } catch(e) {
-    showTableError('story-tbody', 9, e.message);
+async function loadStories(pg = 1) {
+  PAGE = pg;
+  buildChips();
+  if (!ALL_ROWS.length) {
+    document.getElementById('s-tbody').innerHTML =
+      `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-dim);font-family:var(--mono)">LOADING CSV…</td></tr>`;
+    try {
+      const txt = await fetchCSV();
+      ALL_ROWS  = parseCSV(txt);
+    } catch(e) {
+      document.getElementById('s-tbody').innerHTML =
+        `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--red);font-family:var(--mono)">CSV ERROR: ${esc(e.message)}</td></tr>`;
+      return;
+    }
   }
+  renderStories();
 }
 
-function renderStoryTable(rows) {
-  if (!rows.length) {
-    document.getElementById('story-tbody').innerHTML =
-      `<tr><td colspan="9"><div class="empty-state"><div class="ei">🎬</div><h3>No stories found</h3></div></td></tr>`;
+function renderStories() {
+  // Filter
+  let rows = ALL_ROWS.filter(r => {
+    const s   = (r.status||'pending').toLowerCase();
+    const matchF = FILTER==='all' || s===FILTER || (FILTER==='error' && /error|no_video/.test(s));
+    const matchQ = !SEARCH || (r.title+r.gen_title+r.theme+r.notes+r.moral).toLowerCase().includes(SEARCH);
+    return matchF && matchQ;
+  });
+  const total = rows.length;
+  // Paginate
+  const start = (PAGE-1)*PAGE_SZ;
+  ROWS  = rows.slice(start, start+PAGE_SZ);
+
+  if (!ROWS.length) {
+    document.getElementById('s-tbody').innerHTML =
+      `<tr><td colspan="9"><div class="empty" style="border:none"><div class="empty-icon">🎬</div><div class="empty-title">NO RESULTS</div></div></td></tr>`;
+    document.getElementById('s-pager').innerHTML = '';
     return;
   }
 
-  document.getElementById('story-tbody').innerHTML = rows.map(r => {
-    const title = esc(r.gen_title || r.title || '—');
-    const pill  = statusPill(r.status);
+  document.getElementById('s-tbody').innerHTML = ROWS.map(r => {
+    const pill   = mkPill(r.status);
+    const title  = esc(r.gen_title||r.title||'—');
+    const creds  = r.credit_before ? `${r.credit_before}→${r.credit_after||'?'}` : '—';
     const ytLink = r.youtube_url
-      ? `<a href="${r.youtube_url}" target="_blank" style="color:var(--red);font-size:11px">▶ YT</a>`
-      : '<span style="color:var(--muted2);font-size:11px">—</span>';
-    const credits = r.credit_before
-      ? `<span class="mono" style="font-size:11px">${r.credit_before}→${r.credit_after||'?'}</span>`
-      : '<span style="color:var(--muted2)">—</span>';
-    const sched = r.schedule_time
-      ? `<span style="color:var(--purple);font-size:10px">📅 ${fmtDate(r.schedule_time)}</span>` : '';
+      ? `<a href="${r.youtube_url}" target="_blank" style="color:var(--red);font-family:var(--mono);font-size:10px">▶ YT</a>`
+      : '<span style="color:var(--text-dim)">—</span>';
+    const sched  = r.schedule_time
+      ? `<div style="font-family:var(--mono);font-size:9px;color:var(--purple);margin-top:3px">◷ ${fmtDate(r.schedule_time)}</div>` : '';
 
     return `<tr>
-      <td><span class="row-num">${r.rowNum}</span></td>
+      <td><span class="row-num">${r._rowNum}</span></td>
       <td>${pill}${sched}</td>
-      <td class="muted" style="font-size:11px">${esc(r.theme||'—')}</td>
+      <td class="dim" style="font-family:var(--mono);font-size:10px">${esc(r.theme||'—')}</td>
       <td>
-        <div style="font-size:12px;font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</div>
-        ${r.gen_title && r.title ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">${esc(r.title)}</div>` : ''}
+        <div style="font-size:13px;font-weight:700;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${title}</div>
+        ${r.gen_title&&r.title?`<div style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">${esc(r.title)}</div>`:''}
       </td>
-      <td class="mono muted" style="font-size:10px">${esc(r.email_used||'—')}</td>
-      <td>${credits}</td>
-      <td class="mono muted" style="font-size:10px">${esc(r.completed_time ? r.completed_time.substring(0,10) : '—')}</td>
+      <td class="mono dim" style="font-size:10px">${esc(r.email_used||'—')}</td>
+      <td class="mono" style="font-size:10px">${creds}</td>
+      <td class="mono dim" style="font-size:10px">${esc((r.completed_time||'').substring(0,10)||'—')}</td>
       <td>${ytLink}</td>
       <td>
-        <div class="cell-actions">
-          <button class="btn btn-ghost btn-xs" onclick="openEditModal(${r.rowNum})">✏️</button>
-          ${r.drive_link
-            ? `<button class="btn btn-success btn-xs" onclick="openUploadModal(${r.rowNum})">▶ YT</button>`
-            : ''}
-          <button class="btn btn-danger btn-xs" onclick="openDeleteModal(${r.rowNum},'${esc(r.gen_title||r.title||'')}')">🗑</button>
+        <div class="cell-acts">
+          <button class="btn btn-xs btn-ghost" onclick="openEdit(${r._rowNum})">✏</button>
+          ${r.drive_link?`<button class="btn btn-xs btn-green" onclick="openUpload(${r._rowNum})">▶YT</button>`:''}
+          <button class="btn btn-xs btn-red" onclick="openDel(${r._rowNum},'${esc(r.gen_title||r.title||'')}')">🗑</button>
         </div>
       </td>
     </tr>`;
   }).join('');
+
+  // Pagination
+  buildPager('s-pager', PAGE, Math.ceil(total/PAGE_SZ), loadStories, total);
+}
+
+function buildPager(id, cur, total, fn, rowTotal) {
+  const el = document.getElementById(id);
+  if (total <= 1) { el.innerHTML=''; return; }
+  const lo = Math.max(1,cur-3), hi = Math.min(total,lo+6);
+  let h = `<button class="pg" ${cur===1?'disabled':''} onclick="${fn.name}(${cur-1})">‹ PREV</button>`;
+  if (lo>1) h += `<button class="pg" onclick="${fn.name}(1)">1</button><span class="pg" style="cursor:default">…</span>`;
+  for (let p=lo;p<=hi;p++) h += `<button class="pg${p===cur?' active':''}" onclick="${fn.name}(${p})">${p}</button>`;
+  if (hi<total) h += `<span class="pg" style="cursor:default">…</span><button class="pg" onclick="${fn.name}(${total})">${total}</button>`;
+  h += `<button class="pg" ${cur===total?'disabled':''} onclick="${fn.name}(${cur+1})">NEXT ›</button>`;
+  h += `<span class="pg-info">${(cur-1)*PAGE_SZ+1}–${Math.min(cur*PAGE_SZ,rowTotal)} OF ${rowTotal}</span>`;
+  el.innerHTML = h;
 }
 
 
-// ════════════════════════════════════════════════════════════
-// EDIT MODAL
-// ════════════════════════════════════════════════════════════
-
-function openEditModal(rowNum) {
-  const r = cachedRows.find(x => x.rowNum === rowNum);
-  if (!r) { toast('Row data not found. Refresh first.','error'); return; }
-
-  currentEditRow = rowNum;
-  document.getElementById('edit-row-num').textContent = rowNum;
-  document.getElementById('edit-status').value      = r.status      || 'Pending';
-  document.getElementById('edit-theme').value       = r.theme       || '';
-  document.getElementById('edit-title').value       = r.title       || '';
-  document.getElementById('edit-gen-title').value   = r.gen_title   || '';
-  document.getElementById('edit-gen-summary').value = r.gen_summary || '';
-  document.getElementById('edit-tags').value        = r.gen_tags    || '';
-  document.getElementById('edit-drive-link').value  = r.drive_link  || '';
-  document.getElementById('edit-notes').value       = r.notes       || '';
-  openModal('edit-overlay');
+// ═══════════════════════════════════════════════════════
+// EDIT ROW
+// ═══════════════════════════════════════════════════════
+function openEdit(rowNum) {
+  const r = ALL_ROWS.find(x => x._rowNum === rowNum);
+  if (!r) { toast('Row not found — refresh first','error'); return; }
+  EDIT_ROW = rowNum;
+  document.getElementById('edit-rn').textContent  = rowNum;
+  document.getElementById('e-status').value       = r.status       || 'Pending';
+  document.getElementById('e-theme').value        = r.theme        || '';
+  document.getElementById('e-title').value        = r.title        || '';
+  document.getElementById('e-gen-title').value    = r.gen_title    || '';
+  document.getElementById('e-summary').value      = r.gen_summary  || '';
+  document.getElementById('e-tags').value         = r.gen_tags     || '';
+  document.getElementById('e-drive').value        = r.drive_link   || '';
+  document.getElementById('e-notes').value        = r.notes        || '';
+  document.getElementById('edit-status-msg').innerHTML = '';
+  openModal('ov-edit');
 }
 
-async function saveEditRow() {
-  if (!currentEditRow) return;
-  const fields = {
-    status:      document.getElementById('edit-status').value,
-    theme:       document.getElementById('edit-theme').value,
-    title:       document.getElementById('edit-title').value,
-    gen_title:   document.getElementById('edit-gen-title').value,
-    gen_summary: document.getElementById('edit-gen-summary').value,
-    gen_tags:    document.getElementById('edit-tags').value,
-    drive_link:  document.getElementById('edit-drive-link').value,
-    notes:       document.getElementById('edit-notes').value,
-  };
+async function saveEdit() {
+  if (!EDIT_ROW) return;
+  document.getElementById('edit-status-msg').innerHTML = '<span style="color:var(--yellow)">SAVING…</span>';
   try {
-    const data = await api('updateRow', { rowNum: currentEditRow, fields });
+    const data = await api('updateRow', {
+      rowNum: EDIT_ROW,
+      fields: {
+        status:      document.getElementById('e-status').value,
+        theme:       document.getElementById('e-theme').value,
+        title:       document.getElementById('e-title').value,
+        gen_title:   document.getElementById('e-gen-title').value,
+        gen_summary: document.getElementById('e-summary').value,
+        gen_tags:    document.getElementById('e-tags').value,
+        drive_link:  document.getElementById('e-drive').value,
+        notes:       document.getElementById('e-notes').value,
+      }
+    });
     if (data.success) {
-      toast('Row ' + currentEditRow + ' updated ✓', 'success');
-      closeModal('edit-overlay');
-      loadStories(storyPage);
+      toast('ROW ' + EDIT_ROW + ' SAVED ✓', 'success');
+      closeModal('ov-edit');
+      ALL_ROWS = []; // force CSV re-fetch
+      loadStories(PAGE);
       loadDashboard();
     } else {
-      toast('Update failed: ' + data.error, 'error');
+      document.getElementById('edit-status-msg').innerHTML =
+        `<span style="color:var(--red)">ERROR: ${esc(data.error)}</span>`;
     }
   } catch(e) {
-    toast('Error: ' + e.message, 'error');
+    document.getElementById('edit-status-msg').innerHTML =
+      `<span style="color:var(--red)">${esc(e.message)}</span>`;
   }
 }
 
 
-// ════════════════════════════════════════════════════════════
-// UPLOAD MODAL
-// ════════════════════════════════════════════════════════════
-
-function openUploadModal(rowNum) {
-  const r = cachedRows.find(x => x.rowNum === rowNum);
+// ═══════════════════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════════════════
+function openUpload(rowNum) {
+  const r = ALL_ROWS.find(x => x._rowNum === rowNum);
   if (!r) { toast('Row not found','error'); return; }
-
-  currentUpRow = rowNum;
-  document.getElementById('up-row-num').textContent = rowNum;
-  document.getElementById('up-title').value  = r.gen_title  || r.title || '';
-  document.getElementById('up-desc').value   = r.gen_summary|| '';
-  document.getElementById('up-tags').value   = r.gen_tags   || '';
-  document.getElementById('up-status').innerHTML = '';
-
+  UP_ROW = rowNum;
+  document.getElementById('up-rn').textContent = rowNum;
+  document.getElementById('up-title').value    = r.gen_title  || r.title || '';
+  document.getElementById('up-desc').value     = r.gen_summary|| '';
+  document.getElementById('up-tags').value     = r.gen_tags   || '';
+  document.getElementById('up-msg').innerHTML  = '';
   // Populate account dropdown
   const sel = document.getElementById('up-account');
-  sel.innerHTML = cachedAccounts.map(a =>
+  sel.innerHTML = ACCOUNTS.map(a=>
     `<option value="${a.email}">${a.email}${a.channel?' ('+a.channel+')':''}</option>`
-  ).join('') || '<option>No accounts — add in Accounts tab</option>';
-
-  openModal('upload-overlay');
+  ).join('') || '<option value="">NO ACCOUNTS — ADD IN ACCOUNTS TAB</option>';
+  openModal('ov-upload');
 }
 
 async function doUpload() {
-  const r = cachedRows.find(x => x.rowNum === currentUpRow);
+  const r = ALL_ROWS.find(x => x._rowNum === UP_ROW);
   if (!r) return;
-
-  const btn      = document.getElementById('up-btn');
-  const statusEl = document.getElementById('up-status');
-  btn.disabled   = true;
-  statusEl.innerHTML = '<span style="color:var(--accent)">⏳ Uploading… this may take 1-2 minutes</span>';
-
+  const btn = document.getElementById('up-btn');
+  const msg = document.getElementById('up-msg');
+  btn.disabled = true;
+  msg.innerHTML = '<span style="color:var(--yellow)">⏳ UPLOADING — MAY TAKE 1-2 MINUTES…</span>';
   try {
     const data = await api('uploadToYouTube', {
-      rowNum:       currentUpRow,
+      rowNum:       UP_ROW,
       driveUrl:     r.drive_link,
       title:        document.getElementById('up-title').value,
       description:  document.getElementById('up-desc').value,
@@ -1537,521 +1639,424 @@ async function doUpload() {
       accountEmail: document.getElementById('up-account').value,
       thumbnailUrl: r.driveimg_link || ''
     });
-
     if (data.success) {
-      statusEl.innerHTML =
-        `<span style="color:var(--accent2)">✅ Uploaded! <a href="${data.url}" target="_blank">${data.url}</a></span>`;
-      toast('Upload successful ✓', 'success');
-      loadStories(storyPage);
+      msg.innerHTML = `<span style="color:var(--green)">✓ UPLOADED! <a href="${data.url}" target="_blank" style="color:var(--yellow)">${data.url}</a></span>`;
+      toast('UPLOAD SUCCESS ✓', 'success');
+      ALL_ROWS = [];
+      loadStories(PAGE);
       loadDashboard();
     } else {
-      statusEl.innerHTML = `<span style="color:var(--red)">❌ ${esc(data.error)}</span>`;
+      msg.innerHTML = `<span style="color:var(--red)">ERROR: ${esc(data.error)}</span>`;
     }
   } catch(e) {
-    statusEl.innerHTML = `<span style="color:var(--red)">❌ ${esc(e.message)}</span>`;
-  } finally {
-    btn.disabled = false;
-  }
+    msg.innerHTML = `<span style="color:var(--red)">${esc(e.message)}</span>`;
+  } finally { btn.disabled = false; }
 }
 
 
-// ════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // DELETE
-// ════════════════════════════════════════════════════════════
-
-function openDeleteModal(rowNum, title) {
-  currentDelRow = rowNum;
-  document.getElementById('del-row-num').textContent   = rowNum;
-  document.getElementById('del-row-title').textContent = title || '—';
-  openModal('delete-overlay');
+// ═══════════════════════════════════════════════════════
+function openDel(rowNum, title) {
+  DEL_ROW = rowNum;
+  document.getElementById('del-rn').textContent    = rowNum;
+  document.getElementById('del-title').textContent = title || '—';
+  openModal('ov-del');
 }
 
 async function doDelete() {
-  if (!currentDelRow) return;
+  if (!DEL_ROW) return;
   try {
-    const data = await api('deleteRow', { rowNum: currentDelRow });
+    const data = await api('deleteRow', { rowNum: DEL_ROW });
     if (data.success) {
-      toast('Row ' + currentDelRow + ' deleted', 'success');
-      closeModal('delete-overlay');
-      currentDelRow = null;
+      toast('ROW ' + DEL_ROW + ' DELETED', 'success');
+      closeModal('ov-del');
+      DEL_ROW = null;
+      ALL_ROWS = [];
       loadStories(1);
       loadDashboard();
     } else {
-      toast('Delete failed: ' + data.error, 'error');
+      toast('DELETE FAILED: ' + data.error, 'error');
     }
-  } catch(e) {
-    toast('Error: ' + e.message, 'error');
-  }
+  } catch(e) { toast(e.message, 'error'); }
 }
 
 
-// ════════════════════════════════════════════════════════════
-// SCHEDULE TAB
-// ════════════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════
+// SCHEDULE
+// ═══════════════════════════════════════════════════════
 async function loadSchedule() {
   try {
     const data = await api('getScheduled');
     if (!data.success) return;
-
-    const el = document.getElementById('schedule-list');
+    const el = document.getElementById('sched-list');
     if (!data.scheduled.length) {
-      el.innerHTML = `<div class="empty-state"><div class="ei">📅</div><h3>No scheduled uploads</h3><p>Click "+ Schedule Upload" to queue a story.</p></div>`;
+      el.innerHTML = '<div class="empty"><div class="empty-icon">◷</div><div class="empty-title">NO SCHEDULED UPLOADS</div><div class="empty-sub">CLICK + SCHEDULE UPLOAD TO QUEUE A STORY</div></div>';
       return;
     }
-
-    el.innerHTML = data.scheduled.map(item => `
+    el.innerHTML = data.scheduled.map(item=>`
       <div class="queue-item">
         <div style="flex:1">
-          <div class="queue-title">${esc(item.title || 'Row ' + item.rowNum)}</div>
-          <div class="queue-meta">
-            Row ${item.rowNum} · Account: ${esc(item.accountEmail||'—')} · Status: ${statusPill(item.status)}
-          </div>
+          <div class="queue-title">${esc(item.title||'ROW '+item.rowNum)}</div>
+          <div class="queue-meta">ROW ${item.rowNum} · ${esc(item.accountEmail||'—')} · ${mkPill(item.status)}</div>
         </div>
-        <div class="queue-time">📅 ${fmtDate(item.scheduleTime)}</div>
-        <button class="btn btn-danger btn-xs" onclick="cancelScheduleRow(${item.rowNum})">✕ Cancel</button>
+        <div class="queue-time">◷ ${fmtDate(item.scheduleTime)}</div>
+        <button class="btn btn-xs btn-red" onclick="cancelSched(${item.rowNum})">✕ CANCEL</button>
       </div>`).join('');
   } catch(e) {
-    document.getElementById('schedule-list').innerHTML =
-      `<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;
+    document.getElementById('sched-list').innerHTML =
+      `<div style="padding:20px;font-family:var(--mono);font-size:11px;color:var(--red)">ERROR: ${e.message}</div>`;
   }
 }
 
-async function openScheduleModal() {
-  // Populate story rows dropdown with "Generated" rows that have Drive links
-  try {
-    const data = await api('getRows', { filter: 'generated', page: 1, pageSize: 100 });
-    const sel  = document.getElementById('sched-row');
-    sel.innerHTML = (data.rows || []).map(r =>
-      `<option value="${r.rowNum}">Row ${r.rowNum} — ${esc(r.gen_title||r.title||'Untitled')}</option>`
-    ).join('') || '<option>No Generated rows found</option>';
-  } catch(e) {}
-
-  // Populate account dropdown
-  const accSel = document.getElementById('sched-account');
-  accSel.innerHTML = cachedAccounts.map(a =>
+async function openSchedModal() {
+  // Populate rows — prefer Generated rows
+  if (!ALL_ROWS.length) { try { const t=await fetchCSV(); ALL_ROWS=parseCSV(t); } catch(e){} }
+  const genRows = ALL_ROWS.filter(r => r.status?.toLowerCase()==='generated' && r.drive_link);
+  document.getElementById('sc-row').innerHTML = genRows.map(r=>
+    `<option value="${r._rowNum}">ROW ${r._rowNum} — ${esc(r.gen_title||r.title||'Untitled')}</option>`
+  ).join('') || '<option>NO GENERATED ROWS FOUND</option>';
+  // Accounts
+  document.getElementById('sc-acc').innerHTML = ACCOUNTS.map(a=>
     `<option value="${a.email}">${a.email}</option>`
-  ).join('') || '<option>No accounts</option>';
-
-  // Default schedule time = tomorrow 10:00 PKT
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  d.setHours(10, 0, 0, 0);
-  document.getElementById('sched-time').value = d.toISOString().slice(0, 16);
-
-  openModal('sched-overlay');
+  ).join('') || '<option>NO ACCOUNTS</option>';
+  // Default tomorrow 10:00
+  const d = new Date(); d.setDate(d.getDate()+1); d.setHours(10,0,0,0);
+  document.getElementById('sc-time').value = d.toISOString().slice(0,16);
+  openModal('ov-sched');
 }
 
 async function saveSchedule() {
-  const rowNum      = document.getElementById('sched-row').value;
-  const schedTime   = document.getElementById('sched-time').value;
-  const accountEmail= document.getElementById('sched-account').value;
-
-  if (!rowNum || !schedTime) { toast('Row and time required', 'error'); return; }
-
+  const rowNum = document.getElementById('sc-row').value;
+  const time   = document.getElementById('sc-time').value;
+  const acc    = document.getElementById('sc-acc').value;
+  if (!rowNum||!time) { toast('ROW AND TIME REQUIRED','error'); return; }
   try {
-    const data = await api('scheduleUpload', {
-      rowNum:       parseInt(rowNum),
-      scheduleTime: new Date(schedTime).toISOString(),
-      accountEmail
+    const data = await api('scheduleUpload',{
+      rowNum:parseInt(rowNum),
+      scheduleTime:new Date(time).toISOString(),
+      accountEmail:acc
     });
     if (data.success) {
-      toast('Scheduled for ' + fmtDate(schedTime), 'success');
-      closeModal('sched-overlay');
-      loadSchedule();
-      loadDashboard();
-    } else {
-      toast('Schedule failed: ' + data.error, 'error');
-    }
-  } catch(e) {
-    toast('Error: ' + e.message, 'error');
-  }
+      toast('SCHEDULED: '+fmtDate(time),'success');
+      closeModal('ov-sched');
+      loadSchedule(); loadDashboard();
+    } else toast('FAILED: '+data.error,'error');
+  } catch(e) { toast(e.message,'error'); }
 }
 
-async function cancelScheduleRow(rowNum) {
+async function cancelSched(rowNum) {
   try {
-    const data = await api('cancelSchedule', { rowNum });
-    if (data.success) {
-      toast('Schedule cancelled for row ' + rowNum, 'info');
-      loadSchedule();
-      loadDashboard();
-    }
-  } catch(e) {
-    toast('Error: ' + e.message, 'error');
-  }
+    const data = await api('cancelSchedule',{rowNum});
+    if (data.success) { toast('SCHEDULE CANCELLED','info'); loadSchedule(); loadDashboard(); }
+  } catch(e) { toast(e.message,'error'); }
 }
 
 
-// ════════════════════════════════════════════════════════════
-// ACCOUNTS TAB
-// ════════════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════
+// ACCOUNTS
+// ═══════════════════════════════════════════════════════
 async function loadAccounts() {
   try {
     const data = await api('getAccounts');
     if (!data.success) return;
-    cachedAccounts = data.accounts || [];
-    renderAccounts(cachedAccounts);
+    ACCOUNTS = data.accounts || [];
+    renderAccounts(ACCOUNTS);
   } catch(e) {
-    document.getElementById('accounts-grid').innerHTML =
-      `<div style="color:var(--red);font-size:12px">Error: ${e.message}</div>`;
+    document.getElementById('acc-grid').innerHTML =
+      `<div style="padding:20px;font-family:var(--mono);font-size:11px;color:var(--red);grid-column:1/-1">ERROR: ${e.message}</div>`;
   }
 }
 
-function renderAccounts(accounts) {
-  const el = document.getElementById('accounts-grid');
-  if (!accounts.length) {
-    el.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
-      <div class="ei">👤</div><h3>No accounts yet</h3>
-      <p>Click "+ Add Account" to register a YouTube account.</p></div>`;
+function renderAccounts(accs) {
+  const el = document.getElementById('acc-grid');
+  if (!accs.length) {
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon">◉</div>
+      <div class="empty-title">NO ACCOUNTS</div>
+      <div class="empty-sub">CLICK + ADD ACCOUNT TO REGISTER</div></div>`;
     return;
   }
-  el.innerHTML = accounts.map(a => `
-    <div class="account-card">
-      <div class="account-email">${esc(a.email)}</div>
-      <div class="account-channel">${esc(a.channel || 'Channel not verified yet')}</div>
-      ${a.channelId ? `<div style="font-size:10px;font-family:var(--mono);color:var(--muted2);margin-bottom:8px">${a.channelId}</div>` : ''}
-      <div class="account-status">
-        <div class="status-dot ${a.hasToken ? 'dot-green' : 'dot-red'}"></div>
-        ${a.hasToken
-          ? `<span style="color:var(--accent2)">Authorized ✓</span>`
-          : `<span style="color:var(--red)">Not Authorized</span>`}
+  el.innerHTML = accs.map(a=>`
+    <div class="acc-card">
+      <div class="acc-email">${esc(a.email)}</div>
+      <div class="acc-channel">${esc(a.channel||'CHANNEL NOT VERIFIED YET')}</div>
+      ${a.channelId?`<div style="font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-bottom:8px">${a.channelId}</div>`:''}
+      <div class="acc-status">
+        <div class="dot ${a.hasToken?'dot-on':'dot-off'}"></div>
+        <span style="color:${a.hasToken?'var(--green)':'var(--red)'}">${a.hasToken?'AUTHORIZED ✓':'NOT AUTHORIZED'}</span>
       </div>
-      ${a.tokenAge && a.tokenAge !== 'unknown'
-        ? `<div style="font-size:10px;color:var(--muted2);margin-bottom:12px;font-family:var(--mono)">Token saved: ${fmtDate(a.tokenAge)}</div>`
-        : ''}
-      <div class="account-actions">
-        ${!a.hasToken ? `<button class="btn btn-blue btn-sm" onclick="authorizeAccount('${a.email}')">🔑 Authorize</button>` : ''}
-        <button class="btn btn-ghost btn-sm" onclick="deauthAccount('${a.email}')">🔓 De-Auth</button>
-        <button class="btn btn-danger btn-sm" onclick="removeAccount('${a.email}')">🗑 Remove</button>
+      ${a.tokenAge&&a.tokenAge!=='unknown'?`<div style="font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-bottom:10px">TOKEN: ${fmtDate(a.tokenAge)}</div>`:''}
+      <div class="acc-acts">
+        ${!a.hasToken?`<button class="btn btn-sm btn-blue" onclick="authAcc('${a.email}')">🔑 AUTH</button>`:''}
+        <button class="btn btn-sm btn-ghost" onclick="deauthAcc('${a.email}')">🔓 DE-AUTH</button>
+        <button class="btn btn-sm btn-red" onclick="removeAcc('${a.email}')">🗑 REMOVE</button>
       </div>
     </div>`).join('');
 }
 
-function openAddAccountModal() {
-  document.getElementById('acc-email').value      = '';
-  document.getElementById('acc-channel').value    = '';
-  document.getElementById('acc-channel-id').value = '';
-  document.getElementById('acc-auth-url').style.display = 'none';
-  openModal('account-overlay');
+function openAddAccModal() {
+  ['acc-email','acc-ch','acc-chid'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('acc-auth-wrap').style.display='none';
+  openModal('ov-acc');
 }
 
-async function doAddAccount() {
-  const email   = document.getElementById('acc-email').value.trim();
-  const channel = document.getElementById('acc-channel').value.trim();
-  const cid     = document.getElementById('acc-channel-id').value.trim();
-
-  if (!email) { toast('Email required', 'error'); return; }
-
+async function doAddAcc() {
+  const email = document.getElementById('acc-email').value.trim();
+  const ch    = document.getElementById('acc-ch').value.trim();
+  const chid  = document.getElementById('acc-chid').value.trim();
+  if (!email) { toast('EMAIL REQUIRED','error'); return; }
   try {
-    const data = await api('addAccount', { email, channel, channelId: cid });
+    const data = await api('addAccount',{email,channel:ch,channelId:chid});
     if (data.success) {
-      toast(email + ' registered ✓', 'success');
-      // Show auth URL
-      document.getElementById('acc-auth-url').style.display  = 'block';
-      document.getElementById('acc-auth-link').href          = data.authUrl;
-      document.getElementById('acc-auth-link').textContent   = data.authUrl;
+      toast(email+' REGISTERED ✓','success');
+      document.getElementById('acc-auth-wrap').style.display='block';
+      document.getElementById('acc-auth-link').href=data.authUrl;
+      document.getElementById('acc-auth-link').textContent=data.authUrl;
       loadAccounts();
-    } else {
-      toast('Failed: ' + data.error, 'error');
-    }
-  } catch(e) {
-    toast('Error: ' + e.message, 'error');
-  }
+    } else toast('FAILED: '+data.error,'error');
+  } catch(e) { toast(e.message,'error'); }
 }
 
-async function authorizeAccount(email) {
+async function authAcc(email) {
   try {
-    const data = await api('addAccount', { email });
-    if (data.authUrl) window.open(data.authUrl, '_blank');
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+    const data = await api('addAccount',{email});
+    if (data.authUrl) window.open(data.authUrl,'_blank');
+  } catch(e) { toast(e.message,'error'); }
 }
 
-async function deauthAccount(email) {
-  if (!confirm('De-authorize ' + email + '? They will need to re-login.')) return;
+async function deauthAcc(email) {
+  if (!confirm('DE-AUTH '+email+'? Will need to re-login.')) return;
   try {
-    const data = await api('deauthAccount', { email });
+    const data = await api('deauthAccount',{email});
     if (data.success) {
-      toast(email + ' de-authorized. Auth URL: ' + data.authUrl, 'info');
-      if (data.authUrl) window.open(data.authUrl, '_blank');
-      loadAccounts();
-    } else {
-      toast('Failed: ' + data.error, 'error');
-    }
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
-}
-
-async function removeAccount(email) {
-  if (!confirm('Remove ' + email + ' completely?')) return;
-  try {
-    const data = await api('removeAccount', { email });
-    if (data.success) {
-      toast(email + ' removed', 'success');
+      toast(email+' DE-AUTHORIZED','warn');
+      if (data.authUrl) window.open(data.authUrl,'_blank');
       loadAccounts();
     }
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function removeAcc(email) {
+  if (!confirm('REMOVE '+email+' COMPLETELY?')) return;
+  try {
+    const data = await api('removeAccount',{email});
+    if (data.success) { toast(email+' REMOVED','success'); loadAccounts(); }
+  } catch(e) { toast(e.message,'error'); }
 }
 
 
-// ════════════════════════════════════════════════════════════
-// ANALYTICS TAB
-// ════════════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════
+// ANALYTICS
+// ═══════════════════════════════════════════════════════
 async function loadAnalytics() {
-  document.getElementById('analytics-tbody').innerHTML =
-    `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--accent)">⏳ Fetching YouTube data…</td></tr>`;
-  document.getElementById('analytics-totals').innerHTML =
+  document.getElementById('ana-tbody').innerHTML =
+    `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--yellow);font-family:var(--mono)">⏳ FETCHING YOUTUBE DATA…</td></tr>`;
+  document.getElementById('ana-totals').innerHTML =
     `<div class="stat-card shimmer" style="height:90px"></div>`.repeat(4);
-
   try {
     const data = await api('getAllAnalytics');
-    if (!data.success) { showTableError('analytics-tbody', 9, data.error); return; }
+    if (!data.success) { tblErr('ana-tbody',9,data.error); return; }
 
-    // Totals
-    document.getElementById('analytics-totals').innerHTML = `
-      <div class="stat-card purple"><div class="stat-n">${data.total_videos||0}</div><div class="stat-l">Videos Published</div></div>
-      <div class="stat-card blue">  <div class="stat-n">${fmtNum(data.total_views||0)}</div><div class="stat-l">Total Views</div></div>
-      <div class="stat-card green"> <div class="stat-n">${fmtNum(data.total_likes||0)}</div><div class="stat-l">Total Likes</div></div>
-      <div class="stat-card">       <div class="stat-n">${fmtNum(data.total_comments||0)}</div><div class="stat-l">Total Comments</div></div>
+    document.getElementById('ana-totals').innerHTML = `
+      <div class="stat-card"><div class="stat-n purple">${data.total_videos||0}</div><div class="stat-l">VIDEOS</div></div>
+      <div class="stat-card"><div class="stat-n blue">${fmtN(data.total_views||0)}</div><div class="stat-l">TOTAL VIEWS</div></div>
+      <div class="stat-card"><div class="stat-n green">${fmtN(data.total_likes||0)}</div><div class="stat-l">TOTAL LIKES</div></div>
+      <div class="stat-card"><div class="stat-n">${fmtN(data.total_comments||0)}</div><div class="stat-l">COMMENTS</div></div>
     `;
 
     if (!data.videos.length) {
-      document.getElementById('analytics-tbody').innerHTML =
-        `<tr><td colspan="9"><div class="empty-state"><div class="ei">📈</div><h3>No YouTube data yet</h3><p>Upload videos first, then refresh analytics.</p></div></td></tr>`;
+      document.getElementById('ana-tbody').innerHTML=
+        `<tr><td colspan="9"><div class="empty"><div class="empty-icon">▲</div><div class="empty-title">NO DATA YET</div></div></td></tr>`;
       return;
     }
-
-    const maxViews = Math.max(...data.videos.map(v => v.views)) || 1;
-
-    document.getElementById('analytics-tbody').innerHTML = data.videos.map(v => {
-      const engagement = v.views > 0
-        ? ((v.likes + v.comments) / v.views * 100).toFixed(2) + '%'
-        : '—';
-      const barW = Math.round(v.views / maxViews * 100);
-      const thumb = v.thumbnailUrl
-        ? `<img src="${v.thumbnailUrl}" style="width:64px;height:36px;object-fit:cover;border-radius:2px">`
-        : '<div style="width:64px;height:36px;background:var(--border);border-radius:2px"></div>';
-
+    const maxV = Math.max(...data.videos.map(v=>v.views))||1;
+    document.getElementById('ana-tbody').innerHTML = data.videos.map(v=>{
+      const eng = v.views>0?((v.likes+v.comments)/v.views*100).toFixed(2)+'%':'—';
+      const bw  = Math.round(v.views/maxV*100);
+      const th  = v.thumbnailUrl
+        ? `<img src="${v.thumbnailUrl}" style="width:64px;height:36px;object-fit:cover;border:2px solid var(--border-dim)">`
+        : '<div style="width:64px;height:36px;background:var(--bg3);border:2px solid var(--border-dim)"></div>';
       return `<tr>
         <td><span class="row-num">${v.rowNum||'—'}</span></td>
-        <td>${thumb}</td>
-        <td style="max-width:200px">
-          <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(v.title)}</div>
-          <div style="font-size:10px;color:var(--muted);font-family:var(--mono)">${v.videoId}</div>
+        <td>${th}</td>
+        <td style="max-width:180px">
+          <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(v.title)}</div>
+          <div class="mono dim" style="font-size:9px">${v.videoId}</div>
         </td>
-        <td class="mono muted" style="font-size:10px">${v.publishedAt ? v.publishedAt.substring(0,10) : '—'}</td>
-        <td class="analytics-table">
-          <div class="big">${fmtNum(v.views)}</div>
-          <div class="progress-bar"><div class="progress-fill" style="width:${barW}%"></div></div>
+        <td class="mono dim" style="font-size:10px">${(v.publishedAt||'').substring(0,10)||'—'}</td>
+        <td>
+          <div style="font-family:var(--display);font-size:20px;color:var(--yellow)">${fmtN(v.views)}</div>
+          <div class="ana-bar"><div class="ana-fill" style="width:${bw}%"></div></div>
         </td>
-        <td class="analytics-table big">${fmtNum(v.likes)}</td>
-        <td class="analytics-table big">${fmtNum(v.comments)}</td>
-        <td class="mono" style="font-size:11px;color:${parseFloat(engagement)>3?'var(--accent2)':'var(--muted)'}">${engagement}</td>
-        <td><a href="${v.ytUrl}" target="_blank" style="color:var(--red);font-size:11px">▶ Watch</a></td>
+        <td style="font-family:var(--display);font-size:18px;color:var(--green)">${fmtN(v.likes)}</td>
+        <td style="font-family:var(--display);font-size:18px">${fmtN(v.comments)}</td>
+        <td class="mono" style="font-size:11px;color:${parseFloat(eng)>3?'var(--green)':'var(--text-dim)'}">${eng}</td>
+        <td><a href="${v.ytUrl}" target="_blank" style="color:var(--red);font-family:var(--mono);font-size:10px">▶ WATCH</a></td>
       </tr>`;
     }).join('');
-
-  } catch(e) {
-    showTableError('analytics-tbody', 9, e.message);
-  }
+  } catch(e) { tblErr('ana-tbody',9,e.message); }
 }
 
 
-// ════════════════════════════════════════════════════════════
-// LOGS TAB
-// ════════════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════
+// LOGS
+// ═══════════════════════════════════════════════════════
 async function loadLogs() {
-  document.getElementById('logs-tbody').innerHTML =
-    `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">Loading…</td></tr>`;
+  document.getElementById('log-tbody').innerHTML =
+    `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-dim);font-family:var(--mono)">LOADING…</td></tr>`;
   try {
-    const data = await api('getLogs', { limit: 200 });
-    if (!data.success || !data.logs.length) {
-      document.getElementById('logs-tbody').innerHTML =
-        `<tr><td colspan="4"><div class="empty-state"><div class="ei">📋</div><h3>No logs yet</h3></div></td></tr>`;
+    const data = await api('getLogs',{limit:200});
+    if (!data.logs.length) {
+      document.getElementById('log-tbody').innerHTML=
+        `<tr><td colspan="4"><div class="empty"><div class="empty-icon">≡</div><div class="empty-title">NO LOGS YET</div></div></td></tr>`;
       return;
     }
-    document.getElementById('logs-tbody').innerHTML = data.logs.map(l => {
-      const typeClass = logTypeClass(l.type);
-      return `<tr>
-        <td class="mono muted" style="font-size:10px;white-space:nowrap">${l.timestamp}</td>
-        <td><span class="log-type ${typeClass}">${esc(l.type)}</span></td>
-        <td style="font-size:12px">${esc(l.target)}</td>
-        <td style="font-size:11px;color:var(--muted)">${esc(l.detail)}</td>
-      </tr>`;
-    }).join('');
-  } catch(e) {
-    showTableError('logs-tbody', 4, e.message);
-  }
+    document.getElementById('log-tbody').innerHTML = data.logs.map(l=>`<tr>
+      <td class="mono dim" style="font-size:10px;white-space:nowrap">${l.timestamp}</td>
+      <td><span class="lt ${ltClass(l.type)}">${esc(l.type)}</span></td>
+      <td style="font-size:12px">${esc(l.target)}</td>
+      <td class="mono dim" style="font-size:10px">${esc(l.detail)}</td>
+    </tr>`).join('');
+  } catch(e) { tblErr('log-tbody',4,e.message); }
+}
+function ltClass(t){
+  t=(t||'').toUpperCase();
+  if(t==='UPLOAD') return 'lt-upload';
+  if(t==='ERROR')  return 'lt-error';
+  if(t.includes('SCHED')) return 'lt-sched';
+  if(t==='UPDATE') return 'lt-update';
+  if(t==='DELETE') return 'lt-delete';
+  if(t.includes('AUTH')) return 'lt-auth';
+  if(t==='CONFIG') return 'lt-cfg';
+  return 'lt-def';
+}
+async function confirmClear(){
+  if(!confirm('CLEAR ALL LOGS?')) return;
+  try{const d=await api('clearLogs'); if(d.success){toast('LOGS CLEARED','success');loadLogs();}}
+  catch(e){toast(e.message,'error');}
 }
 
-function logTypeClass(type) {
-  const t = (type||'').toUpperCase();
-  if (t === 'UPLOAD')                  return 'lt-upload';
-  if (t === 'ERROR')                   return 'lt-error';
-  if (t.includes('SCHEDULE'))          return 'lt-schedule';
-  if (t === 'UPDATE')                  return 'lt-update';
-  if (t === 'DELETE')                  return 'lt-delete';
-  if (t.includes('AUTH'))              return 'lt-auth';
-  if (t === 'CONFIG')                  return 'lt-config';
-  return 'lt-default';
+
+// ═══════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════
+function loadConfig() {
+  document.getElementById('cfg-url').value       = ls('ml_as_url')    || '';
+  document.getElementById('cfg-csv').value       = ls('ml_csv_url')   || '';
+  document.getElementById('cfg-sheet-id').value  = ls('ml_sheet_id')  || '';
+  document.getElementById('cfg-sheet-name').value= ls('ml_sheet_nm')  || 'Database';
+  document.getElementById('cfg-privacy').value   = ls('ml_privacy')   || 'public';
+  document.getElementById('cfg-max').value       = ls('ml_maxday')    || 5;
+  document.getElementById('cfg-tz').value        = ls('ml_tz')        || 'Asia/Karachi';
+  document.getElementById('cfg-cat').value       = ls('ml_cat')       || '27';
 }
 
-async function confirmClearLogs() {
-  if (!confirm('Clear all log entries?')) return;
+async function saveCfg() {
+  ls('ml_as_url',   document.getElementById('cfg-url').value.trim());
+  ls('ml_csv_url',  document.getElementById('cfg-csv').value.trim());
+  ls('ml_sheet_id', document.getElementById('cfg-sheet-id').value.trim());
+  ls('ml_sheet_nm', document.getElementById('cfg-sheet-name').value.trim());
+  ls('ml_privacy',  document.getElementById('cfg-privacy').value);
+  ls('ml_maxday',   document.getElementById('cfg-max').value);
+  ls('ml_tz',       document.getElementById('cfg-tz').value);
+  ls('ml_cat',      document.getElementById('cfg-cat').value);
+
+  // Also save to Apps Script if URL is set
   try {
-    const data = await api('clearLogs');
-    if (data.success) { toast('Logs cleared', 'success'); loadLogs(); }
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
-}
-
-
-// ════════════════════════════════════════════════════════════
-// CONFIG TAB
-// ════════════════════════════════════════════════════════════
-
-async function loadConfig() {
-  // Show current APPS_SCRIPT_URL from localStorage
-  document.getElementById('cfg-url').value = CFG.APPS_SCRIPT_URL || '';
-
-  try {
-    const data = await api('getConfig');
-    if (!data.success) return;
-    document.getElementById('cfg-sheet-id').value    = data.sheetId    || '';
-    document.getElementById('cfg-sheet-name').value  = data.sheetName  || 'Database';
-    document.getElementById('cfg-privacy').value     = data.defaultPrivacy || 'public';
-    document.getElementById('cfg-max-per-day').value = data.maxPerDay  || 5;
-    document.getElementById('cfg-timezone').value    = data.timezone   || 'Asia/Karachi';
-    document.getElementById('cfg-category').value    = data.defaultCategory || '27';
-  } catch(e) {
-    // Config load fail is non-fatal
-  }
-}
-
-async function saveConfig() {
-  // Save Apps Script URL to localStorage
-  const newUrl = document.getElementById('cfg-url').value.trim();
-  if (newUrl) {
-    localStorage.setItem('ml_apps_script_url', newUrl);
-    CFG.APPS_SCRIPT_URL = newUrl;
-  }
-
-  try {
-    const data = await api('saveConfig', {
-      sheetId:         document.getElementById('cfg-sheet-id').value,
-      sheetName:       document.getElementById('cfg-sheet-name').value,
-      defaultPrivacy:  document.getElementById('cfg-privacy').value,
-      maxPerDay:       document.getElementById('cfg-max-per-day').value,
-      timezone:        document.getElementById('cfg-timezone').value,
-      defaultCategory: document.getElementById('cfg-category').value,
+    await api('saveConfig',{
+      sheetId:         ls('ml_sheet_id'),
+      sheetName:       ls('ml_sheet_nm'),
+      defaultPrivacy:  ls('ml_privacy'),
+      maxPerDay:       ls('ml_maxday'),
+      timezone:        ls('ml_tz'),
+      defaultCategory: ls('ml_cat'),
     });
-    toast('Config saved ✓', 'success');
-  } catch(e) {
-    // Even if API fails, URL is saved locally
-    toast('Apps Script URL saved locally ✓', 'info');
-  }
+  } catch(e) { /* non-fatal if AS not yet configured */ }
+
+  toast('CONFIG SAVED ✓','success');
+  // Reload dashboard with new CSV
+  ALL_ROWS = [];
+  loadDashboard();
 }
 
 
-// ════════════════════════════════════════════════════════════
-// PAGINATION RENDERER
-// ════════════════════════════════════════════════════════════
-
-function renderPagination(elId, current, total, onPage) {
-  const el = document.getElementById(elId);
-  if (total <= 1) { el.innerHTML = ''; return; }
-
-  const lo = Math.max(1, current - 3);
-  const hi = Math.min(total, lo + 6);
-  let html = '';
-
-  html += `<button class="pg-btn" ${current===1?'disabled':''} onclick="${onPage.name}(${current-1})">‹</button>`;
-  if (lo > 1) html += `<button class="pg-btn" onclick="${onPage.name}(1)">1</button><span class="pg-info">…</span>`;
-  for (let p = lo; p <= hi; p++) {
-    html += `<button class="pg-btn${p===current?' active':''}" onclick="${onPage.name}(${p})">${p}</button>`;
-  }
-  if (hi < total) html += `<span class="pg-info">…</span><button class="pg-btn" onclick="${onPage.name}(${total})">${total}</button>`;
-  html += `<button class="pg-btn" ${current===total?'disabled':''} onclick="${onPage.name}(${current+1})">›</button>`;
-
-  el.innerHTML = html;
+// ═══════════════════════════════════════════════════════
+// REFRESH ALL
+// ═══════════════════════════════════════════════════════
+async function refreshAll() {
+  ALL_ROWS = [];
+  loadDashboard();
+  if (document.querySelector('#pane-stories.active'))  loadStories(PAGE);
+  if (document.querySelector('#pane-schedule.active')) loadSchedule();
+  if (document.querySelector('#pane-accounts.active')) loadAccounts();
+  if (document.querySelector('#pane-logs.active'))     loadLogs();
 }
 
 
-// ════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // MODAL HELPERS
-// ════════════════════════════════════════════════════════════
-
+// ═══════════════════════════════════════════════════════
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function closeOverlay(id, e) {
-  if (e.target === document.getElementById(id)) closeModal(id);
+function closeOv(id,e)  { if(e.target===document.getElementById(id)) closeModal(id); }
+
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function toast(msg, type='info') {
+  const c  = document.getElementById('toast');
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
 }
 
 
-// ════════════════════════════════════════════════════════════
-// TOAST NOTIFICATIONS
-// ════════════════════════════════════════════════════════════
-
-function toast(msg, type = 'info') {
-  const container = document.getElementById('toast');
-  const el        = document.createElement('div');
-  el.className    = `toast-item ${type}`;
-  el.textContent  = msg;
-  container.appendChild(el);
-  setTimeout(() => el.remove(), 4000);
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function mkPill(st) {
+  if (!st||st.toLowerCase()==='pending')   return '<span class="pill p-pending">PENDING</span>';
+  if (st.toLowerCase()==='done')           return '<span class="pill p-done">✓ DONE</span>';
+  if (st.toLowerCase()==='generated')      return '<span class="pill p-gen">GENERATED</span>';
+  if (st.toLowerCase()==='processing')     return '<span class="pill p-proc">PROCESSING</span>';
+  if (/error|no_video/i.test(st))         return '<span class="pill p-err">ERROR</span>';
+  if (st.toLowerCase()==='low credit')     return '<span class="pill p-err">LOW CREDIT</span>';
+  return `<span class="pill p-pending">${esc(st).toUpperCase()}</span>`;
 }
-
-
-// ════════════════════════════════════════════════════════════
-// UTILITY HELPERS
-// ════════════════════════════════════════════════════════════
-
-function statusPill(st) {
-  if (!st || st.toLowerCase() === 'pending')    return '<span class="pill pill-pending">Pending</span>';
-  if (st.toLowerCase() === 'done')              return '<span class="pill pill-done">✓ Done</span>';
-  if (st.toLowerCase() === 'generated')         return '<span class="pill pill-generated">Generated</span>';
-  if (st.toLowerCase() === 'processing')        return '<span class="pill pill-processing">Processing</span>';
-  if (/error|no_video/i.test(st))               return '<span class="pill pill-error">Error</span>';
-  if (st.toLowerCase() === 'low credit')        return '<span class="pill pill-error">Low Credit</span>';
-  return `<span class="pill pill-pending">${esc(st)}</span>`;
-}
-
-function esc(s) {
-  return String(s||'')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-function fmtNum(n) {
-  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
-  if (n >= 1000)    return (n/1000).toFixed(1)    + 'K';
+function fmtN(n){
+  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+  if(n>=1000)    return (n/1000).toFixed(1)+'K';
   return String(n);
 }
-
-function fmtDate(iso) {
-  if (!iso) return '—';
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-PK', { month:'short', day:'numeric', year:'numeric' })
-      + ' ' + d.toLocaleTimeString('en-PK', { hour:'2-digit', minute:'2-digit', hour12:true });
-  } catch(e) { return String(iso).substring(0,16); }
+function fmtDate(iso){
+  if(!iso) return '—';
+  try{
+    const d=new Date(iso);
+    return d.toLocaleDateString('en-PK',{month:'short',day:'numeric',year:'numeric'})
+      +' '+d.toLocaleTimeString('en-PK',{hour:'2-digit',minute:'2-digit',hour12:true});
+  }catch(e){return String(iso).substring(0,16);}
 }
-
-function showTableError(tbodyId, cols, msg) {
-  document.getElementById(tbodyId).innerHTML =
-    `<tr><td colspan="${cols}" style="text-align:center;padding:30px;color:var(--red)">
-      Error: ${esc(msg)}</td></tr>`;
+function tblErr(id,cols,msg){
+  document.getElementById(id).innerHTML=
+    `<tr><td colspan="${cols}" style="text-align:center;padding:30px;color:var(--red);font-family:var(--mono)">ERROR: ${esc(msg)}</td></tr>`;
 }
 
 
-// ════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // BOOT
-// ════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   loadDashboard();
-  loadAccounts();   // preload for dropdowns
+  loadAccounts(); // preload for dropdowns
 });
-
 </script>
 </body>
 </html>
