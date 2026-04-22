@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## v2.0.5 — 2026-04-23
+
+### Changed
+- **Rollback to Monolithic Architecture:** Reverted the experimental multi-file module refactor (dashboard, generator, processor, etc.) back to the inherently stable, unified `main.py` standalone structure. The fractional architecture introduced untraceable runtime imports and instability across functions, which have now been fully resolved.
+- Added `Process_D_Link` as the 22nd column officially in `SHEET_SCHEMA` to fix the missing column schema warning.
+
+### Documentation
+- `README.md` version badge updated to `v2.0.5`.
+- Updated `SHEET_STRUCTURE.md` to reflect the extended 22 column architecture including `Process_D_Link`.
+
 ## v2.0.4 — 2026-04-22
 
 > **Patch release.** No new features. No structural changes. GitHub Actions workflow and dashboard in development — version held at patch level until those are complete.

@@ -3,7 +3,7 @@
 The Google Sheet acts as the database for the entire automation pipeline. 
 The script automatically reads the column matching below. 
 
-### Columns Structure (Exactly 21 Columns)
+### Columns Structure (Exactly 22 Columns)
 
 | Column | Name             | Description                                                                                     |
 |:------:|:-----------------|:------------------------------------------------------------------------------------------------|
@@ -31,9 +31,6 @@ The script automatically reads the column matching below.
 | **O**  | `Credit_Before`  | Output field: The user's credit balance before generating.                                      |
 | **P**  | `Credit_After`   | Output field: The user's credit balance after generation completing.                            |
 | **Q**  | `Email_Used`     | Output field: Which account from `accounts.txt` was used for processing.                        |
-```markdown
-```
-
 - ### Part 3: Check Credit Columns
 
 ```
@@ -41,10 +38,11 @@ The script automatically reads the column matching below.
 | **S**  | `Credit_Total`   | Extra field                                                                                     |
 | **T**  | `Credit_Used`    | Extra field                                                                                     |
 | **U**  | `Credit_Remaining` | Extra field                                                                                   |
+| **V**  | `Process_D_Link` | Output field: The Google Drive preview link for the PROCESSED (FFmpeg-encoded) video.           |
 ```
 ```
 
 ## How to Initialize
 1. Open your specified Google Sheet.
-2. In `main.py`, you can run `python main.py --migrate-schema` in your terminal to automatically place these exact 21 headers directly into row 1.
+2. In `main.py`, you can run `python main.py --migrate-schema` in your terminal to automatically place these exact 22 headers directly into row 1.
 3. Paste a story in column `D` and set column `A` to `Pending`. 

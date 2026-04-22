@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python)
 ![Playwright](https://img.shields.io/badge/playwright-1.40%2B-green?style=for-the-badge)
 ![FFmpeg](https://img.shields.io/badge/FFmpeg-4.4%2B-orange?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-v2.0.4-brightgreen?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-v2.0.5-brightgreen?style=for-the-badge)
 
 **Automated kids story video pipeline**
 MagicLight.ai generation → FFmpeg processing → Google Drive upload → Sheets tracking
@@ -72,9 +72,9 @@ If running Video Encoding Process locally, place your logo at `assets/logo.png`.
 
 ## 📊 Google Sheet Structure
 
-You must configure a specific 21-column layout in your Google Sheets file for the bot to read/write accurately.
+You must configure a specific 22-column layout in your Google Sheets file for the bot to read/write accurately.
 
-> **Quick setup:** Run `python main.py --migrate-schema` to automatically build these 21 columns in your linked Sheet.
+> **Quick setup:** Run `python main.py --migrate-schema` to automatically build these 22 columns in your linked Sheet.
 
 For a full breakdown of all columns, see the [Sheet Structure Documentation (docs/SHEET_STRUCTURE.md)](docs/SHEET_STRUCTURE.md).
 
