@@ -505,7 +505,18 @@ tr:hover td{background:#fafafa;}
           <div class="oa-body">
             <div class="oa-t">Google Authorization Window Kholo</div>
             <div class="oa-d">Button dabao → Google login khulega → Channel owner account se sign in karo → "Allow" karo</div>
-            <div class="oa-a"><button class="btn b-red" onclick="doOAuth()">🔑 Authorize with Google</button></div>
+            <div class="oa-a">
+              <div class="fr" style="gap:10px;">
+                <div class="fg" style="margin:0;">
+                  <label class="fl">Theme / Channel Key</label>
+                  <input type="text" class="fc" id="yt-theme" placeholder="Teamwork" value="default">
+                  <div class="help">Sheet ke <code class="c">Theme</code> column jaisa hi likho (token <code class="c">token_Theme.json</code> banega)</div>
+                </div>
+                <div class="fg" style="margin:0;display:flex;align-items:flex-end;">
+                  <button class="btn b-red b-block" onclick="ensureAuth()">🔑 Authorize Theme</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

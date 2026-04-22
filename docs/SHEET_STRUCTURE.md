@@ -7,11 +7,18 @@ The script automatically reads the column matching below.
 
 | Column | Name             | Description                                                                                     |
 |:------:|:-----------------|:------------------------------------------------------------------------------------------------|
+- ### Part 1: Story Generation Columns
+```
 | **A**  | `Status`         | The current status. Set to `Pending` to queue it. The script changes this to `Done` or `Error`. |
 | **B**  | `Theme`          | (Optional) Theme of the story.                                                                  |
 | **C**  | `Title`          | (Optional) The folder name and video will be derived from this.                                 |
 | **D**  | `Story`          | **(Required)** The main story text to be generated into a video.                                |
 | **E**  | `Moral`          | (Optional) A moral constraint to provide to the generator.                                      |
+```
+
+- ### Part 2: Story Generation Video Generator Columns
+
+```
 | **F**  | `Gen_Title`      | Output field: The AI-generated title downloaded from MagicLight.                                |
 | **G**  | `Gen_Summary`    | Output field: The short summary generated for the video description.                            |
 | **H**  | `Gen_Tags`       | Output field: AI-generated hashtags.                                                            |
@@ -24,10 +31,18 @@ The script automatically reads the column matching below.
 | **O**  | `Credit_Before`  | Output field: The user's credit balance before generating.                                      |
 | **P**  | `Credit_After`   | Output field: The user's credit balance after generation completing.                            |
 | **Q**  | `Email_Used`     | Output field: Which account from `accounts.txt` was used for processing.                        |
+```markdown
+```
+
+- ### Part 3: Check Credit Columns
+
+```
 | **R**  | `Credit_Acct`    | Extra field                                                                                     |
 | **S**  | `Credit_Total`   | Extra field                                                                                     |
 | **T**  | `Credit_Used`    | Extra field                                                                                     |
 | **U**  | `Credit_Remaining` | Extra field                                                                                   |
+```
+```
 
 ## How to Initialize
 1. Open your specified Google Sheet.

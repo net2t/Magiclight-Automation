@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=for-the-badge&logo=python)
 ![Playwright](https://img.shields.io/badge/playwright-1.40%2B-green?style=for-the-badge)
 ![FFmpeg](https://img.shields.io/badge/FFmpeg-4.4%2B-orange?style=for-the-badge)
-![Version](https://img.shields.io/badge/version-v1.0.0-brightgreen?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-v2.0.4-brightgreen?style=for-the-badge)
 
 **Automated kids story video pipeline**
 MagicLight.ai generation → FFmpeg processing → Google Drive upload → Sheets tracking
