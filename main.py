@@ -3174,7 +3174,16 @@ def _run_pipeline_core(limit, source_type="auto"):
                                   Completed_Time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 _err(f"Row {row_num} -> Error")
                 sleep_log(5); continue
-        if result and result.get("video"):
+        # Success = local video file saved OR drive upload succeeded OR bytes in memory
+        video_ok = bool(
+            result and (
+                result.get("video") or           # local file saved
+                result.get("drive_link") or      # uploaded to Drive (bytes path)
+                result.get("video_bytes")        # bytes in memory (pre-upload)
+            )
+        )
+        if video_ok:
+
             try:
                 update_sheet_row(row_num,
                     Status        = "Generated",
