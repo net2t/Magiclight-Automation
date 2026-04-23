@@ -34,9 +34,9 @@ on:
         type: boolean
 
   # ── Scheduled Run ──────────────────────────────────────────────────────────
-  # Runs every 30 min automatically (combined + loop + headless + drive)
+  # Runs hourly automatically (combined + headless + upload-drive)
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 * * * *"
 
 concurrency:
   group: magiclight-pipeline
@@ -149,9 +149,9 @@ jobs:
             MODE="combined"
             QTY="1"
             UPLOAD_DRIVE="true"
-            LOOP="true"
+            LOOP="false"
             DEBUG_FLAG=""
-            echo "[scheduler] Auto: combined --loop --headless --upload-drive"
+            echo "[scheduler] Auto: combined --max 1 --headless --upload-drive"
           else
             MODE="${{ github.event.inputs.mode }}"
             MODE="${MODE:-combined}"

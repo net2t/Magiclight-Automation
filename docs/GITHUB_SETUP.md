@@ -197,8 +197,8 @@ Before running the workflow, confirm:
    - **Debug:** ✅ only if troubleshooting
 
 ### Automatic Schedule
-The workflow runs automatically **every 30 minutes** via the cron schedule.
-It always uses: `combined --loop --headless --upload-drive`
+The workflow runs automatically **every hour** via the cron schedule.
+It always uses: `combined --max 1 --headless --upload-drive`
 
 To disable scheduled runs, remove or comment out the `schedule:` section in the workflow file.
 
