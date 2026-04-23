@@ -118,12 +118,12 @@ SHEET_NAME      = os.getenv("SHEET_NAME", "Database")
 CREDS_JSON      = os.getenv("CREDS_JSON", "credentials.json")
 DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID", "")
 
-STEP1_WAIT     = int(os.getenv("STEP1_WAIT",            "60"))
-STEP2_WAIT     = int(os.getenv("STEP2_WAIT",            "30"))
-STEP3_WAIT     = int(os.getenv("STEP3_WAIT",           "180"))
-RENDER_TIMEOUT = int(os.getenv("STEP4_RENDER_TIMEOUT", "1200"))
-POLL_INTERVAL  = 10
-RELOAD_INTERVAL = 120
+STEP1_WAIT     = int(os.getenv("STEP1_WAIT",            "45"))   # reduced: AI script gen usually <45s
+STEP2_WAIT     = int(os.getenv("STEP2_WAIT",            "20"))   # reduced: cast gen usually <20s
+STEP3_WAIT     = int(os.getenv("STEP3_WAIT",           "120"))   # reduced: storyboard usually <120s
+RENDER_TIMEOUT = int(os.getenv("STEP4_RENDER_TIMEOUT", "900"))   # reduced: 15 min max render
+POLL_INTERVAL  = 5   # reduced from 10 to 5 for faster progress detection
+RELOAD_INTERVAL = 90  # reduced from 120 to 90
 
 OUT_BASE  = "output"
 OUT_SHOTS = os.path.join(OUT_BASE, "screenshots")
@@ -1338,135 +1338,427 @@ def step1(page, story_text):
     _step("[Step 1] Story input ->")
     page.goto("https://magiclight.ai/kids-story/", timeout=60000)
     wait_site_loaded(page, None, timeout=60)
+    sleep_log(3, "initial page settle")
     dismiss_popups(page, timeout=10)
-    ta = page.get_by_role("textbox", name="Please enter an original")
-    wait_site_loaded(page, ta, timeout=60)
+    
+    # Find textarea with multiple fallback selectors
+    ta = None
+    for ta_sel in [
+        page.get_by_role("textbox", name="Please enter an original"),
+        page.locator("textarea.arco-textarea"),
+        page.locator("textarea[placeholder*='enter']"),
+        page.locator("textarea[placeholder*='story']"),
+        page.locator("textarea"),
+    ]:
+        try:
+            if hasattr(ta_sel, 'count'):
+                if ta_sel.count() > 0 and ta_sel.first.is_visible(timeout=5000):
+                    ta = ta_sel.first
+                    break
+            else:
+                ta_sel.wait_for(state="visible", timeout=10000)
+                ta = ta_sel
+                break
+        except: continue
+    
+    if ta is None:
+        screenshot(page, "step1_no_textarea")
+        raise Exception("[Step 1] Cannot find story textarea")
+    
     dismiss_popups(page, timeout=6)
     ta.wait_for(state="visible", timeout=20000)
-    ta.click(); ta.fill(story_text)
+    ta.scroll_into_view_if_needed()
+    ta.click()
+    page.wait_for_timeout(500)
+    ta.fill(story_text)
     _ok("Story text filled")
+    sleep_log(2)
+    
+    # Select Pixar style with robust selector
+    _click_style_option(page, "Pixar 2.0")
     sleep_log(1)
-    try:
-        page.locator("div").filter(has_text=re.compile(r"^Pixar 2\.0$")).first.click()
-        _ok("Style: Pixar 2.0")
-    except: _warn("Pixar 2.0 not found — default")
-    try:
-        page.locator("div").filter(has_text=re.compile(r"^16:9$")).first.click()
-        _ok("Aspect: 16:9")
-    except: _warn("16:9 not found — default")
+    
+    # Select 16:9 aspect ratio with robust JS click
+    _click_aspect_ratio(page, "16:9")
+    sleep_log(1)
+    
+    # Scroll down to expose voiceover/music dropdowns
     page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+    sleep_log(2)
+    
+    # Select voiceover – retry up to 3 times, verify female voice selected
+    _select_dropdown_robust(page, "Voiceover", "Sophia", timeout_open=5, timeout_pick=3, retries=3)
     sleep_log(1)
-    _select_dropdown(page, "Voiceover", "Sophia")
-    _select_dropdown(page, "Background Music", "Silica")
+    _select_dropdown_robust(page, "Background Music", "Silica", timeout_open=5, timeout_pick=3, retries=2)
+    
+    # Scroll again and click Next
     page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
     sleep_log(1)
     clicked = False
     for sel in ["button.arco-btn-primary:has-text('Next')", "button:has-text('Next')",
-                ".vlog-bottom", "div[class*='footer-btn']:has-text('Next')"]:
+                ".vlog-bottom", "div[class*='footer-btn']:has-text('Next')",
+                "div[class*='shiny-action']:has-text('Next')",
+                "div[class*='header-left-btn']:has-text('Next')"]:
         try:
             el = page.locator(sel)
-            if el.count() > 0 and el.first.is_visible():
+            if el.count() > 0 and el.first.is_visible(timeout=2000):
                 el.first.click(); clicked = True; break
         except: pass
     if not clicked:
         clicked = dom_click_text(page, ["Next", "Next Step", "Continue"], timeout=20)
     if not clicked:
+        screenshot(page, "step1_no_next")
         raise Exception("Step 1 Next button not found")
     _ok("Next -> Step 2")
     _wait_dismissing(page, STEP1_WAIT, "AI generating script")
 
-def _select_dropdown(page, label_text, option_text):
-    js_open = """\
-(label) => {
-    const all = Array.from(document.querySelectorAll('label,div,span,p'));
+
+def _click_style_option(page, style_text):
+    """Click a style option (e.g. 'Pixar 2.0') using multiple selector strategies."""
+    # Strategy 1: JS exact text match on visible elements
+    result = page.evaluate("""
+(style) => {
+    const candidates = Array.from(document.querySelectorAll('div,span,button,label,li'));
+    for (const el of candidates) {
+        const ownText = Array.from(el.childNodes)
+            .filter(n => n.nodeType === 3)
+            .map(n => n.textContent.trim()).join('');
+        const fullText = (el.innerText || '').trim();
+        const r = el.getBoundingClientRect();
+        if ((ownText === style || fullText === style) && r.width > 0 && r.height > 0) {
+            el.click();
+            return style;
+        }
+    }
+    return null;
+}""", style_text)
+    if result:
+        _ok(f"Style: {style_text}")
+        return True
+    # Strategy 2: Playwright filter
+    try:
+        loc = page.locator("div,span").filter(has_text=re.compile(f"^{re.escape(style_text)}$")).first
+        if loc.is_visible(timeout=3000):
+            loc.click()
+            _ok(f"Style: {style_text}")
+            return True
+    except: pass
+    _warn(f"Style '{style_text}' not found — using default")
+    return False
+
+
+def _click_aspect_ratio(page, ratio_text):
+    """Click aspect ratio button (e.g. '16:9') using JS for precision."""
+    result = page.evaluate("""
+(ratio) => {
+    // Look for ratio buttons/labels - they're usually radio/tab style
+    const selectors = [
+        '[class*="ratio"]',
+        '[class*="aspect"]',
+        '[class*="resolution"]',
+        'div.arco-radio-button',
+        'span.arco-radio-button',
+        'label[class*="radio"]',
+        'div[class*="tab-item"]',
+        'div[class*="option"]',
+    ];
+    for (const sel of selectors) {
+        const els = Array.from(document.querySelectorAll(sel));
+        for (const el of els) {
+            const t = (el.innerText || el.textContent || '').trim();
+            const r = el.getBoundingClientRect();
+            if (t === ratio && r.width > 0 && r.height > 0) {
+                el.click();
+                return 'selector:' + sel;
+            }
+        }
+    }
+    // Fallback: find any element whose exact text is the ratio
+    const all = Array.from(document.querySelectorAll('div,span,button,label'));
     for (const el of all) {
-        const own = Array.from(el.childNodes)
+        const ownText = Array.from(el.childNodes)
+            .filter(n => n.nodeType === 3)
+            .map(n => n.textContent.trim()).join('');
+        const r = el.getBoundingClientRect();
+        if (ownText === ratio && r.width > 0 && r.height > 5) {
+            el.click();
+            return 'fallback:ownText';
+        }
+    }
+    return null;
+}""", ratio_text)
+    if result:
+        _ok(f"Aspect ratio: {ratio_text} (via {result})")
+        return True
+    _warn(f"Aspect ratio '{ratio_text}' not found — using default")
+    return False
+
+
+def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeout_pick=3, retries=3):
+    """
+    Robust dropdown selection with:
+    - Multiple open strategies
+    - Wait for options to appear after open
+    - Verify selection was applied
+    - Retry on failure
+    """
+    js_open = """
+(label) => {
+    // Find label element
+    const all = Array.from(document.querySelectorAll('label,div,span,p,h4,h5'));
+    for (const el of all) {
+        const ownText = Array.from(el.childNodes)
             .filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join('');
-        if (own !== label && (el.innerText || '').trim() !== label) continue;
-        let c = el.parentElement;
-        for (let i = 0; i < 6; i++) {
+        const fullText = (el.innerText || '').trim();
+        if (ownText !== label && fullText !== label) continue;
+        // Walk up to find the select trigger
+        let c = el;
+        for (let i = 0; i < 8; i++) {
             if (!c) break;
-            const t = c.querySelector('.arco-select-view,.arco-select-view-input,' +
-                '[class*="select-view"],[class*="arco-select"]');
-            if (t && t.getBoundingClientRect().width > 0) { t.click(); return label; }
+            const triggers = c.querySelectorAll(
+                '.arco-select-view, .arco-select-view-input, ' +
+                '[class*="select-view"], [class*="arco-select"], ' +
+                '[class*="selector"], [class*="select-trigger"]'
+            );
+            for (const t of triggers) {
+                const r = t.getBoundingClientRect();
+                if (r.width > 0) { t.click(); return label + ':found@' + i; }
+            }
             c = c.parentElement;
+        }
+    }
+    // Fallback: find any arco-select near a label with the text
+    const selects = Array.from(document.querySelectorAll('.arco-select, [class*="select-wrap"]'));
+    for (const sel of selects) {
+        const parent = sel.closest('[class*="form-item"], [class*="setting"], [class*="row"]');
+        if (!parent) continue;
+        const labelEl = parent.querySelector('label, [class*="label"]');
+        if (labelEl && (labelEl.innerText || '').trim() === label) {
+            const trigger = sel.querySelector('.arco-select-view, [class*="select-view"]');
+            if (trigger) { trigger.click(); return label + ':formitem'; }
+            sel.click();
+            return label + ':select-click';
         }
     }
     return null;
 }"""
-    js_pick = """\
+    js_pick = """
 (opt) => {
-    const items = Array.from(document.querySelectorAll(
-        '.arco-select-option,[class*="select-option"],[class*="option-item"]'
-    )).filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
-    for (const el of items)
-        if ((el.innerText || '').trim() === opt) { el.click(); return opt; }
+    // Options are usually rendered in a portal/popup outside the main DOM
+    const containers = [
+        document.body,
+        ...Array.from(document.querySelectorAll(
+            '[class*="dropdown"], [class*="popup"], [class*="select-popup"], .arco-select-popup, [class*="option-list"]'
+        ))
+    ];
+    for (const container of containers) {
+        const items = Array.from(container.querySelectorAll(
+            '.arco-select-option, [class*="select-option"], [class*="option-item"], ' +
+            'li[class*="option"], [role="option"]'
+        )).filter(el => {
+            const r = el.getBoundingClientRect();
+            return r.width > 0 && r.height > 0;
+        });
+        for (const el of items) {
+            if ((el.innerText || el.textContent || '').trim() === opt) {
+                el.click();
+                return opt;
+            }
+        }
+    }
     return null;
 }"""
-    try:
-        r = page.evaluate(js_open, label_text)
-        if r:
-            time.sleep(0.8)
-            r2 = page.evaluate(js_pick, option_text)
-            if r2: _ok(f"{label_text} -> {option_text}")
-            else:
+    js_verify = """
+(args) => {
+    const [label, opt] = args;
+    const all = Array.from(document.querySelectorAll('label,div,span,p,h4,h5'));
+    for (const el of all) {
+        const fullText = (el.innerText || '').trim();
+        if (fullText !== label) continue;
+        let c = el;
+        for (let i = 0; i < 8; i++) {
+            if (!c) break;
+            const view = c.querySelector(
+                '.arco-select-view, .arco-select-view-value, [class*="select-view"]'
+            );
+            if (view) {
+                const txt = (view.innerText || view.textContent || '').trim();
+                return txt.includes(opt) ? 'ok:' + txt : 'wrong:' + txt;
+            }
+            c = c.parentElement;
+        }
+    }
+    return 'notfound';
+}"""
+    
+    for attempt in range(retries):
+        try:
+            # Step 1: Open the dropdown
+            r = page.evaluate(js_open, label_text)
+            if not r:
+                _warn(f"[dropdown] '{label_text}' trigger not found (attempt {attempt+1})")
+                sleep_log(2, f"dropdown retry {attempt+1}")
+                continue
+            _dbg(f"[dropdown] Opened '{label_text}': {r}")
+            
+            # Step 2: Wait for options to appear in the DOM
+            options_appeared = False
+            for _ in range(timeout_open * 2):  # poll every 500ms
+                visible_options = page.evaluate("""
+() => Array.from(document.querySelectorAll(
+    '.arco-select-option, [class*="select-option"], [class*="option-item"], [role="option"]'
+)).filter(el => el.getBoundingClientRect().height > 0).length
+""")
+                if visible_options > 0:
+                    options_appeared = True
+                    break
+                time.sleep(0.5)
+            
+            if not options_appeared:
+                _warn(f"[dropdown] Options did not appear for '{label_text}' (attempt {attempt+1})")
                 page.keyboard.press("Escape")
-                _warn(f"'{option_text}' not in {label_text} dropdown")
-        else:
-            _warn(f"{label_text} dropdown not found")
-    except Exception as e:
-        _warn(f"Dropdown error: {e}")
+                sleep_log(1)
+                continue
+            
+            # Step 3: Pick the option
+            time.sleep(0.3)  # tiny settle after options appear
+            r2 = page.evaluate(js_pick, option_text)
+            if r2:
+                sleep_log(0.5)
+                # Step 4: Verify the selection was applied
+                verify = page.evaluate(js_verify, [label_text, option_text])
+                if verify.startswith("ok:"):
+                    _ok(f"[dropdown] {label_text} -> '{option_text}' (verified: {verify})")
+                    return True
+                elif verify.startswith("wrong:"):
+                    _warn(f"[dropdown] {label_text} shows '{verify}' instead of '{option_text}' (attempt {attempt+1})")
+                    # Try once more - re-open and re-pick
+                    sleep_log(1)
+                    continue
+                else:
+                    _ok(f"[dropdown] {label_text} -> '{option_text}' (unverified — {verify})")
+                    return True
+            else:
+                _warn(f"[dropdown] Option '{option_text}' not found in '{label_text}' dropdown")
+                # Log available options for debugging
+                available = page.evaluate("""
+() => Array.from(document.querySelectorAll(
+    '.arco-select-option, [class*="select-option"], [class*="option-item"], [role="option"]'
+)).filter(el => el.getBoundingClientRect().height > 0)
+  .map(el => (el.innerText || '').trim()).slice(0, 20)
+""")
+                _info(f"[dropdown] Available options: {available}")
+                page.keyboard.press("Escape")
+                sleep_log(1)
+                
+        except Exception as e:
+            _warn(f"[dropdown] Error on attempt {attempt+1}: {e}")
+            try: page.keyboard.press("Escape")
+            except: pass
+            sleep_log(1)
+    
+    _warn(f"[dropdown] Failed to select '{option_text}' in '{label_text}' after {retries} attempts")
+    return False
+
+
+# Keep legacy _select_dropdown as thin wrapper for backward compat
+def _select_dropdown(page, label_text, option_text):
+    return _select_dropdown_robust(page, label_text, option_text, retries=2)
 
 # ── STEP 2: Cast ──────────────────────────────────────────────────────────────
 def step2(page):
     _step(f"[Step 2] Cast generation ({STEP2_WAIT}s)...")
     dismiss_popups(page, timeout=5)
-    _wait_dismissing(page, STEP2_WAIT, "characters generating")
+    
+    # Wait for cast/characters to load — detect when they're ready or timeout
+    _info("[Step 2] Waiting for cast images to appear...")
+    cast_wait_deadline = time.time() + STEP2_WAIT
+    js_cast_ready = """
+() => {
+    const imgs = document.querySelectorAll('[class*="role"] img, [class*="cast"] img, [class*="character"] img');
+    const loaded = Array.from(imgs).filter(i => i.naturalWidth > 0).length;
+    return {total: imgs.length, loaded: loaded};
+}"""
+    while time.time() < cast_wait_deadline:
+        if _shutdown: break
+        _dismiss_all(page)
+        try:
+            cs = page.evaluate(js_cast_ready)
+            if cs['total'] > 0 and cs['loaded'] >= cs['total']:
+                _ok(f"[Step 2] Cast ready: {cs['loaded']}/{cs['total']} images")
+                break
+        except: pass
+        time.sleep(3)
+    
+    # Extra dismissal pass
     dismiss_popups(page, timeout=5)
+    sleep_log(2)
+    
+    # Click Next Step with extended selector list
     clicked = False
     for sel in [
         "div[class*='step2-footer-btn-left']",
         "button:has-text('Next Step')",
         "div[class*='footer']:has-text('Next Step')",
+        "div[class*='header-shiny-action__btn']:has-text('Next Step')",
+        "div[class*='header-left-btn']:has-text('Next Step')",
+        "button.arco-btn-primary:has-text('Next Step')",
     ]:
         try:
             el = page.locator(sel)
-            if el.count() > 0 and el.first.is_visible():
+            if el.count() > 0 and el.first.is_visible(timeout=2000):
                 el.first.click(); clicked = True; break
         except: pass
     if not clicked:
-        clicked = dom_click_text(page, ["Next Step", "Next", "Animate All"], timeout=30)
-    sleep_log(4)
-    _dismiss_animation_modal(page)
+        clicked = dom_click_text(page, ["Next Step", "Next", "Animate All"], timeout=20)
     sleep_log(3)
+    _dismiss_animation_modal(page)
+    sleep_log(2)
     _ok("[Step 2] Done")
 
 # ── STEP 3: Storyboard ────────────────────────────────────────────────────────
 def step3(page):
     _step(f"[Step 3] Storyboard (up to {STEP3_WAIT}s)...")
     dismiss_popups(page, timeout=5)
-    js_img = """\
-() => document.querySelectorAll(
-    '[class*="role-card"] img,[class*="scene"] img,' +
-    '[class*="storyboard"] img,[class*="story-board"] img'
-).length"""
+    js_img = """
+() => {
+    const imgs = document.querySelectorAll(
+        '[class*="role-card"] img, [class*="scene"] img,' +
+        '[class*="storyboard"] img, [class*="story-board"] img,' +
+        '[class*="panel"] img, [class*="slide"] img'
+    );
+    const loaded = Array.from(imgs).filter(i => i.naturalWidth > 0 && i.src && !i.src.includes('data:image/gif')).length;
+    return {total: imgs.length, loaded: loaded};
+}"""
     deadline = time.time() + STEP3_WAIT
+    last_log = 0
     while time.time() < deadline:
         if _shutdown: break
-        if page.evaluate(js_img) >= 2: break
+        try:
+            cs = page.evaluate(js_img)
+            if cs['loaded'] >= 2:
+                _ok(f"[Step 3] Storyboard ready: {cs['loaded']}/{cs['total']} images")
+                break
+            if time.time() - last_log >= 15:
+                _info(f"[step3] Waiting for storyboard: {cs['loaded']}/{cs['total']} images loaded")
+                last_log = time.time()
+        except: pass
         _dismiss_all(page)
-        time.sleep(5)
-    sleep_log(3)
+        time.sleep(4)
+    sleep_log(2)
     _set_subtitle_style(page)
+    sleep_log(1)
     clicked = False
     for sel in [
         "[class*='header'] button:has-text('Next')",
         "[class*='header-shiny-action__btn']:has-text('Next')",
+        "div[class*='header-left-btn']:has-text('Next')",
         "div[class*='step2-footer-btn-left']",
+        "button.arco-btn-primary:has-text('Next')",
     ]:
         try:
             el = page.locator(sel)
-            if el.count() > 0 and el.first.is_visible():
+            if el.count() > 0 and el.first.is_visible(timeout=2000):
                 el.first.click(); clicked = True; break
         except: pass
     if not clicked:
@@ -1627,8 +1919,10 @@ def step4(page, safe_name, sheet_row_num=None):
     start = time.time(); last_reload = start; render_done = False
     js_state = r"""
 () => {
+    // 1. Progress bar / percentage indicator (highest priority - still rendering)
     const prog = Array.from(document.querySelectorAll(
-        '[class*="progress"],[class*="Progress"],[class*="render-progress"],[class*="generating"]'
+        '[class*="progress"],[class*="Progress"],[class*="render-progress"],'
+        + '[class*="generating"],[class*="loading-bar"],[class*="task-progress"]'
     )).filter(el => {
         const r = el.getBoundingClientRect();
         return r.width > 0 && r.height > 0 && (el.innerText || '').match(/[0-9]+\s*%/);
@@ -1637,23 +1931,33 @@ def step4(page, safe_name, sheet_row_num=None):
         const m = (prog[0].innerText || '').match(/(\d+)\s*%/);
         return 'progress:' + (m ? m[1] : '?') + '%';
     }
-    const body = (document.body && document.body.innerText) || '';
-    const kws = ['video has been generated','generation complete',
-                 'successfully generated','video is ready','has been generated'];
-    for (const k of kws)
-        if (body.toLowerCase().includes(k.toLowerCase())) return 'text:' + k;
-    const btns = Array.from(document.querySelectorAll('button,a,div[class*="btn"]'));
+    // 2. "Download" button visibly available
+    const dlTexts = ['Download video','Download Video','Download'];
+    const btns = Array.from(document.querySelectorAll(
+        'button, a, div[class*="btn"], a[href*=".mp4"], a[download]'
+    ));
     for (const el of btns) {
         const t = (el.innerText || '').trim();
         const r = el.getBoundingClientRect();
-        if (r.width > 0 && (t === 'Download video' || t === 'Download Video' || t === 'Download'))
-            return 'btn:' + t;
+        if (r.width > 0 && dlTexts.includes(t)) return 'btn:' + t;
     }
-    const vid = document.querySelector('video[src*=".mp4"],video source[src*=".mp4"]');
-    if (vid && vid.src) return 'video:' + vid.src.substring(0, 60);
+    // 3. Check for direct video element
+    const vid = document.querySelector(
+        'video[src*=".mp4"], video source[src*=".mp4"], a[href*=".mp4"]'
+    );
+    if (vid && vid.src) return 'video:' + vid.src.substring(0, 80);
+    // 4. Page text cues (generation complete messages)
+    const body = (document.body && document.body.innerText) || '';
+    const kws = ['video has been generated','generation complete',
+                 'successfully generated','video is ready','has been generated',
+                 'generation succeed','your video is done'];
+    for (const k of kws)
+        if (body.toLowerCase().includes(k.toLowerCase())) return 'text:' + k;
     return null;
 }"""
     last_pct = ""
+    stall_count = 0
+    last_sig = None
     while time.time() - start < RENDER_TIMEOUT:
         if _shutdown: break
         elapsed = int(time.time() - start)
@@ -1662,19 +1966,18 @@ def step4(page, safe_name, sheet_row_num=None):
                 page.reload(timeout=30000, wait_until="domcontentloaded")
                 wait_site_loaded(page, None, timeout=30)
                 _dismiss_all(page)
+                _info(f"[step4] Page reloaded at {elapsed}s")
             except Exception as e:
                 _warn(f"Reload error: {e}")
             last_reload = time.time()
         _dismiss_all(page)
-        # Check if page is still valid before evaluating
         try:
             if page.is_closed():
                 _err("Page was closed during render wait - aborting")
                 break
             sig = page.evaluate(js_state)
         except Exception as e:
-            _warn(f"Page evaluation error during render wait: {e}")
-            # Try to reload the page if evaluation fails
+            _warn(f"Page evaluation error: {e}")
             try:
                 page.goto(page.url, timeout=30000)
                 wait_site_loaded(page, None, timeout=30)
@@ -1684,13 +1987,24 @@ def step4(page, safe_name, sheet_row_num=None):
                 _err("Cannot recover from page evaluation error - aborting")
                 break
         if sig is None:
-            if elapsed % 30 == 0:
-                _info(f"[step4] {elapsed//60}m{elapsed%60}s elapsed")
+            stall_count += 1
+            if elapsed % 20 == 0:
+                _info(f"[step4] {elapsed//60}m{elapsed%60}s elapsed (waiting for render signal)")
+            if stall_count >= 60:  # 60 * 5s = 5 minutes stall, try reload
+                _warn("[step4] No render signal for 5min, forcing reload")
+                try:
+                    page.reload(timeout=30000, wait_until="domcontentloaded")
+                    wait_site_loaded(page, None, timeout=30)
+                    _dismiss_all(page)
+                except: pass
+                stall_count = 0
+                last_reload = time.time()
         elif sig.startswith("progress:"):
             pct = sig.split(":", 1)[1]
             if pct != last_pct:
                 console.print(f"  [cyan]>[/cyan] Rendering... [bold]{pct}[/bold]")
                 last_pct = pct
+            stall_count = 0
         else:
             _ok(f"Render done ({elapsed}s) -> {sig}")
             render_done = True; break
@@ -1869,32 +2183,58 @@ def _download(page, safe_name, sheet_row_num=None):
             cancel_btn.first.click(timeout=1000)
             sleep_log(1)
     except: pass
-    _info("[dl] Waiting for video element (max 60s)...")
-    vid_wait_deadline = time.time() + 60
-    while time.time() < vid_wait_deadline:
-        vid_check = page.evaluate("""\
+    _info("[dl] Waiting for video/download element (max 90s)...")
+    vid_wait_deadline = time.time() + 90
+    
+    # Comprehensive JS to find video URL or download link
+    js_find_dl = """
 () => {
-    const v = document.querySelector('video');
-    if (v && v.src && v.src.includes('.mp4')) return v.src;
-    const s = document.querySelector('video source');
-    if (s && s.src && s.src.includes('.mp4')) return s.src;
-    const a = document.querySelector('a[href*=".mp4"]');
-    if (a) return a.href;
+    // Priority 1: direct mp4 video element
+    const v = document.querySelector('video[src*=".mp4"], video source[src*=".mp4"]');
+    if (v && v.src) return {type: 'video', url: v.src};
+    // Priority 2: anchor download link
+    const anchors = Array.from(document.querySelectorAll('a[href*=".mp4"], a[download]'));
+    for (const a of anchors) {
+        const r = a.getBoundingClientRect();
+        if (a.href && r.width >= 0) return {type: 'link', url: a.href};
+    }
+    // Priority 3: Download video button (visible)
+    const dlTexts = ['Download video', 'Download Video', 'Download'];
+    const btns = Array.from(document.querySelectorAll('button, a, div[class*="btn"]'));
+    for (const el of btns) {
+        const t = (el.innerText || '').trim();
+        const r = el.getBoundingClientRect();
+        if (dlTexts.includes(t) && r.width > 0 && r.height > 0)
+            return {type: 'button', text: t, tag: el.tagName};
+    }
+    // Priority 4: blob URL
+    const vBlob = document.querySelector('video[src^="blob:"]');
+    if (vBlob) return {type: 'blob', url: vBlob.src};
     return null;
-}""")
-        if vid_check: break
-        time.sleep(2)
-    for sel in [
+}"""
+    dl_found = None
+    while time.time() < vid_wait_deadline:
+        dl_found = page.evaluate(js_find_dl)
+        if dl_found:
+            _info(f"[dl] Found: {dl_found}")
+            break
+        _dismiss_all(page)
+        time.sleep(3)
+    
+    # Now try to trigger the download
+    download_selectors = [
         "button:has-text('Download video')",
         "a:has-text('Download video')",
         "button:has-text('Download Video')",
         "a:has-text('Download Video')",
+        "button:has-text('Download')",
         "a[download]",
         "a[href*='.mp4']",
-    ]:
+    ]
+    for sel in download_selectors:
         try:
             loc = page.locator(sel)
-            if loc.count() > 0 and loc.first.is_visible():
+            if loc.count() > 0 and loc.first.is_visible(timeout=2000):
                 _info(f"[dl] Clicking '{sel}'...")
                 with page.expect_download(timeout=180000) as dl_info:
                     loc.first.click()
@@ -1906,14 +2246,23 @@ def _download(page, safe_name, sheet_row_num=None):
                         _ok(f"Video -> {video_dest} ({os.path.getsize(video_dest)//1024} KB)")
                         break
                 else:
-                    # Get video content to upload to Drive directly
-                    video_bytes = dl.read()
+                    try:
+                        video_bytes = dl.read()
+                    except Exception:
+                        # save_as to temp then read
+                        import tempfile
+                        _tmp = tempfile.mktemp(suffix=".mp4")
+                        dl.save_as(_tmp)
+                        with open(_tmp, 'rb') as _f:
+                            video_bytes = _f.read()
+                        try: os.remove(_tmp)
+                        except: pass
                     if len(video_bytes) > 10000:
                         out["video_bytes"] = video_bytes
                         _ok(f"Video downloaded ({len(video_bytes)//1024} KB) - local save skipped")
                         break
         except Exception as e:
-            _warn(f"  {sel}: {e}")
+            _dbg(f"  dl-sel '{sel}': {e}")
     if not out["video"]:
         vid_url = page.evaluate("""\
 () => {
