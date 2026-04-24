@@ -117,15 +117,21 @@ jobs:
         run: |
           touch .env
 
-          # ── Normalize line endings (ENV_FILE pasted from Windows has \r\n) ──
-          sed -i 's/\r//' .env
+          # ── Normalize Windows \r\n → \n ──────────────────────────────────────
+          tr -d '\r' < .env > /tmp/env_clean && mv /tmp/env_clean .env
 
+          # ── inject_line: remove old key then append clean value ─────────────
           inject_line() {
             local key="$1" val="$2"
-            [ -z "$val" ] && return
-            # Remove existing key (any line ending variant), then append clean line
-            sed -i "/^${key}\s*=/d" .env
+            if [ -z "$val" ]; then
+              echo "[inject] SKIP  $key (no value provided)"
+              return
+            fi
+            # Remove any existing line for this key (grep -v is portable)
+            grep -v "^${key}=" .env > /tmp/env_tmp 2>/dev/null && mv /tmp/env_tmp .env || true
+            # Append the new value with a clean newline
             printf '%s=%s\n' "$key" "$val" >> .env
+            echo "[inject] SET   ${key}=${val:0:12}..."
           }
 
           SHEET_ID_FINAL="${VAR_SHEET_ID:-$SECRET_SHEET_ID}"
@@ -134,21 +140,21 @@ jobs:
           inject_line "DRIVE_FOLDER_ID"      "$VAR_DRIVE_FOLDER_ID"
           inject_line "LOCAL_OUTPUT_ENABLED" "${VAR_LOCAL_OUTPUT:-false}"
 
-          echo "[preflight] .env size: $(wc -c < .env) bytes"
-          echo "[preflight] SHEET_ID source: var='${VAR_SHEET_ID:0:8}...' secret='${SECRET_SHEET_ID:0:8}...'"
+          # ── Preflight check ─────────────────────────────────────────────────
+          echo ""
+          echo "[preflight] .env size: $(wc -c < .env) bytes, lines: $(wc -l < .env)"
+          echo "[debug] All keys in .env:"
+          grep -v '^\s*#' .env | grep '=' | cut -d= -f1 | sort || true
 
-          # Strip \r again after all edits, then check
-          sed -i 's/\r//' .env
-          FOUND_ID="$(grep -oP '(?<=^SHEET_ID=).+' .env | tr -d '\r' | head -1)"
+          FOUND_ID="$(grep '^SHEET_ID=' .env | cut -d= -f2- | tr -d '\r\n' | head -c 40)"
           if [ -z "$FOUND_ID" ]; then
+            echo ""
             echo "❌ SHEET_ID missing from .env"
-            echo "   → Set repo Variable SHEET_ID in: Settings → Secrets and variables → Actions → Variables"
+            echo "   → Add repo Variable SHEET_ID: repo Settings → Secrets and variables → Actions → Variables tab"
             echo "   → OR include SHEET_ID=... in your ENV_FILE secret"
-            echo "[debug] First 20 lines of .env (values masked):"
-            grep -v '^\s*#' .env | cut -c1-40 | head -20 || true
             exit 1
           fi
-          echo "✅ Preflight passed — SHEET_ID is set (${FOUND_ID:0:8}...)"
+          echo "✅ Preflight passed — SHEET_ID=${FOUND_ID:0:8}..."
 
       # ── 8. Run pipeline ──────────────────────────────────────────────────────
       - name: Run MagicLight Pipeline
