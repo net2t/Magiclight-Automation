@@ -103,41 +103,52 @@ jobs:
           [ -n "$OAUTH_TOKEN" ]       && printf '%s' "$OAUTH_TOKEN"       > token.json            && echo "✅ token.json written"
 
       # ── 7. Inject repo Variables into .env (override if needed) ─────────────
-      # These can be set as GitHub Repo Variables (not secrets) for easy editing:
-      #   SHEET_ID, SHEET_NAME, DRIVE_FOLDER_ID, LOCAL_OUTPUT_ENABLED
+      # Priority order for SHEET_ID:
+      #   1. GitHub Repo Variable  SHEET_ID  (Settings → Variables → Actions)
+      #   2. GitHub Secret         SHEET_ID
+      #   3. Already present in    ENV_FILE  secret
       - name: Inject Env Variables from GitHub Repo Variables
         env:
-          SHEET_ID:             ${{ vars.SHEET_ID }}
-          SHEET_NAME:           ${{ vars.SHEET_NAME }}
-          DRIVE_FOLDER_ID:      ${{ vars.DRIVE_FOLDER_ID }}
-          LOCAL_OUTPUT_ENABLED: ${{ vars.LOCAL_OUTPUT_ENABLED }}
-          SHEET_ID_SECRET:      ${{ secrets.SHEET_ID }}
+          VAR_SHEET_ID:          ${{ vars.SHEET_ID }}
+          VAR_SHEET_NAME:        ${{ vars.SHEET_NAME }}
+          VAR_DRIVE_FOLDER_ID:   ${{ vars.DRIVE_FOLDER_ID }}
+          VAR_LOCAL_OUTPUT:      ${{ vars.LOCAL_OUTPUT_ENABLED }}
+          SECRET_SHEET_ID:       ${{ secrets.SHEET_ID }}
         run: |
           touch .env
+
+          # ── Normalize line endings (ENV_FILE pasted from Windows has \r\n) ──
+          sed -i 's/\r//' .env
 
           inject_line() {
             local key="$1" val="$2"
             [ -z "$val" ] && return
-            if grep -q "^${key}=" .env 2>/dev/null; then
-              sed -i "s|^${key}=.*|${key}=${val}|" .env
-            else
-              echo "${key}=${val}" >> .env
-            fi
+            # Remove existing key (any line ending variant), then append clean line
+            sed -i "/^${key}\s*=/d" .env
+            printf '%s=%s\n' "$key" "$val" >> .env
           }
 
-          SHEET_ID_FINAL="${SHEET_ID:-$SHEET_ID_SECRET}"
+          SHEET_ID_FINAL="${VAR_SHEET_ID:-$SECRET_SHEET_ID}"
           inject_line "SHEET_ID"             "$SHEET_ID_FINAL"
-          inject_line "SHEET_NAME"           "$SHEET_NAME"
-          inject_line "DRIVE_FOLDER_ID"      "$DRIVE_FOLDER_ID"
-          inject_line "LOCAL_OUTPUT_ENABLED" "${LOCAL_OUTPUT_ENABLED:-false}"
+          inject_line "SHEET_NAME"           "$VAR_SHEET_NAME"
+          inject_line "DRIVE_FOLDER_ID"      "$VAR_DRIVE_FOLDER_ID"
+          inject_line "LOCAL_OUTPUT_ENABLED" "${VAR_LOCAL_OUTPUT:-false}"
 
           echo "[preflight] .env size: $(wc -c < .env) bytes"
+          echo "[preflight] SHEET_ID source: var='${VAR_SHEET_ID:0:8}...' secret='${SECRET_SHEET_ID:0:8}...'"
 
-          if ! grep -qE '^\s*SHEET_ID\s*=\s*.+' .env; then
-            echo "❌ SHEET_ID missing from .env — set repo Variable SHEET_ID or Secret ENV_FILE"
+          # Strip \r again after all edits, then check
+          sed -i 's/\r//' .env
+          FOUND_ID="$(grep -oP '(?<=^SHEET_ID=).+' .env | tr -d '\r' | head -1)"
+          if [ -z "$FOUND_ID" ]; then
+            echo "❌ SHEET_ID missing from .env"
+            echo "   → Set repo Variable SHEET_ID in: Settings → Secrets and variables → Actions → Variables"
+            echo "   → OR include SHEET_ID=... in your ENV_FILE secret"
+            echo "[debug] First 20 lines of .env (values masked):"
+            grep -v '^\s*#' .env | cut -c1-40 | head -20 || true
             exit 1
           fi
-          echo "✅ Preflight passed — SHEET_ID is set"
+          echo "✅ Preflight passed — SHEET_ID is set (${FOUND_ID:0:8}...)"
 
       # ── 8. Run pipeline ──────────────────────────────────────────────────────
       - name: Run MagicLight Pipeline
