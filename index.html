@@ -5,21 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bright Little Stories — Content System</title>
 <link rel="icon" type="image/png" href="https://yt3.ggpht.com/t1dklM-gbcPmlsLqDAOYg_xhiz7wBUkf6-HQgtRhKOnNiiZqd-tiwqvj3xa9CkQpTD_lWbLX4A=s48-c-k-c0x00ffffff-no-rj">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Poppins:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:#050505;--bg2:#0a0a0a;--panel:#111;--border:#1a1a1a;
-  --accent:#00ff88;--accent2:#00ccff;--accent3:#ff0055;
-  --purple:#aa44ff;--orange:#ff8800;--yellow:#ffdd00;
-  --text:#c8c8c8;--dim:#555;
-  --glow:0 0 20px rgba(0,255,136,.3);--glow2:0 0 20px rgba(0,204,255,.3);
+  --bg:#1A1A1A;--bg2:#141414;--panel:#2D2D2D;--border:#FFFFFF;
+  --accent:#FF1744;--accent2:#00E5FF;--accent3:#FFEA00;
+  --purple:#FFEA00;--orange:#FFEA00;--yellow:#FFEA00;
+  --text:#FFFFFF;--dim:rgba(255,255,255,.7);
+  --glow:none;--glow2:none;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 4px);pointer-events:none;z-index:9999}
-body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,.025) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,23,68,.03) 2px,rgba(255,23,68,.03) 4px);pointer-events:none;z-index:9999}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,234,0,.035) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0}
 
 /* ── HEADER ── */
 .header{position:sticky;top:0;z-index:200;background:rgba(5,5,5,.97);border-bottom:1px solid var(--accent);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px;backdrop-filter:blur(10px);box-shadow:0 0 30px rgba(0,255,136,.1);gap:10px}
@@ -55,6 +55,31 @@ body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(r
 .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.4}
 .panel-title{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .panel-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── GRAFFITI THEME OVERRIDES ── */
+.logo-text{font-family:'Poppins',sans-serif;text-shadow:none}
+.tab{font-family:'Poppins',sans-serif}
+.panel-title{font-family:'Poppins',sans-serif;letter-spacing:2px}
+.kpi-value{font-family:'Poppins',sans-serif}
+th{font-family:'Poppins',sans-serif}
+.hbtn,.btn-primary,.btn-secondary,.btn-danger{font-family:'Poppins',sans-serif}
+input,textarea,select{font-family:'Inter',sans-serif}
+
+.panel,.header,.tabs,.kpi-card,.pipeline-step,.review-card,.review-field,.modal,.upload-zone,.notification,table,th,td,input,textarea,select,.hbtn,.hbtn-icon,.btn-primary,.btn-secondary,.btn-danger,.btn-copy,.theme-tag,.badge{
+  border-radius:0 !important;
+  border-width:4px !important;
+  box-shadow:6px 6px 0 rgba(0,0,0,.55) !important;
+}
+
+.header{background:rgba(26,26,26,.98) !important;box-shadow:6px 6px 0 rgba(0,0,0,.65) !important}
+.tab.active{background:rgba(0,229,255,.16) !important;color:var(--accent2) !important}
+.tab:hover{color:var(--accent3) !important}
+.hbtn.accent{background:var(--accent) !important;color:#000 !important}
+.btn-primary{background:var(--accent2) !important;color:#000 !important}
+.btn-primary:hover{background:var(--accent3) !important;transform:none !important}
+.btn-secondary{color:var(--accent3) !important;border-color:var(--accent3) !important}
+.btn-danger{background:var(--accent) !important}
+tr:hover td{background:rgba(255,23,68,.08) !important}
 
 /* ── KPI ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
@@ -950,6 +975,7 @@ async function approveStory(i) {
   if (cfg.url) {
     try {
       await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action:'updateStatus', storyRow:i+2, status:'Approved' }) });
+      await fetch(cfg.url, { method:'POST', body: JSON.stringify({ action:'updateYTStatus', storyRow:i+2, ytStatus:'TRUE' }) });
     } catch(e) {}
   }
   renderAll();

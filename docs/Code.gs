@@ -27,7 +27,7 @@ var COL = {
   YouTube_ID:     18,   // R
   YouTube_URL:    19,   // S
   Schedule_Time:  20,   // T
-  Done:           21    // U
+  YT_Status:      21    // U
 };
 
 function _getSheet() {
@@ -58,6 +58,8 @@ function doPost(e) {
       return _json(addStory(data));
     } else if (action === 'updateStatus') {
       return _json(updateStatus(data));
+    } else if (action === 'updateYTStatus') {
+      return _json(updateYTStatus(data));
     } else if (action === 'saveFileUrl') {
       return _json(saveFileUrl(data));
     } else if (action === 'saveYouTubeResult') {
@@ -100,7 +102,8 @@ function getStories() {
       "Word Count": wc,
       "Drive Thumbnail URL": row[COL.DriveImg_Link - 1] || '',
       "Drive Video URL": row[COL.Drive_Link - 1] || '',
-      "YouTube URL": row[COL.YouTube_URL - 1] || ''
+      "YouTube URL": row[COL.YouTube_URL - 1] || '',
+      "YT_Status": row[COL.YT_Status - 1] || ''
     });
   }
   
@@ -129,6 +132,12 @@ function addStory(data) {
 function updateStatus(data) {
   var ws = _getSheet();
   ws.getRange(data.storyRow, COL.Status).setValue(data.status);
+  return { success: true };
+}
+
+function updateYTStatus(data) {
+  var ws = _getSheet();
+  ws.getRange(data.storyRow, COL.YT_Status).setValue(data.ytStatus);
   return { success: true };
 }
 
