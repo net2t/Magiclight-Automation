@@ -1426,7 +1426,8 @@ def _click_style_option(page, style_text):
         const fullText = (el.innerText || '').trim();
         const r = el.getBoundingClientRect();
         if ((ownText === style || fullText === style) && r.width > 0 && r.height > 0) {
-            el.click();
+            ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e => 
+                el.dispatchEvent(new MouseEvent(e, {bubbles:true, cancelable:true, view:window})));
             return style;
         }
     }
@@ -1468,7 +1469,8 @@ def _click_aspect_ratio(page, ratio_text):
             const t = (el.innerText || el.textContent || '').trim();
             const r = el.getBoundingClientRect();
             if (t === ratio && r.width > 0 && r.height > 0) {
-                el.click();
+                ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e => 
+                    el.dispatchEvent(new MouseEvent(e, {bubbles:true, cancelable:true, view:window})));
                 return 'selector:' + sel;
             }
         }
@@ -1481,7 +1483,8 @@ def _click_aspect_ratio(page, ratio_text):
             .map(n => n.textContent.trim()).join('');
         const r = el.getBoundingClientRect();
         if (ownText === ratio && r.width > 0 && r.height > 5) {
-            el.click();
+            ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e => 
+                el.dispatchEvent(new MouseEvent(e, {bubbles:true, cancelable:true, view:window})));
             return 'fallback:ownText';
         }
     }
@@ -1507,6 +1510,7 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
     // Find label element
     const all = Array.from(document.querySelectorAll('label,div,span,p,h4,h5'));
     for (const el of all) {
+        if (el.getBoundingClientRect().width === 0) continue;
         const ownText = Array.from(el.childNodes)
             .filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join('');
         const fullText = (el.innerText || '').trim();
@@ -1522,7 +1526,11 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
             );
             for (const t of triggers) {
                 const r = t.getBoundingClientRect();
-                if (r.width > 0) { t.click(); return label + ':found@' + i; }
+                if (r.width > 0) {
+                    ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e => 
+                        t.dispatchEvent(new MouseEvent(e, {bubbles:true, cancelable:true, view:window})));
+                    return label + ':found@' + i; 
+                }
             }
             c = c.parentElement;
         }
@@ -1533,9 +1541,9 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
         const parent = sel.closest('[class*="form-item"], [class*="setting"], [class*="row"]');
         if (!parent) continue;
         const labelEl = parent.querySelector('label, [class*="label"]');
-        if (labelEl && (labelEl.innerText || '').trim() === label) {
+        if (labelEl && (labelEl.innerText || '').trim() === label && sel.getBoundingClientRect().width > 0) {
             const trigger = sel.querySelector('.arco-select-view, [class*="select-view"]');
-            if (trigger) { trigger.click(); return label + ':formitem'; }
+            if (trigger && trigger.getBoundingClientRect().width > 0) { trigger.click(); return label + ':formitem'; }
             sel.click();
             return label + ':select-click';
         }
@@ -1544,6 +1552,11 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
 }"""
     js_pick = """
 (opt) => {
+    const simulateClick = (el) => {
+        ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e => {
+            el.dispatchEvent(new MouseEvent(e, { bubbles: true, cancelable: true, view: window }));
+        });
+    };
     // Options are usually rendered in a portal/popup outside the main DOM
     const containers = [
         document.body,
@@ -1561,9 +1574,20 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
         });
         for (const el of items) {
             if ((el.innerText || el.textContent || '').trim() === opt) {
-                el.click();
+                simulateClick(el);
                 return opt;
             }
+        }
+    }
+    // Fallback exact title match inside dropdown
+    for (const container of containers) {
+        const items = Array.from(container.querySelectorAll('[title="' + opt + '"]')).filter(el => {
+            const r = el.getBoundingClientRect();
+            return r.width > 0 && r.height > 0;
+        });
+        if (items.length > 0) {
+            simulateClick(items[0]);
+            return opt;
         }
     }
     return null;
@@ -1573,6 +1597,7 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
     const [label, opt] = args;
     const all = Array.from(document.querySelectorAll('label,div,span,p,h4,h5'));
     for (const el of all) {
+        if (el.getBoundingClientRect().width === 0) continue;
         const fullText = (el.innerText || '').trim();
         if (fullText !== label) continue;
         let c = el;
@@ -1582,8 +1607,14 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
                 '.arco-select-view, .arco-select-view-value, [class*="select-view"]'
             );
             if (view) {
-                const txt = (view.innerText || view.textContent || '').trim();
-                return txt.includes(opt) ? 'ok:' + txt : 'wrong:' + txt;
+                let txt = view.getAttribute('title') || view.innerText || view.textContent || '';
+                // Also check child nodes if empty
+                if (!txt.trim()) {
+                    const valEl = view.querySelector('.arco-select-view-value');
+                    if (valEl) txt = valEl.innerText || valEl.textContent || '';
+                }
+                const cln = txt.trim();
+                if (cln) return cln.includes(opt) ? 'ok:' + cln : 'wrong:' + cln;
             }
             c = c.parentElement;
         }
