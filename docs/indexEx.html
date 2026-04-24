@@ -636,13 +636,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadConfig() {
   try { cfg = JSON.parse(localStorage.getItem('sf_config') || '{}'); } catch(e) { cfg = {}; }
-  if (!cfg.url) cfg.url = "https://script.google.com/macros/s/AKfycbyOvM-sZVFq8PP8_AJwUxeLCnhvjSWL-BYZuAVG3Zfw6y0FKjWFZJNNSk3Xu1K-3vNC/exec";
   if (cfg.url) document.getElementById('cfg-url').value = cfg.url;
   if (cfg.folder) document.getElementById('cfg-folder').value = cfg.folder;
   if (cfg.playlist) document.getElementById('cfg-playlist').value = cfg.playlist;
-  
-  // Auto-save the default so it persists 
-  localStorage.setItem('sf_config', JSON.stringify(cfg));
 }
 
 function saveCfg() {
