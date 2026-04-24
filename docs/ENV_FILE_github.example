@@ -1,8 +1,8 @@
 # ============================================================
 # GitHub Secret: ENV_FILE
 # ============================================================
-# Paste the ENTIRE content of this file into the ENV_FILE
-# secret on GitHub:
+# Paste the ENTIRE content of this file as-is into the
+# ENV_FILE secret on GitHub:
 #   Repo → Settings → Secrets and variables → Actions
 #   → New repository secret → Name: ENV_FILE
 #
@@ -10,27 +10,23 @@
 #   - No trailing spaces
 #   - Use LF line endings (not CRLF/Windows)
 #   - Do NOT include quotes around values
-#   - Replace ALL placeholder values below before pasting
+#   - Replace EMAIL and PASSWORD before pasting
 # ============================================================
 
 
 # ── MagicLight.ai login ───────────────────────────────────
-# Use ONE of your accounts here (extra accounts go in ACCOUNTS_TXT secret)
+# Use ONE of your accounts here (extras go in ACCOUNTS_TXT secret)
 EMAIL=your_main_account@email.com
 PASSWORD=yourPasswordHere
 
 
 # ── Google Sheets ─────────────────────────────────────────
-# Get SHEET_ID from the URL:
-#   https://docs.google.com/spreadsheets/d/THIS_PART_HERE/edit
 SHEET_ID=1p5sg2j-6IZhbj-7s2giJM_9e9rWnK-ixgcrt3jgR7Gc
 SHEET_NAME=Database
 CREDS_JSON=credentials.json
 
 
 # ── Google Drive ──────────────────────────────────────────
-# Get DRIVE_FOLDER_ID from the folder URL:
-#   https://drive.google.com/drive/folders/THIS_PART_HERE
 DRIVE_FOLDER_ID=1JPz4lfkhbdNInVGUOkgFNM5QIIqPygrt
 
 
@@ -42,23 +38,23 @@ UPLOAD_TO_DRIVE=true
 
 # ── Timing (seconds) ──────────────────────────────────────
 # Increase if MagicLight is slow or your internet is unstable
-STEP1_WAIT=45
-STEP2_WAIT=20
-STEP3_WAIT=120
-STEP4_RENDER_TIMEOUT=900
+STEP1_WAIT=30
+STEP2_WAIT=30
+STEP3_WAIT=150
+STEP4_RENDER_TIMEOUT=1300
 
 
 # ── FFmpeg / Video Branding ───────────────────────────────
-LOGO_PATH=assets/logo.png
+LOGO_PATH=assets/logo.jpeg
 ENDSCREEN_VIDEO=assets/endscreen.mp4
 TRIM_SECONDS=4
-LOGO_X=7
-LOGO_Y=5
-LOGO_WIDTH=300
+LOGO_X=4
+LOGO_Y=4
+LOGO_WIDTH=390
 LOGO_OPACITY=1.0
-ENDSCREEN_ENABLED=true
+ENDSCREEN_ENABLED=false
 ENDSCREEN_DURATION=auto
 
 
-# ── Debug (set to 1 to enable verbose Playwright logs) ────
+# ── Debug (0=off, 1=verbose Playwright logs) ──────────────
 DEBUG=0
