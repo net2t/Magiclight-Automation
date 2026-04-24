@@ -827,7 +827,6 @@ _CLOSE_SELECTORS = [
     '.notice-bar__close',
     '.arco-modal-close-btn',
     '.arco-icon-close',
-    'button.arco-btn-secondary:has-text("Cancel")',
     'button:has-text("Skip")',
     'button.close-btn',
     'span[class*="close"]'
@@ -872,6 +871,10 @@ _POPUP_JS = """\
 }"""
 
 def _dismiss_all(page):
+    try:
+        is_prog = page.evaluate("() => Array.from(document.querySelectorAll('[class*=\"progress\"],[class*=\"generating\"],[class*=\"Progress\"]')).some(el => el.getBoundingClientRect().width > 0)")
+        if is_prog: return
+    except: pass
     for fr in _all_frames(page):
         try: page.evaluate(_PROMO_CLOSE_JS)
         except: pass
