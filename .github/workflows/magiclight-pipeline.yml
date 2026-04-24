@@ -63,12 +63,14 @@ jobs:
       - name: Install System Dependencies
         run: |
           sudo apt-get update -qq
+          # libasound2 was renamed to libasound2t64 in Ubuntu 24.04 (Noble)
+          # Try the new name first, fall back to old name for older images
           sudo apt-get install -y --no-install-recommends \
             libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
             libcups2 libdrm2 libdbus-1-3 libexpat1 libxcb1 libxkbcommon0 \
             libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 \
-            libgbm1 libpango-1.0-0 libcairo2 libasound2 libxshmfence1 \
-            ffmpeg
+            libgbm1 libpango-1.0-0 libcairo2 libxshmfence1 ffmpeg \
+            $(apt-cache show libasound2t64 &>/dev/null && echo libasound2t64 || echo libasound2)
 
       # ── 4. pip install ───────────────────────────────────────────────────────
       - name: Install Python Dependencies
