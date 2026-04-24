@@ -1937,6 +1937,8 @@ def step4(page, safe_name, sheet_row_num=None):
     for attempt in range(MAX_NEXT):
         _dismiss_animation_modal(page)
         sleep_log(2)
+        try: page.screenshot(path="debug_step4.png")
+        except: pass
         raw = page.evaluate(js_has_gen)
         if raw:
             found_text, found_cls = raw.split("|||", 1)
