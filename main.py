@@ -3,7 +3,7 @@ MagicLight Auto — Kids Story Video Pipeline
 ===========================================
 Version : 2.0.3  [Sheet Write Guaranteed]
 Released: 2026-04-11
-Repo    : https://github.com/net2t/MagicLight-Auto
+Repo    : https://github.com/0utLawzz/MagicLight-Auto
 
 Three Modes:
   combined  — Generate → FFmpeg Process → Upload (full pipeline)

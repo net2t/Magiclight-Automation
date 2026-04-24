@@ -27,7 +27,7 @@ MagicLight.ai generation → FFmpeg processing → Google Drive upload → Sheet
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/net2t/Magiclight-Automation.git
+git clone https://github.com/0utLawzz/Magiclight-Automation.git
 cd Magiclight-Automation
 # (Optional) Create venv
 python -m venv venv
