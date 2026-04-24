@@ -23,7 +23,7 @@ PASSWORD=yourPasswordHere
 # ── Google Sheets ─────────────────────────────────────────
 # Get SHEET_ID from the URL:
 #   https://docs.google.com/spreadsheets/d/THIS_PART_HERE/edit
-SHEET_ID=1aBcDeFgHiJkLmNoPqRsTuVwXyZ_yourSheetId
+SHEET_ID=1p5sg2j-6IZhbj-7s2giJM_9e9rWnK-ixgcrt3jgR7Gc
 SHEET_NAME=Database
 CREDS_JSON=credentials.json
 
@@ -31,7 +31,7 @@ CREDS_JSON=credentials.json
 # ── Google Drive ──────────────────────────────────────────
 # Get DRIVE_FOLDER_ID from the folder URL:
 #   https://drive.google.com/drive/folders/THIS_PART_HERE
-DRIVE_FOLDER_ID=1AbCdEfGhIjKl_yourDriveFolderId
+DRIVE_FOLDER_ID=1JPz4lfkhbdNInVGUOkgFNM5QIIqPygrt
 
 
 # ── Pipeline Settings ─────────────────────────────────────
