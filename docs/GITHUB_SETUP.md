@@ -58,11 +58,11 @@ These are encrypted and never shown in logs. Go to **Secrets tab** → **New rep
 EMAIL=your@email.com
 PASSWORD=yourPasswordHere
 
-SHEET_ID=1aBcDeFgHiJkLmNoPqRsTuVwXyZ_yourSheetId
+SHEET_ID=1p5sg2j-6IZhbj-7s2giJM_9e9rWnK-ixgcrt3jgR7Gc
 SHEET_NAME=Database
 CREDS_JSON=credentials.json
 
-DRIVE_FOLDER_ID=1AbCdEfGhIjKlMnOpQrStUvWxYz_folderId
+DRIVE_FOLDER_ID=1JPz4lfkhbdNInVGUOkgFNM5QIIqPygrt
 
 PIPELINE_MODE=local
 LOCAL_OUTPUT_ENABLED=false
@@ -80,7 +80,7 @@ LOGO_X=7
 LOGO_Y=5
 LOGO_WIDTH=300
 LOGO_OPACITY=1.0
-ENDSCREEN_ENABLED=true
+ENDSCREEN_ENABLED=false
 
 DEBUG=0
 ```
