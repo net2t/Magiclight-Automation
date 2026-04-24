@@ -724,100 +724,7 @@ def upload_to_drive(file_path, folder_name=None, max_retries=3):
                 _err(f"[drive] All upload attempts failed: {e}")
                 return ""
 
-def upload_story_to_drive(story_folder, safe_name, video_path, thumb_path,
-                           sheet_row_num=None):
-    result = {"folder_link": "", "video_link": "", "thumb_link": ""}
-
-    if not DRIVE_FOLDER_ID:
-        _warn("[drive] DRIVE_FOLDER_ID not set — skipping Drive upload")
-        return result
-
-    if not video_path or not os.path.exists(str(video_path)):
-        _warn(f"[drive] Video file missing: {video_path}")
-        return result
-
-    _info(f"[drive] Creating Drive folder for {safe_name}...")
-    try:
-        from googleapiclient.discovery import build
-        from googleapiclient.http import MediaFileUpload
-        creds = _get_credentials()
-        service = build('drive', 'v3', credentials=creds)
-
-        folder_meta = {
-            'name': safe_name,
-            'mimeType': 'application/vnd.google-apps.folder',
-            'parents': [DRIVE_FOLDER_ID]
-        }
-        folder = service.files().create(body=folder_meta, fields='id,webViewLink').execute()
-        folder_id   = folder.get('id')
-        result["folder_link"] = folder.get('webViewLink', '')
-        _ok(f"[drive] Folder created -> {result['folder_link']}")
-
-        _info("[drive] Uploading video...")
-        vid_meta  = {'name': os.path.basename(str(video_path)), 'parents': [folder_id]}
-        vid_media = MediaFileUpload(str(video_path), resumable=True)
-        vid_file  = service.files().create(body=vid_meta, media_body=vid_media,
-                                            fields='id,webViewLink').execute()
-        result["video_link"] = vid_file.get('webViewLink', '')
-        _ok(f"[drive] Video uploaded -> {result['video_link']}")
-
-        # Write Drive_Link to sheet IMMEDIATELY after video upload
-        if sheet_row_num:
-            try:
-                update_sheet_row(
-                    sheet_row_num,
-                    Drive_Link=result["video_link"],
-                    Notes=f"Video uploaded to Drive"
-                )
-                _ok(f"[sheet] Row {sheet_row_num} Drive_Link written")
-            except Exception as se:
-                _warn(f"[sheet] Drive_Link write failed: {se}")
-
-        # Thumbnail upload — optional, failure does not block
-        if thumb_path and os.path.exists(str(thumb_path)):
-            try:
-                _info("[drive] Uploading thumbnail...")
-                thumb_meta  = {'name': os.path.basename(str(thumb_path)), 'parents': [folder_id]}
-                thumb_media = MediaFileUpload(str(thumb_path), resumable=True)
-                thumb_file  = service.files().create(body=thumb_meta, media_body=thumb_media,
-                                                      fields='id,webViewLink').execute()
-                result["thumb_link"] = thumb_file.get('webViewLink', '')
-                _ok(f"[drive] Thumbnail uploaded -> {result['thumb_link']}")
-                if sheet_row_num and result["thumb_link"]:
-                    try:
-                        update_sheet_row(sheet_row_num, DriveImg_Link=result["thumb_link"])
-                    except Exception as se:
-                        _warn(f"[sheet] DriveImg_Link write failed: {se}")
-            except Exception as te:
-                _warn(f"[drive] Thumbnail upload failed (non-fatal): {te}")
-        else:
-            _info("[drive] No thumbnail to upload")
-
-        _ok(f"[drive] Story upload complete!")
-        return result
-
-    except Exception as e:
-        _warn(f"[drive] Drive upload failed: {e}")
-        if result["video_link"] and sheet_row_num:
-            try:
-                update_sheet_row(sheet_row_num, Drive_Link=result["video_link"])
-            except: pass
-        return result
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# ── YOUTUBE UPLOAD — Complete Block
-# ── Paste this AFTER the upload_to_drive() function in main.py
-# ── Requires: google-auth, google-api-python-client (already in requirements.txt)
-# ── New pip needed: google-auth-httplib2 (already there), googleapiclient (already there)
-# ═══════════════════════════════════════════════════════════════════════════════
-
 # ── YouTube Config (read from .env) ───────────────────────────────────────────
-# YOUTUBE_TOKEN_FILE    = path to saved OAuth token for YouTube (default: youtube_token.json)
-# YOUTUBE_CLIENT_FILE   = path to OAuth client credentials (default: youtube_oauth.json)
-# YOUTUBE_DEFAULT_PRIVACY = public / unlisted / private (default: public)
-# YOUTUBE_DEFAULT_CATEGORY = YouTube category ID (default: 27 = Education)
-# YOUTUBE_CHANNEL_ID    = optional, for verification only
-
 YOUTUBE_TOKEN_FILE      = os.getenv("YOUTUBE_TOKEN_FILE",      "youtube_token.json")
 YOUTUBE_CLIENT_FILE     = os.getenv("YOUTUBE_CLIENT_FILE",     "youtube_oauth.json")
 YOUTUBE_DEFAULT_PRIVACY  = os.getenv("YOUTUBE_DEFAULT_PRIVACY",  "public")
@@ -1125,6 +1032,86 @@ def upload_story_to_youtube(story_title, gen_summary, gen_tags, video_path,
 #       )
 #
 # ─────────────────────────────────────────────────────────────────────────────
+
+def upload_story_to_drive(story_folder, safe_name, video_path, thumb_path,
+                           sheet_row_num=None):
+    result = {"folder_link": "", "video_link": "", "thumb_link": ""}
+
+    if not DRIVE_FOLDER_ID:
+        _warn("[drive] DRIVE_FOLDER_ID not set — skipping Drive upload")
+        return result
+
+    if not video_path or not os.path.exists(str(video_path)):
+        _warn(f"[drive] Video file missing: {video_path}")
+        return result
+
+    _info(f"[drive] Creating Drive folder for {safe_name}...")
+    try:
+        from googleapiclient.discovery import build
+        from googleapiclient.http import MediaFileUpload
+        creds = _get_credentials()
+        service = build('drive', 'v3', credentials=creds)
+
+        folder_meta = {
+            'name': safe_name,
+            'mimeType': 'application/vnd.google-apps.folder',
+            'parents': [DRIVE_FOLDER_ID]
+        }
+        folder = service.files().create(body=folder_meta, fields='id,webViewLink').execute()
+        folder_id   = folder.get('id')
+        result["folder_link"] = folder.get('webViewLink', '')
+        _ok(f"[drive] Folder created -> {result['folder_link']}")
+
+        _info("[drive] Uploading video...")
+        vid_meta  = {'name': os.path.basename(str(video_path)), 'parents': [folder_id]}
+        vid_media = MediaFileUpload(str(video_path), resumable=True)
+        vid_file  = service.files().create(body=vid_meta, media_body=vid_media,
+                                            fields='id,webViewLink').execute()
+        result["video_link"] = vid_file.get('webViewLink', '')
+        _ok(f"[drive] Video uploaded -> {result['video_link']}")
+
+        # Write Drive_Link to sheet IMMEDIATELY after video upload
+        if sheet_row_num:
+            try:
+                update_sheet_row(
+                    sheet_row_num,
+                    Drive_Link=result["video_link"],
+                    Notes=f"Video uploaded to Drive"
+                )
+                _ok(f"[sheet] Row {sheet_row_num} Drive_Link written")
+            except Exception as se:
+                _warn(f"[sheet] Drive_Link write failed: {se}")
+
+        # Thumbnail upload — optional, failure does not block
+        if thumb_path and os.path.exists(str(thumb_path)):
+            try:
+                _info("[drive] Uploading thumbnail...")
+                thumb_meta  = {'name': os.path.basename(str(thumb_path)), 'parents': [folder_id]}
+                thumb_media = MediaFileUpload(str(thumb_path), resumable=True)
+                thumb_file  = service.files().create(body=thumb_meta, media_body=thumb_media,
+                                                      fields='id,webViewLink').execute()
+                result["thumb_link"] = thumb_file.get('webViewLink', '')
+                _ok(f"[drive] Thumbnail uploaded -> {result['thumb_link']}")
+                if sheet_row_num and result["thumb_link"]:
+                    try:
+                        update_sheet_row(sheet_row_num, DriveImg_Link=result["thumb_link"])
+                    except Exception as se:
+                        _warn(f"[sheet] DriveImg_Link write failed: {se}")
+            except Exception as te:
+                _warn(f"[drive] Thumbnail upload failed (non-fatal): {te}")
+        else:
+            _info("[drive] No thumbnail to upload")
+
+        _ok(f"[drive] Story upload complete!")
+        return result
+
+    except Exception as e:
+        _warn(f"[drive] Drive upload failed: {e}")
+        if result["video_link"] and sheet_row_num:
+            try:
+                update_sheet_row(sheet_row_num, Drive_Link=result["video_link"])
+            except: pass
+        return result
 
 def story_dir(safe_name):
     d = os.path.join(OUT_BASE, safe_name)
@@ -3805,6 +3792,17 @@ def _run_pipeline_core(limit, source_type="auto"):
                                         Notes          = f"Done | Account: {curr_email}"
                                     )
                                 _ok(f"[sheet] Row {row_num} -> Done")
+                                # ── YouTube Upload (--upload-youtube flag ho to) ──
+                                if getattr(args, 'upload_youtube', False):
+                                    _step("[youtube] Starting YouTube upload...")
+                                    upload_story_to_youtube(
+                                        story_title    = title,
+                                        gen_summary    = row.get("Gen_Summary", ""),
+                                        gen_tags       = row.get("Gen_Tags", ""),
+                                        video_path     = str(proc_path),
+                                        thumbnail_path = None,
+                                        sheet_row_num  = row_num
+                                    )
                             except Exception as se:
                                 _warn(f"[sheet] Done write failed: {se}")
                         else:
