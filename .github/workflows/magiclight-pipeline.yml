@@ -1,4 +1,4 @@
-name: MagicLight Generation Pipeline
+name: "MagicLight \u2014 GitHub Cloud Pipeline (Drive Upload)"
 
 on:
   workflow_dispatch:

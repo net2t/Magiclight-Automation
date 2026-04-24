@@ -1,0 +1,146 @@
+name: "MagicLight \u2014 Local Pipeline (No Drive)"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# LOCAL PIPELINE  —  Generate videos WITHOUT Google Drive upload.
+# Output is saved as a GitHub Actions artifact (download directly from Actions).
+# No DRIVE credentials needed for this pipeline.
+# ──────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run Mode"
+        required: true
+        default: "generate"
+        type: choice
+        options:
+          - generate
+          - combined
+          - process
+      quantity:
+        description: "Stories to process (0 = all pending)"
+        required: true
+        default: "1"
+        type: string
+      debug:
+        description: "Enable debug logging?"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: magiclight-local-pipeline
+  cancel-in-progress: true
+
+jobs:
+  run-local-pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120    # 2 hours max for local run
+
+    steps:
+      # ── 1. Checkout ───────────────────────────────────────────────────────
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # ── 2. Python ─────────────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # ── 3. System dependencies ────────────────────────────────────────────
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
+            libcups2 libdrm2 libdbus-1-3 libexpat1 libxcb1 libxkbcommon0 \
+            libx11-6 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 \
+            libgbm1 libpango-1.0-0 libcairo2 libxshmfence1 ffmpeg \
+            $(apt-cache show libasound2t64 &>/dev/null && echo libasound2t64 || echo libasound2)
+
+      # ── 4. pip install ────────────────────────────────────────────────────
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      # ── 5. Playwright chromium ────────────────────────────────────────────
+      - name: Install Playwright Chromium
+        run: playwright install chromium --with-deps
+
+      # ── 6. Write secrets to files ─────────────────────────────────────────
+      # Required secrets: GCP_CREDENTIALS, ENV_FILE, ACCOUNTS_TXT
+      # (Drive secrets not needed for local pipeline)
+      - name: Write Secret Files
+        env:
+          GCP_CREDENTIALS:  ${{ secrets.GCP_CREDENTIALS }}
+          ENV_FILE:         ${{ secrets.ENV_FILE }}
+          ACCOUNTS_TXT:     ${{ secrets.ACCOUNTS_TXT }}
+          OAUTH_TOKEN:      ${{ secrets.OAUTH_TOKEN }}
+        run: |
+          [ -n "$GCP_CREDENTIALS" ] && printf '%s' "$GCP_CREDENTIALS" > credentials.json && echo "✅ credentials.json written"
+          [ -n "$ENV_FILE" ]        && printf '%s' "$ENV_FILE"        > .env             && echo "✅ .env written"
+          [ -n "$ACCOUNTS_TXT" ]    && printf '%s' "$ACCOUNTS_TXT"    > accounts.txt    && echo "✅ accounts.txt written"
+          [ -n "$OAUTH_TOKEN" ]     && printf '%s' "$OAUTH_TOKEN"     > token.json      && echo "✅ token.json written"
+
+      # ── 7. Inject env variables ───────────────────────────────────────────
+      - name: Inject Env Variables
+        env:
+          VAR_SHEET_ID:    ${{ vars.SHEET_ID }}
+          VAR_SHEET_NAME:  ${{ vars.SHEET_NAME }}
+          SECRET_SHEET_ID: ${{ secrets.SHEET_ID }}
+        run: |
+          touch .env
+          tr -d '\r' < .env > /tmp/env_clean && mv /tmp/env_clean .env
+
+          inject_line() {
+            local key="$1" val="$2"
+            [ -z "$val" ] && echo "[inject] SKIP $key" && return
+            grep -v "^${key}=" .env > /tmp/env_tmp 2>/dev/null && mv /tmp/env_tmp .env || true
+            printf '%s=%s\n' "$key" "$val" >> .env
+            echo "[inject] SET ${key}=${val:0:10}..."
+          }
+
+          SHEET_ID_FINAL="${VAR_SHEET_ID:-$SECRET_SHEET_ID}"
+          inject_line "SHEET_ID"             "$SHEET_ID_FINAL"
+          inject_line "SHEET_NAME"           "$VAR_SHEET_NAME"
+          inject_line "LOCAL_OUTPUT_ENABLED" "true"    # Save files locally for artifact
+
+          FOUND_ID="$(grep '^SHEET_ID=' .env | cut -d= -f2- | tr -d '\r\n' | head -c 40)"
+          [ -z "$FOUND_ID" ] && echo "❌ SHEET_ID missing" && exit 1
+          echo "✅ Preflight passed — SHEET_ID=${FOUND_ID:0:8}..."
+
+      # ── 8. Run local pipeline (generate only, no Drive upload) ────────────
+      - name: Run Local Pipeline
+        env:
+          DISPLAY: ":99"
+        run: |
+          MODE="${{ github.event.inputs.mode }}"
+          MODE="${MODE:-generate}"
+          QTY="${{ github.event.inputs.quantity }}"
+          QTY="${QTY:-1}"
+          DEBUG="${{ github.event.inputs.debug }}"
+          DEBUG_FLAG=""
+          [ "$DEBUG" = "true" ] && DEBUG_FLAG="--debug"
+
+          ARGS="--mode $MODE --max $QTY --headless"
+          [ -n "$DEBUG_FLAG" ] && ARGS="$ARGS $DEBUG_FLAG"
+
+          echo "[local] python main.py $ARGS  (NO --upload-drive)"
+          python main.py $ARGS 2>&1 | tee pipeline.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          exit $EXIT_CODE
+
+      # ── 9. Upload output as artifact (always) ─────────────────────────────
+      - name: Upload Pipeline Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-output-${{ github.run_number }}
+          path: |
+            output/**
+            output/screenshots/**
+            *.log
+          if-no-files-found: ignore
+          retention-days: 14    # Keep longer since no Drive backup

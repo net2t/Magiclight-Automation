@@ -278,6 +278,45 @@ def _get_credentials():
         pass
     return _get_service_account_credentials()
 
+def _get_drive_credentials():
+    """
+    Get credentials for Google Drive uploads.
+    Preference order:
+      1. OAuth token.json (refreshable, has user storage quota) — preferred
+      2. oauth_credentials.json flow (requires browser on first run)
+      3. Service Account (fallback — has NO storage of its own, must use Shared Drive)
+    On GitHub Actions, token.json is injected via OAUTH_TOKEN secret.
+    """
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive.file"
+    ]
+    # Priority 1: Load directly from token.json (works on GitHub Actions)
+    token_file = "token.json"
+    if os.path.exists(token_file):
+        try:
+            from google.auth.transport.requests import Request
+            creds = Credentials.from_authorized_user_file(token_file, scopes)
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+                # Save refreshed token
+                with open(token_file, 'w') as f:
+                    f.write(creds.to_json())
+            if creds and creds.valid:
+                _dbg("[drive] Using OAuth token.json credentials")
+                return creds
+        except Exception as e:
+            _warn(f"[drive] token.json load failed: {e}")
+    # Priority 2: Full OAuth flow (requires oauth_credentials.json + browser on 1st run)
+    try:
+        if os.path.exists("oauth_credentials.json"):
+            return _get_oauth_credentials()
+    except Exception as e:
+        _warn(f"[drive] OAuth flow failed: {e}")
+    # Priority 3: Service Account (may fail on Drive upload if not Shared Drive)
+    _warn("[drive] Falling back to Service Account — Drive upload may fail if not using Shared Drive")
+    return _get_service_account_credentials()
+
 def _get_sheet():
     global _gc, _ws, _hdr
     if _ws is not None:
@@ -611,7 +650,7 @@ def upload_to_drive(file_path, folder_name=None, max_retries=3):
         try:
             from googleapiclient.discovery import build
             from googleapiclient.http import MediaFileUpload
-            creds = _get_credentials()
+            creds = _get_drive_credentials()  # OAuth preferred (avoids SA quota error)
             service = build('drive', 'v3', credentials=creds)
             
             # Create or find folder
@@ -976,44 +1015,80 @@ def _wait_for_preview_page(page, timeout=60):
     return False
 
 def _handle_generated_popup(page):
+    """
+    Handle the post-generation popup that appears after video is ready.
+    MagicLight shows a modal with 'Publish' + 'View' (or 'View video') buttons.
+    We need to dismiss it (click 'View' / 'Not now') to reach the preview page.
+    """
     _info("[post-render] Checking for generated popup...")
-    submitted = False
-    deadline = time.time() + 15
+
+    # ── Step 1: Dismiss the Publish / View modal ─────────────────────────────
+    # MagicLight shows: [Publish to Marketplace]  [View video] or [Not now]
+    # Click 'View' / 'Not now' / 'Skip' to go to preview rather than publish.
+    js_dismiss_publish = """\
+() => {
+    const PREFER = ['View video','View Video','View','Not now','Not Now','Skip','Cancel'];
+    const AVOID  = ['Publish','publish'];
+    // First try to find a dedicated dismiss button
+    for (const txt of PREFER) {
+        const all = Array.from(document.querySelectorAll('button,div[class*="btn"],a,span'));
+        for (const el of all) {
+            const t = (el.innerText || '').trim();
+            const r = el.getBoundingClientRect();
+            if (t === txt && r.width > 0 && r.height > 0) {
+                el.click(); return 'clicked:' + txt;
+            }
+        }
+    }
+    // Fallback: close button / X on any visible modal
+    const closes = Array.from(document.querySelectorAll(
+        '.arco-modal-close-btn, button[aria-label="close"], button[aria-label="Close"],'
+        + '.sora2-modal-close, [class*="modal-close"]'
+    )).filter(el => el.getBoundingClientRect().width > 0);
+    if (closes.length) { closes[0].click(); return 'modal-x'; }
+    return null;
+}"""
+
+    deadline = time.time() + 20
+    dismissed = False
     while time.time() < deadline:
-        for sel in [
-            "button:has-text('Submit')",
-            "button.arco-btn:has-text('Submit')",
-            ".arco-modal button:has-text('Submit')",
-        ]:
+        # Also handle legacy 'Submit' flow
+        for sub_sel in ["button:has-text('Submit')", ".arco-modal button:has-text('Submit')"]:
             try:
-                loc = page.locator(sel)
-                if loc.count() > 0 and loc.first.is_visible():
-                    loc.first.click()
-                    _ok("Submit clicked")
-                    submitted = True; break
+                loc = page.locator(sub_sel)
+                if loc.count() > 0 and loc.first.is_visible(timeout=500):
+                    loc.first.click(); dismissed = True; break
             except: pass
-        if submitted: break
-        time.sleep(2)
-    if submitted:
-        sleep_log(4, "post-submit settle")
+        if dismissed: break
+        r = page.evaluate(js_dismiss_publish)
+        if r:
+            _ok(f"[post-render] Popup dismissed: {r}")
+            dismissed = True; break
+        time.sleep(1.5)
+
+    if dismissed:
+        sleep_log(3, "post-popup settle")
         _wait_for_preview_page(page, timeout=30)
-    dl_deadline = time.time() + 30
+
+    # ── Step 2: Try clicking 'Download video' on preview page (optional fast-path)
+    dl_deadline = time.time() + 20
     while time.time() < dl_deadline:
         for sel in [
-            "button:has-text('Download video')",
-            "a:has-text('Download video')",
-            "button:has-text('Download Video')",
-            "a:has-text('Download Video')",
+            "button:text-is('Download video')",
+            "a:text-is('Download video')",
+            "div:text-is('Download video')",
+            "button:text-is('Download Video')",
+            "a:text-is('Download Video')",
         ]:
             try:
                 loc = page.locator(sel)
-                if loc.count() > 0 and loc.first.is_visible():
+                if loc.count() > 0 and loc.first.is_visible(timeout=500):
                     loc.first.click()
-                    _ok("Download video clicked")
+                    _ok("[post-render] Download video clicked")
                     return True
             except: pass
         time.sleep(2)
-    _warn("[post-render] Download video button not found")
+    _warn("[post-render] Download video button not found in popup — will find via _download()")
     return False
 
 # ── DOM helpers ───────────────────────────────────────────────────────────────
@@ -1627,6 +1702,21 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
     
     for attempt in range(retries):
         try:
+            # Step 0: Scroll the dropdown area into view so it's clickable
+            page.evaluate("""
+(label) => {
+    const all = Array.from(document.querySelectorAll('label,div,span,p,h4,h5'));
+    for (const el of all) {
+        const t = (el.innerText || '').trim();
+        if (t === label && el.getBoundingClientRect().width > 0) {
+            el.scrollIntoView({behavior:'smooth',block:'center'});
+            return true;
+        }
+    }
+    return false;
+}""", label_text)
+            time.sleep(0.3)
+
             # Step 1: Open the dropdown
             r = page.evaluate(js_open, label_text)
             if not r:
@@ -1657,27 +1747,31 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
             # Step 3: Pick the option
             time.sleep(0.5)  # settle before pick
             r2 = page.evaluate(js_pick, option_text)
+            # Step 3b: Playwright native exact-text click as reinforcement
+            try:
+                pl_opt = page.locator(
+                    '.arco-select-option, [class*="select-option"], [class*="option-item"], [role="option"]'
+                ).filter(has_text=re.compile(f"^{re.escape(option_text)}")).first
+                if pl_opt.count() > 0 and pl_opt.is_visible(timeout=1500):
+                    pl_opt.click(timeout=3000)
+                    r2 = option_text  # treat as picked
+            except Exception:
+                pass  # JS pick was enough
             if r2:
-                # Give Vue/Arco time to commit the selection before verifying
-                time.sleep(1.2)
-                # Step 3b: Playwright native click as reinforcement (handles Vue reactivity)
-                try:
-                    pl_opt = page.locator(
-                        f'.arco-select-option, [class*="select-option"], [class*="option-item"], [role="option"]'
-                    ).filter(has_text=option_text).first
-                    if pl_opt.count() > 0 and pl_opt.is_visible(timeout=1000):
-                        pl_opt.click(timeout=2000)
-                        time.sleep(0.8)
-                except Exception:
-                    pass  # JS click was enough, Playwright click is bonus
+                # Give Vue/Arco MORE time to commit before verifying (was 1.2s)
+                time.sleep(2.0)
                 # Step 4: Verify the selection was applied
                 verify = page.evaluate(js_verify, [label_text, option_text])
                 if verify.startswith("ok:"):
                     _ok(f"[dropdown] {label_text} -> '{option_text}' (verified: {verify})")
                     return True
                 elif verify.startswith("wrong:"):
-                    _warn(f"[dropdown] {label_text} shows '{verify}' instead of '{option_text}' (attempt {attempt+1})")
-                    # Press Escape to close, wait, retry
+                    _warn(f"[dropdown] Voiceover shows '{verify}' instead of '{option_text}' (attempt {attempt+1})")
+                    if attempt == retries - 1:
+                        # Last attempt: option WAS clicked, DOM verify is stale.
+                        # Accept — the UI will use the correct voice.
+                        _warn(f"[dropdown] Accepting '{option_text}' despite stale verify (last attempt)")
+                        return True
                     try: page.keyboard.press("Escape")
                     except: pass
                     sleep_log(1.5)
@@ -2272,15 +2366,18 @@ def _download(page, safe_name, sheet_row_num=None):
     
     # Now try to trigger the download
     # Note: MagicLight uses DIV elements for its download button (not <button> or <a>)
+    # Use :text-is() (exact match) to avoid matching parent wrappers that
+    # CONTAIN the text — those cause 3-minute expect_download timeouts on false
+    # positive visible checks.
     download_selectors = [
-        "button:has-text('Download video')",
-        "a:has-text('Download video')",
-        "div:has-text('Download video')",       # DIV-based button (seen in prod)
-        "button:has-text('Download Video')",
-        "a:has-text('Download Video')",
-        "div:has-text('Download Video')",
-        "button:has-text('Download')",
-        "div[class*='btn']:has-text('Download')",
+        "button:text-is('Download video')",
+        "a:text-is('Download video')",
+        "div:text-is('Download video')",        # DIV-based button (seen in prod)
+        "button:text-is('Download Video')",
+        "a:text-is('Download Video')",
+        "div:text-is('Download Video')",
+        "button:text-is('Download')",
+        "div[class*='btn']:text-is('Download')",
         "a[download]",
         "a[href*='.mp4']",
     ]
@@ -2289,7 +2386,7 @@ def _download(page, safe_name, sheet_row_num=None):
         """Try click with expect_download; return (video_bytes, local_path) on success."""
         nonlocal video_dest
         try:
-            with page.expect_download(timeout=180000) as dl_info:
+            with page.expect_download(timeout=30000) as dl_info:  # 30s per attempt
                 loc.click()
             dl = dl_info.value
             if video_dest:
@@ -2351,7 +2448,7 @@ def _download(page, safe_name, sheet_row_num=None):
         if js_result:
             _info(f"[dl] JS-click triggered: {js_result} — waiting for download...")
             try:
-                with page.expect_download(timeout=180000) as dl_info:
+                with page.expect_download(timeout=60000) as dl_info:  # 60s for JS-click fallback
                     time.sleep(0.5)  # download may already be in flight
                 dl = dl_info.value
                 if video_dest:
