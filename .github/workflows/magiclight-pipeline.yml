@@ -1,4 +1,4 @@
-name: "MagicLight \u2014 GitHub Cloud Pipeline (Drive Upload)"
+name: "MagicLight — GitHub Cloud Pipeline (Drive + YouTube Upload)"
 
 on:
   workflow_dispatch:
@@ -19,6 +19,11 @@ on:
         type: string
       upload_drive:
         description: 'Upload to Google Drive?'
+        required: true
+        default: true
+        type: boolean
+      upload_youtube:
+        description: 'Upload to YouTube?'
         required: true
         default: true
         type: boolean
@@ -95,12 +100,16 @@ jobs:
           ACCOUNTS_TXT:      ${{ secrets.ACCOUNTS_TXT }}
           OAUTH_CREDENTIALS: ${{ secrets.OAUTH_CREDENTIALS }}
           OAUTH_TOKEN:       ${{ secrets.OAUTH_TOKEN }}
+          YOUTUBE_TOKEN:     ${{ secrets.YOUTUBE_TOKEN }}
+          YOUTUBE_CLIENT:    ${{ secrets.YOUTUBE_CLIENT }}
         run: |
           [ -n "$GCP_CREDENTIALS" ]   && printf '%s' "$GCP_CREDENTIALS"   > credentials.json      && echo "✅ credentials.json written"
           [ -n "$ENV_FILE" ]          && printf '%s' "$ENV_FILE"          > .env                  && echo "✅ .env written"
           [ -n "$ACCOUNTS_TXT" ]      && printf '%s' "$ACCOUNTS_TXT"      > accounts.txt          && echo "✅ accounts.txt written"
           [ -n "$OAUTH_CREDENTIALS" ] && printf '%s' "$OAUTH_CREDENTIALS" > oauth_credentials.json && echo "✅ oauth_credentials.json written"
           [ -n "$OAUTH_TOKEN" ]       && printf '%s' "$OAUTH_TOKEN"       > token.json            && echo "✅ token.json written"
+          [ -n "$YOUTUBE_TOKEN" ]     && printf '%s' "$YOUTUBE_TOKEN"     > youtube_token.json     && echo "✅ youtube_token.json written"
+          [ -n "$YOUTUBE_CLIENT" ]    && printf '%s' "$YOUTUBE_CLIENT"    > youtube_oauth.json     && echo "✅ youtube_oauth.json written"
 
       # ── 7. Inject repo Variables into .env (override if needed) ─────────────
       # Priority order for SHEET_ID:
@@ -168,9 +177,10 @@ jobs:
             MODE="combined"
             QTY="1"
             UPLOAD_DRIVE="true"
+            UPLOAD_YOUTUBE="true"
             LOOP="false"
             DEBUG_FLAG=""
-            echo "[scheduler] Auto: combined --max 1 --headless --upload-drive"
+            echo "[scheduler] Auto: combined --max 1 --headless --upload-drive --upload-youtube"
           else
             MODE="${{ github.event.inputs.mode }}"
             MODE="${MODE:-combined}"
@@ -178,17 +188,20 @@ jobs:
             QTY="${QTY:-1}"
             UPLOAD_DRIVE="${{ github.event.inputs.upload_drive }}"
             UPLOAD_DRIVE="${UPLOAD_DRIVE:-true}"
+            UPLOAD_YOUTUBE="${{ github.event.inputs.upload_youtube }}"
+            UPLOAD_YOUTUBE="${UPLOAD_YOUTUBE:-true}"
             LOOP="${{ github.event.inputs.loop }}"
             LOOP="${LOOP:-false}"
             DEBUG="${{ github.event.inputs.debug }}"
             DEBUG="${DEBUG:-false}"
             [ "$DEBUG" = "true" ] && DEBUG_FLAG="--debug" || DEBUG_FLAG=""
-            echo "[manual] Mode=$MODE Qty=$QTY Drive=$UPLOAD_DRIVE Loop=$LOOP Debug=$DEBUG"
+            echo "[manual] Mode=$MODE Qty=$QTY Drive=$UPLOAD_DRIVE YouTube=$UPLOAD_YOUTUBE Loop=$LOOP Debug=$DEBUG"
           fi
 
           # Build args
           ARGS="--mode $MODE --max $QTY --headless"
           [ "$UPLOAD_DRIVE" = "true" ] && ARGS="$ARGS --upload-drive"
+          [ "$UPLOAD_YOUTUBE" = "true" ] && ARGS="$ARGS --upload-youtube"
           [ "$LOOP" = "true" ]         && ARGS="$ARGS --loop"
           [ -n "$DEBUG_FLAG" ]         && ARGS="$ARGS $DEBUG_FLAG"
 

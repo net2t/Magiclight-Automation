@@ -29,7 +29,7 @@ Usage:
     python main.py --migrate-schema
 """
 
-__version__ = "2.0.3"
+__version__ = "2.1.0"
 
 import re
 import os
@@ -226,7 +226,8 @@ SHEET_SCHEMA: dict[str, int] = {
     "Credit_Total":    19,   # S
     "Credit_Used":     20,   # T
     "Credit_Remaining": 21,
-    "Process_D_Link": 22,  # U
+    "Process_D_Link":  22,  # U
+    "YouTube_Link":    23,   # V — YouTube video URL after upload
 }
 
 LAYER_COLS: dict[str, set] = {
@@ -802,6 +803,328 @@ def upload_story_to_drive(story_folder, safe_name, video_path, thumb_path,
                 update_sheet_row(sheet_row_num, Drive_Link=result["video_link"])
             except: pass
         return result
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ── YOUTUBE UPLOAD — Complete Block
+# ── Paste this AFTER the upload_to_drive() function in main.py
+# ── Requires: google-auth, google-api-python-client (already in requirements.txt)
+# ── New pip needed: google-auth-httplib2 (already there), googleapiclient (already there)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── YouTube Config (read from .env) ───────────────────────────────────────────
+# YOUTUBE_TOKEN_FILE    = path to saved OAuth token for YouTube (default: youtube_token.json)
+# YOUTUBE_CLIENT_FILE   = path to OAuth client credentials (default: youtube_oauth.json)
+# YOUTUBE_DEFAULT_PRIVACY = public / unlisted / private (default: public)
+# YOUTUBE_DEFAULT_CATEGORY = YouTube category ID (default: 27 = Education)
+# YOUTUBE_CHANNEL_ID    = optional, for verification only
+
+YOUTUBE_TOKEN_FILE      = os.getenv("YOUTUBE_TOKEN_FILE",      "youtube_token.json")
+YOUTUBE_CLIENT_FILE     = os.getenv("YOUTUBE_CLIENT_FILE",     "youtube_oauth.json")
+YOUTUBE_DEFAULT_PRIVACY  = os.getenv("YOUTUBE_DEFAULT_PRIVACY",  "public")
+YOUTUBE_DEFAULT_CATEGORY = os.getenv("YOUTUBE_DEFAULT_CATEGORY", "27")  # 27 = Education
+
+
+def _get_youtube_credentials():
+    """
+    Load or refresh YouTube OAuth credentials.
+    
+    How it works:
+    - First tries to load saved token from YOUTUBE_TOKEN_FILE (youtube_token.json)
+    - If token expired → refreshes it automatically using refresh_token
+    - If no token at all → starts browser OAuth flow (only needed ONCE on local machine)
+    - On GitHub Actions: YOUTUBE_TOKEN secret is written to youtube_token.json by workflow
+    
+    Scopes needed:
+    - youtube.upload → to upload videos
+    - youtube → to read channel info
+    """
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request
+    from google_auth_oauthlib.flow import InstalledAppFlow
+
+    # YouTube needs its own separate OAuth scope — cannot reuse Drive/Sheets token
+    YT_SCOPES = [
+        "https://www.googleapis.com/auth/youtube.upload",
+        "https://www.googleapis.com/auth/youtube"
+    ]
+
+    creds = None
+
+    # ── Step 1: Try loading saved token ──────────────────────────────────────
+    if os.path.exists(YOUTUBE_TOKEN_FILE):
+        try:
+            creds = Credentials.from_authorized_user_file(YOUTUBE_TOKEN_FILE, YT_SCOPES)
+            _dbg(f"[youtube] Loaded token from {YOUTUBE_TOKEN_FILE}")
+        except Exception as e:
+            _warn(f"[youtube] Could not load token file: {e}")
+            creds = None
+
+    # ── Step 2: Refresh if expired ────────────────────────────────────────────
+    if creds and creds.expired and creds.refresh_token:
+        try:
+            creds.refresh(Request())
+            # Save refreshed token back to file
+            with open(YOUTUBE_TOKEN_FILE, "w") as f:
+                f.write(creds.to_json())
+            _dbg("[youtube] Token refreshed and saved")
+        except Exception as e:
+            _warn(f"[youtube] Token refresh failed: {e}")
+            creds = None
+
+    # ── Step 3: Full OAuth flow (only on local machine, first time) ───────────
+    if not creds or not creds.valid:
+        if not os.path.exists(YOUTUBE_CLIENT_FILE):
+            raise FileNotFoundError(
+                f"YouTube OAuth client file not found: {YOUTUBE_CLIENT_FILE}\n"
+                f"Download from Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs"
+            )
+        _info(f"[youtube] Starting OAuth flow — browser will open once...")
+        flow = InstalledAppFlow.from_client_secrets_file(YOUTUBE_CLIENT_FILE, YT_SCOPES)
+        # port=0 = pick any free port automatically
+        creds = flow.run_local_server(port=0, access_type="offline", prompt="consent")
+        # Save token for future runs (this is what you copy to GitHub Secret)
+        with open(YOUTUBE_TOKEN_FILE, "w") as f:
+            f.write(creds.to_json())
+        _ok(f"[youtube] Token saved to {YOUTUBE_TOKEN_FILE}")
+        _info(f"[youtube] IMPORTANT: Copy contents of {YOUTUBE_TOKEN_FILE} to GitHub Secret YOUTUBE_TOKEN")
+
+    return creds
+
+
+def upload_to_youtube(
+    video_path,
+    title,
+    description="",
+    tags=None,
+    category_id=None,
+    privacy=None,
+    thumbnail_path=None,
+    max_retries=3
+):
+    """
+    Upload a video to YouTube using the YouTube Data API v3.
+
+    Args:
+        video_path     : str or Path — local path to the .mp4 file
+        title          : str — YouTube video title (max 100 chars)
+        description    : str — video description (max 5000 chars)
+        tags           : list of str — YouTube tags (optional)
+        category_id    : str — YouTube category ID (default from .env = "27" Education)
+        privacy        : str — "public" / "unlisted" / "private" (default from .env)
+        thumbnail_path : str or Path — optional .jpg/.png thumbnail to set after upload
+        max_retries    : int — how many times to retry on failure
+
+    Returns:
+        str — YouTube video URL like https://youtube.com/watch?v=XXXX
+              or "" if upload failed
+    """
+    from googleapiclient.discovery import build
+    from googleapiclient.http import MediaFileUpload
+
+    # ── Validate file ─────────────────────────────────────────────────────────
+    video_path = str(video_path)
+    if not os.path.exists(video_path):
+        _err(f"[youtube] Video file not found: {video_path}")
+        return ""
+
+    file_size_mb = os.path.getsize(video_path) / (1024 * 1024)
+    if file_size_mb > 128 * 1024:  # YouTube max = 128GB
+        _err(f"[youtube] File too large: {file_size_mb:.0f}MB")
+        return ""
+
+    # ── Apply defaults ────────────────────────────────────────────────────────
+    if not category_id:
+        category_id = YOUTUBE_DEFAULT_CATEGORY   # "27" = Education by default
+    if not privacy:
+        privacy = YOUTUBE_DEFAULT_PRIVACY         # "public" by default
+    if not tags:
+        tags = []
+
+    # Truncate title/description to YouTube limits
+    title       = str(title)[:100]
+    description = str(description)[:5000]
+
+    _step(f"[youtube] Uploading: {os.path.basename(video_path)}")
+    _info(f"[youtube] Size: {file_size_mb:.1f}MB | Privacy: {privacy} | Category: {category_id}")
+
+    for attempt in range(max_retries):
+        try:
+            # ── Build YouTube API client ──────────────────────────────────────
+            creds   = _get_youtube_credentials()
+            youtube = build("youtube", "v3", credentials=creds)
+
+            # ── Video metadata ────────────────────────────────────────────────
+            body = {
+                "snippet": {
+                    "title":       title,
+                    "description": description,
+                    "tags":        tags,
+                    "categoryId":  category_id,
+                },
+                "status": {
+                    "privacyStatus":          privacy,
+                    "selfDeclaredMadeForKids": False,  # Set True if channel is for kids
+                }
+            }
+
+            # ── Media upload — resumable (handles large files + retries) ──────
+            media = MediaFileUpload(
+                video_path,
+                mimetype="video/mp4",
+                resumable=True,
+                chunksize=5 * 1024 * 1024  # 5MB chunks — good balance for GitHub Actions
+            )
+
+            request = youtube.videos().insert(
+                part="snippet,status",
+                body=body,
+                media_body=media
+            )
+
+            # ── Upload with progress display ──────────────────────────────────
+            response   = None
+            last_pct   = -1
+            while response is None:
+                if _shutdown:
+                    _warn("[youtube] Upload interrupted by shutdown signal")
+                    return ""
+                status, response = request.next_chunk()
+                if status:
+                    pct = int(status.progress() * 100)
+                    if pct != last_pct and pct % 10 == 0:
+                        _info(f"[youtube] Upload progress: {pct}%")
+                        last_pct = pct
+
+            # ── Extract video ID and build URL ────────────────────────────────
+            video_id  = response.get("id", "")
+            video_url = f"https://www.youtube.com/watch?v={video_id}" if video_id else ""
+
+            if not video_url:
+                raise ValueError(f"YouTube returned no video ID. Response: {response}")
+
+            _ok(f"[youtube] Uploaded! → {video_url}")
+
+            # ── Set thumbnail (optional, non-fatal) ───────────────────────────
+            # Note: thumbnail upload requires the channel to be verified
+            if thumbnail_path and os.path.exists(str(thumbnail_path)):
+                try:
+                    _info("[youtube] Setting thumbnail...")
+                    thumb_media = MediaFileUpload(str(thumbnail_path), mimetype="image/jpeg")
+                    youtube.thumbnails().set(
+                        videoId=video_id,
+                        media_body=thumb_media
+                    ).execute()
+                    _ok("[youtube] Thumbnail set")
+                except Exception as te:
+                    # Thumbnail fails if channel is not verified — non-fatal
+                    _warn(f"[youtube] Thumbnail upload failed (non-fatal — channel may need verification): {te}")
+
+            return video_url
+
+        except Exception as e:
+            err_str = str(e)
+
+            # ── Handle quota exceeded (most common GitHub Actions failure) ────
+            if "quotaExceeded" in err_str or "quota" in err_str.lower():
+                _err("[youtube] YouTube API quota exceeded!")
+                _err("[youtube] Quota resets at midnight Pacific Time (PT)")
+                _err("[youtube] Free quota: 10,000 units/day. One upload = ~1600 units")
+                return ""  # No point retrying quota errors
+
+            # ── Handle auth errors ────────────────────────────────────────────
+            if "invalid_grant" in err_str or "Token has been expired" in err_str:
+                _warn("[youtube] Auth token expired — deleting saved token, will re-auth")
+                if os.path.exists(YOUTUBE_TOKEN_FILE):
+                    os.remove(YOUTUBE_TOKEN_FILE)
+                if attempt < max_retries - 1:
+                    continue  # Retry with fresh auth
+
+            # ── General retry ─────────────────────────────────────────────────
+            if attempt < max_retries - 1:
+                wait = 10 * (2 ** attempt)  # 10s, 20s, 40s
+                _warn(f"[youtube] Attempt {attempt + 1} failed: {e}")
+                _warn(f"[youtube] Retrying in {wait}s...")
+                sleep_log(wait, f"youtube retry {attempt + 1}")
+            else:
+                _err(f"[youtube] All {max_retries} attempts failed: {e}")
+                return ""
+
+    return ""
+
+
+def upload_story_to_youtube(story_title, gen_summary, gen_tags, video_path,
+                             thumbnail_path=None, sheet_row_num=None):
+    """
+    High-level wrapper: upload one story video to YouTube and update Sheet.
+    
+    Called from process_video() or _run_pipeline_core() after FFmpeg is done.
+    
+    Args:
+        story_title    : str — original story title from Sheet col C
+        gen_summary    : str — AI-generated description from Sheet col G
+        gen_tags       : str — comma-separated tags from Sheet col H
+        video_path     : str or Path — processed video file
+        thumbnail_path : str or Path — optional thumbnail
+        sheet_row_num  : int — Sheet row to update with YouTube_Link
+
+    Returns:
+        str — YouTube URL or ""
+    """
+    if not os.path.exists(str(video_path)):
+        _warn(f"[youtube] Video not found for upload: {video_path}")
+        return ""
+
+    # ── Build tags list from Sheet col H (comma separated) ───────────────────
+    tags_list = []
+    if gen_tags:
+        tags_list = [t.strip() for t in str(gen_tags).split(",") if t.strip()]
+    # Add default channel tags
+    tags_list += ["kids stories", "bedtime stories", "children", "animated"]
+    tags_list = list(dict.fromkeys(tags_list))[:500]  # YouTube max 500 chars total
+
+    # ── Build description ─────────────────────────────────────────────────────
+    desc = str(gen_summary) if gen_summary else str(story_title)
+    desc += "\n\n#KidsStories #BedtimeStories #AnimatedStories"
+
+    # ── Upload ────────────────────────────────────────────────────────────────
+    yt_url = upload_to_youtube(
+        video_path     = video_path,
+        title          = story_title,
+        description    = desc,
+        tags           = tags_list,
+        thumbnail_path = thumbnail_path
+    )
+
+    # ── Write YouTube_Link to Sheet immediately if upload succeeded ───────────
+    if yt_url and sheet_row_num:
+        try:
+            update_sheet_row(
+                sheet_row_num,
+                YouTube_Link = yt_url,   # Column 23 — see SHEET_SCHEMA below
+                Status       = "Done"    # Mark story complete
+            )
+            _ok(f"[sheet] Row {sheet_row_num} YouTube_Link written")
+        except Exception as se:
+            _warn(f"[sheet] YouTube_Link write failed: {se}")
+
+    return yt_url
+
+
+# ── HOW TO CALL upload_story_to_youtube() from your existing code ─────────────
+#
+# Inside process_video() or wherever you call upload_story_to_drive(), ADD this:
+#
+#   if args.upload_youtube:        # <-- new CLI flag added below
+#       yt_url = upload_story_to_youtube(
+#           story_title    = row.get("Title", ""),
+#           gen_summary    = row.get("Gen_Summary", ""),
+#           gen_tags       = row.get("Gen_Tags", ""),
+#           video_path     = processed_video_path,
+#           thumbnail_path = thumb_path,
+#           sheet_row_num  = sheet_row_num
+#       )
+#
+# ─────────────────────────────────────────────────────────────────────────────
 
 def story_dir(safe_name):
     d = os.path.join(OUT_BASE, safe_name)
@@ -3009,6 +3332,17 @@ def process_all(cfg: dict, videos: list[Path] = None,
             if upload and not dry_run and dst.exists():
                 folder_name       = vid.parent.name if vid.parent.name else vid.stem
                 processed_link    = upload_to_drive(str(dst), folder_name)
+                # ── YouTube Upload (optional — only if --upload-youtube flag diya) ──
+                if getattr(globals().get("args"), 'upload_youtube', False):
+                    _step("[youtube] Starting YouTube upload...")
+                    upload_story_to_youtube(
+                        story_title    = title_part.replace("_", " "),
+                        gen_summary    = "",
+                        gen_tags       = "",
+                        video_path     = str(dst),
+                        thumbnail_path = "",
+                        sheet_row_num  = row_num
+                    )
                 if row_num and processed_link:
                     try:
                         update_sheet_row(
@@ -3664,7 +3998,14 @@ def parse_args():
         action="store_true", 
         help="💰 Check all accounts and log credits to Credits sheet"
     )
-    
+
+
+    parser.add_argument(
+        "--upload-youtube",
+        action="store_true",
+        help="📺 Upload processed videos to YouTube"
+    )
+ 
     return parser.parse_args()
 
 def run_cli_mode(args):
