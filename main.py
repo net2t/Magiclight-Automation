@@ -1573,22 +1573,22 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
             return r.width > 0 && r.height > 0;
         });
         for (const el of items) {
-            if ((el.innerText || el.textContent || '').trim() === opt) {
+            const t = (el.innerText || el.textContent || '').trim();
+            // exact match OR starts-with (handles 'Sophia (Adult)' style labels)
+            if (t === opt || t.startsWith(opt)) {
                 simulateClick(el);
-                return opt;
+                return t;
             }
         }
     }
-    // Fallback exact title match inside dropdown
+    // Fallback: title attribute match
     for (const container of containers) {
-        const items = Array.from(container.querySelectorAll('[title="' + opt + '"]')).filter(el => {
+        const items = Array.from(container.querySelectorAll('[title]')).filter(el => {
             const r = el.getBoundingClientRect();
-            return r.width > 0 && r.height > 0;
+            const t = (el.getAttribute('title') || '').trim();
+            return r.width > 0 && r.height > 0 && (t === opt || t.startsWith(opt));
         });
-        if (items.length > 0) {
-            simulateClick(items[0]);
-            return opt;
-        }
+        if (items.length > 0) { simulateClick(items[0]); return items[0].getAttribute('title'); }
     }
     return null;
 }"""
@@ -1652,10 +1652,21 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
                 continue
             
             # Step 3: Pick the option
-            time.sleep(0.3)  # tiny settle after options appear
+            time.sleep(0.5)  # settle before pick
             r2 = page.evaluate(js_pick, option_text)
             if r2:
-                sleep_log(0.5)
+                # Give Vue/Arco time to commit the selection before verifying
+                time.sleep(1.2)
+                # Step 3b: Playwright native click as reinforcement (handles Vue reactivity)
+                try:
+                    pl_opt = page.locator(
+                        f'.arco-select-option, [class*="select-option"], [class*="option-item"], [role="option"]'
+                    ).filter(has_text=option_text).first
+                    if pl_opt.count() > 0 and pl_opt.is_visible(timeout=1000):
+                        pl_opt.click(timeout=2000)
+                        time.sleep(0.8)
+                except Exception:
+                    pass  # JS click was enough, Playwright click is bonus
                 # Step 4: Verify the selection was applied
                 verify = page.evaluate(js_verify, [label_text, option_text])
                 if verify.startswith("ok:"):
@@ -1663,8 +1674,10 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
                     return True
                 elif verify.startswith("wrong:"):
                     _warn(f"[dropdown] {label_text} shows '{verify}' instead of '{option_text}' (attempt {attempt+1})")
-                    # Try once more - re-open and re-pick
-                    sleep_log(1)
+                    # Press Escape to close, wait, retry
+                    try: page.keyboard.press("Escape")
+                    except: pass
+                    sleep_log(1.5)
                     continue
                 else:
                     _ok(f"[dropdown] {label_text} -> '{option_text}' (unverified — {verify})")
@@ -2253,47 +2266,111 @@ def _download(page, safe_name, sheet_row_num=None):
         time.sleep(3)
     
     # Now try to trigger the download
+    # Note: MagicLight uses DIV elements for its download button (not <button> or <a>)
     download_selectors = [
         "button:has-text('Download video')",
         "a:has-text('Download video')",
+        "div:has-text('Download video')",       # DIV-based button (seen in prod)
         "button:has-text('Download Video')",
         "a:has-text('Download Video')",
+        "div:has-text('Download Video')",
         "button:has-text('Download')",
+        "div[class*='btn']:has-text('Download')",
         "a[download]",
         "a[href*='.mp4']",
     ]
-    for sel in download_selectors:
+
+    def _try_download_click(loc):
+        """Try click with expect_download; return (video_bytes, local_path) on success."""
+        nonlocal video_dest
         try:
-            loc = page.locator(sel)
-            if loc.count() > 0 and loc.first.is_visible(timeout=2000):
-                _info(f"[dl] Clicking '{sel}'...")
+            with page.expect_download(timeout=180000) as dl_info:
+                loc.click()
+            dl = dl_info.value
+            if video_dest:
+                dl.save_as(video_dest)
+                if os.path.exists(video_dest) and os.path.getsize(video_dest) > 10000:
+                    return None, video_dest
+            else:
+                try:
+                    vb = dl.read()
+                except Exception:
+                    import tempfile
+                    _tmp = tempfile.mktemp(suffix=".mp4")
+                    dl.save_as(_tmp)
+                    with open(_tmp, 'rb') as _f:
+                        vb = _f.read()
+                    try: os.remove(_tmp)
+                    except: pass
+                if len(vb) > 10000:
+                    return vb, None
+        except Exception as e:
+            _dbg(f"    _try_download_click: {e}")
+        return None, None
+
+    for sel in download_selectors:
+        if out["video"] or out.get("video_bytes"): break
+        try:
+            loc = page.locator(sel).first
+            if not loc.is_visible(timeout=2000):
+                continue
+            _info(f"[dl] Clicking '{sel}'...")
+            vb, vp = _try_download_click(loc)
+            if vp:
+                out["video"] = vp
+                _ok(f"Video -> {vp} ({os.path.getsize(vp)//1024} KB)")
+            elif vb:
+                out["video_bytes"] = vb
+                _ok(f"Video downloaded ({len(vb)//1024} KB) - local save skipped")
+        except Exception as e:
+            _dbg(f"  dl-sel '{sel}': {e}")
+
+    # JS-click fallback: handles any visible element with download-like text (covers DIV buttons)
+    if not out["video"] and not out.get("video_bytes"):
+        _info("[dl] Trying JS-click fallback for download button...")
+        js_dl_click = """
+() => {
+    const texts = ['Download video', 'Download Video', 'Download'];
+    const els = Array.from(document.querySelectorAll('button, a, div, span'));
+    for (const el of els) {
+        const t = (el.innerText || '').trim();
+        const r = el.getBoundingClientRect();
+        if (texts.includes(t) && r.width > 0 && r.height > 0) {
+            el.click();
+            return el.tagName + ':' + t;
+        }
+    }
+    return null;
+}"""
+        js_result = page.evaluate(js_dl_click)
+        if js_result:
+            _info(f"[dl] JS-click triggered: {js_result} — waiting for download...")
+            try:
                 with page.expect_download(timeout=180000) as dl_info:
-                    loc.first.click()
+                    time.sleep(0.5)  # download may already be in flight
                 dl = dl_info.value
                 if video_dest:
                     dl.save_as(video_dest)
                     if os.path.exists(video_dest) and os.path.getsize(video_dest) > 10000:
                         out["video"] = video_dest
-                        _ok(f"Video -> {video_dest} ({os.path.getsize(video_dest)//1024} KB)")
-                        break
+                        _ok(f"Video (JS-click) -> {video_dest} ({os.path.getsize(video_dest)//1024} KB)")
                 else:
                     try:
-                        video_bytes = dl.read()
+                        vb = dl.read()
                     except Exception:
-                        # save_as to temp then read
                         import tempfile
                         _tmp = tempfile.mktemp(suffix=".mp4")
                         dl.save_as(_tmp)
-                        with open(_tmp, 'rb') as _f:
-                            video_bytes = _f.read()
+                        with open(_tmp, 'rb') as _f: vb = _f.read()
                         try: os.remove(_tmp)
                         except: pass
-                    if len(video_bytes) > 10000:
-                        out["video_bytes"] = video_bytes
-                        _ok(f"Video downloaded ({len(video_bytes)//1024} KB) - local save skipped")
-                        break
-        except Exception as e:
-            _dbg(f"  dl-sel '{sel}': {e}")
+                    if len(vb) > 10000:
+                        out["video_bytes"] = vb
+                        _ok(f"Video (JS-click) downloaded ({len(vb)//1024} KB) - local save skipped")
+            except Exception as e:
+                _dbg(f"[dl] JS-click download wait failed: {e}")
+        else:
+            _info("[dl] No download button found via JS-click")
     if not out["video"]:
         vid_url = page.evaluate("""\
 () => {
