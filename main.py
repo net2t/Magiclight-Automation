@@ -856,7 +856,7 @@ _PROMO_CLOSE_JS = """\
 _POPUP_JS = """\
 () => {
     const BAD = ["Got it","Got It","Close","Done","OK","Later","No thanks",
-                 "Maybe later","Not now","Dismiss","Close samples","No","Cancel","Skip"];
+                 "Maybe later","Not now","Dismiss","Close samples","No","Skip"];
     let n = 0;
     document.querySelectorAll('button,span,div,a').forEach(el => {
         const t = (el.innerText || el.textContent || '').trim();
@@ -3415,17 +3415,17 @@ def menu():
     console.print()
 
     mt = Table(show_header=False, box=None, padding=(0, 2))
-    mt.add_column("num",  style="bold cyan", width=4)
-    mt.add_column("name", style="bold white", width=25)
-    mt.add_row("1", "Full Pipeline")
-    mt.add_row("2", "Just Video Story Making")
-    mt.add_row("3", "Video Encoding Process")
-    mt.add_row("4", "Check Account Credits")
-    mt.add_row("5", "Exit")
+    mt.add_column("num",  style="bold cyan", justify="right", width=5)
+    mt.add_column("name", style="bold white", width=50)
+    mt.add_row("[1]", "🚀 Full Pipeline (Generate -> Process -> Upload)")
+    mt.add_row("[2]", "🎥 Generate Mode (Video Story Making Only)")
+    mt.add_row("[3]", "🎬 Process Mode (Encode & Upload Videos)")
+    mt.add_row("[4]", "💰 Check Account Credits (Log all accounts)")
+    mt.add_row("[5]", "❌ Exit")
     console.print(mt)
     console.print()
 
-    choice = console.input("  [bold cyan]Select Mode [1-5]: [/bold cyan]").strip()
+    choice = console.input("  [bold cyan]Select Pipeline or Option [1-5]: [/bold cyan]").strip()
     
     # Handle option 4 - Check Account Credits
     if choice == "4":
