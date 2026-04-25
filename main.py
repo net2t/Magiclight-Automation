@@ -2475,7 +2475,7 @@ def step4(page, safe_name, sheet_row_num=None):
         sleep_log(3, "post-submit settle")
         _wait_for_preview_page(page, timeout=45)
     sleep_log(2)
-    return _download(page, safe_name, sheet_row_num=sheet_row_num)
+    return _download(page, safe_name, sheet_row_num=sheet_row_num, upload=upload)
 
 # ── DOWNLOAD ──────────────────────────────────────────────────────────────────
 def _download(page, safe_name, sheet_row_num=None):
@@ -2903,7 +2903,7 @@ def _retry_from_user_center(page, project_url, safe_name):
                 sleep_log(3); _dismiss_all(page)
                 _handle_generated_popup(page)
                 sleep_log(2)
-                return _download(page, safe_name)
+                return _download(page, safe_name, upload=upload)
             except Exception as e:
                 _warn(f"Direct goto failed: {e}")
         _warn("[retry] Could not find project"); return None
@@ -2913,7 +2913,7 @@ def _retry_from_user_center(page, project_url, safe_name):
     _dismiss_all(page)
     _handle_generated_popup(page)
     sleep_log(2)
-    try: return _download(page, safe_name)
+    try: return _download(page, safe_name, upload=upload)
     except Exception as e:
         _warn(f"[retry] Download failed: {e}"); return None
 
@@ -3697,7 +3697,7 @@ def _run_pipeline_core(limit, source_type="auto"):
                                   Notes="Credits exhausted during generation",
                                   Completed_Time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 break
-            try: result = _retry_from_user_center(page, project_url, safe)
+            try: result = _retry_from_user_center(page, project_url, safe, upload=upload)
             except Exception as re_err:
                 _warn(f"[retry] {re_err}"); result = None
             if not result:
@@ -4095,7 +4095,7 @@ def run_cli_mode(args):
                 cycle_count += 1
                 _credits_used = 0
                 console.rule(f"[cyan]Cycle {cycle_count}[/cyan]" if loop_mode else "[cyan]Starting[/cyan]")
-                _run_pipeline_core(limit=amount, source_type="auto")
+                _run_pipeline_core(limit=amount, source_type="auto", upload=args.upload_drive)
                 if not loop_mode:
                     break
                 try:
