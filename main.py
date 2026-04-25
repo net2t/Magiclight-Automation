@@ -3282,7 +3282,8 @@ def process_video(input_video: Path, dry_run: bool = False) -> bool:
         return False
 
 def process_all(cfg: dict, videos: list[Path] = None,
-                dry_run: bool = False, upload: bool = False) -> int:
+                dry_run: bool = False, upload: bool = False,
+                upload_youtube: bool = False) -> int:
     base = cfg.get("magiclight_output", Path(OUT_BASE))
     if videos is None:
         videos = scan_videos(base)
@@ -3320,7 +3321,7 @@ def process_all(cfg: dict, videos: list[Path] = None,
                 folder_name       = vid.parent.name if vid.parent.name else vid.stem
                 processed_link    = upload_to_drive(str(dst), folder_name)
                 # ── YouTube Upload (optional — only if --upload-youtube flag diya) ──
-                if getattr(globals().get("args"), 'upload_youtube', False):
+                if upload_youtube:
                     _step("[youtube] Starting YouTube upload...")
                     upload_story_to_youtube(
                         story_title    = title_part.replace("_", " "),
@@ -4067,7 +4068,8 @@ def run_cli_mode(args):
             return True
         _ok(f"Found {len(vids)} video(s) to process")
         cfg = load_process_cfg()
-        process_all(cfg, videos=vids, dry_run=args.dry_run, upload=args.upload_drive)
+        process_all(cfg, videos=vids, dry_run=args.dry_run, upload=args.upload_drive,
+            upload_youtube=getattr(args, 'upload_youtube', False))
         return True
     elif mode in ["combined", "generate"]:
         os.environ["PIPELINE_MODE"] = mode  # track mode for inline processing guard
