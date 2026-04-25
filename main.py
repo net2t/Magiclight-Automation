@@ -1895,14 +1895,17 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
     """
     js_open = """
 (label) => {
-    // Find label element
+    const labelLC = label.toLowerCase();
+    // Find label element — case-insensitive match
     const all = Array.from(document.querySelectorAll('label,div,span,p,h4,h5'));
     for (const el of all) {
         if (el.getBoundingClientRect().width === 0) continue;
         const ownText = Array.from(el.childNodes)
-            .filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join('');
-        const fullText = (el.innerText || '').trim();
-        if (ownText !== label && fullText !== label) continue;
+            .filter(n => n.nodeType === 3).map(n => n.textContent.trim()).join('').toLowerCase();
+        const fullText = (el.innerText || '').trim().toLowerCase();
+        // Match exactly or (for compound labels like "Voiceover\nSophia") starts-with
+        if (ownText !== labelLC && fullText !== labelLC &&
+            !ownText.startsWith(labelLC) && !fullText.startsWith(labelLC)) continue;
         // Walk up to find the select trigger
         let c = el;
         for (let i = 0; i < 8; i++) {
@@ -1915,26 +1918,41 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
             for (const t of triggers) {
                 const r = t.getBoundingClientRect();
                 if (r.width > 0) {
-                    ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e => 
+                    ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e =>
                         t.dispatchEvent(new MouseEvent(e, {bubbles:true, cancelable:true, view:window})));
-                    return label + ':found@' + i; 
+                    return label + ':found@' + i;
                 }
             }
             c = c.parentElement;
         }
     }
-    // Fallback: find any arco-select near a label with the text
+    // Fallback 1: form-item with matching label text
     const selects = Array.from(document.querySelectorAll('.arco-select, [class*="select-wrap"]'));
     for (const sel of selects) {
         const parent = sel.closest('[class*="form-item"], [class*="setting"], [class*="row"]');
         if (!parent) continue;
         const labelEl = parent.querySelector('label, [class*="label"]');
-        if (labelEl && (labelEl.innerText || '').trim() === label && sel.getBoundingClientRect().width > 0) {
+        if (labelEl && (labelEl.innerText || '').trim().toLowerCase() === labelLC
+            && sel.getBoundingClientRect().width > 0) {
             const trigger = sel.querySelector('.arco-select-view, [class*="select-view"]');
             if (trigger && trigger.getBoundingClientRect().width > 0) { trigger.click(); return label + ':formitem'; }
             sel.click();
             return label + ':select-click';
         }
+    }
+    // Fallback 2: aria-label / placeholder / data-label attributes
+    const anySelect = Array.from(document.querySelectorAll(
+        '.arco-select-view, [class*="select-view"], [class*="select-trigger"]'
+    )).find(el => {
+        const attrs = [el.getAttribute('aria-label'), el.getAttribute('placeholder'),
+                       el.getAttribute('data-label'), el.getAttribute('title')];
+        return attrs.some(a => a && a.toLowerCase().includes(labelLC))
+            && el.getBoundingClientRect().width > 0;
+    });
+    if (anySelect) {
+        ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e =>
+            anySelect.dispatchEvent(new MouseEvent(e, {bubbles:true, cancelable:true, view:window})));
+        return label + ':attr-fallback';
     }
     return null;
 }"""
@@ -2903,7 +2921,7 @@ def _retry_from_user_center(page, project_url, safe_name):
                 sleep_log(3); _dismiss_all(page)
                 _handle_generated_popup(page)
                 sleep_log(2)
-                return _download(page, safe_name, upload=upload)
+                return _download(page, safe_name)
             except Exception as e:
                 _warn(f"Direct goto failed: {e}")
         _warn("[retry] Could not find project"); return None
@@ -2913,7 +2931,7 @@ def _retry_from_user_center(page, project_url, safe_name):
     _dismiss_all(page)
     _handle_generated_popup(page)
     sleep_log(2)
-    try: return _download(page, safe_name, upload=upload)
+    try: return _download(page, safe_name)
     except Exception as e:
         _warn(f"[retry] Download failed: {e}"); return None
 
@@ -3523,7 +3541,7 @@ def ask_drive() -> bool:
     return choice
 
 # ── FIX v2.0.3: _run_pipeline_core ───────────────────────────────────────────
-def _run_pipeline_core(limit, source_type="auto"):
+def _run_pipeline_core(limit, source_type="auto", upload=False):
     global _browser, DRIVE_FOLDER_ID, _credits_total, _credits_used, _cws, _gc, _ws, _hdr
     try:
         records = read_sheet()
@@ -3562,8 +3580,12 @@ def _run_pipeline_core(limit, source_type="auto"):
         login(page, custom_email=curr_email, custom_pw=curr_pw)
     except Exception as e:
         _err(f"[FATAL] Login failed for {curr_email}: {e}")
+        try: context.close()
+        except: pass
         return
+    job_index = 0  # track position within this batch
     for rec_idx, row in pending:
+        job_index += 1
         if _shutdown: break
         credit_before = 0
         try:
@@ -3697,7 +3719,7 @@ def _run_pipeline_core(limit, source_type="auto"):
                                   Notes="Credits exhausted during generation",
                                   Completed_Time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 break
-            try: result = _retry_from_user_center(page, project_url, safe, upload=upload)
+            try: result = _retry_from_user_center(page, project_url, safe)
             except Exception as re_err:
                 _warn(f"[retry] {re_err}"); result = None
             if not result:
@@ -3826,7 +3848,28 @@ def _run_pipeline_core(limit, source_type="auto"):
                                   Notes="Generated OK but local file missing for processing")
         else:
             _ok(f"[sheet] Row {row_num} -> Generated (generate-only mode)")
-        if len(pending) > 1:
+        # ── Browser Tab Management ────────────────────────────────────
+        # After each job: if more jobs remain, close current page/tab
+        # and open a fresh one on the kids-story page.
+        if len(pending) > 1 and job_index < len(pending):
+            _info(f"[browser] Closing tab after job {job_index}, opening new one...")
+            try:
+                page.close()
+            except:
+                pass
+            try:
+                page = context.new_page()
+                page.goto("https://magiclight.ai/kids-story/", timeout=30000)
+                _info("[browser] New tab ready")
+            except Exception as tab_e:
+                _warn(f"[browser] New tab failed: {tab_e}")
+            sleep_log(3, "tab reset cooldown")
+        elif len(pending) == 1:
+            # Single job — close browser context cleanly
+            _info("[browser] Single job done — closing page")
+            try: page.close()
+            except: pass
+        else:
             sleep_log(5, "cooldown")
     try:
         context.close()
