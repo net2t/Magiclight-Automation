@@ -21,6 +21,15 @@ service_account.json
 *.p12
 *.pem
 
+# ── v2.0 Credential Folders (keep structure via .gitkeep) ───────────────────────
+credentials/common/*.json
+credentials/generate/magilight_accounts.txt
+credentials/generate/playwright_session.json
+credentials/upload/*.json
+credentials/upload/token.json
+# Always track .gitkeep files
+!credentials/**/.gitkeep
+
 # ── State & Session Files ───────────────────────────────────────────────────────
 .menu_state.pkl
 .menu_state.json
@@ -38,10 +47,15 @@ temp_*
 *.backup
 
 # ── Output / Downloads ───────────────────────────────────────────────────────────
-output/
+output/raw/*.mp4
+output/processed/*.mp4
+output/thumbnails/*.jpg
 screenshots/
 downloads/
 temp/
+# Keep output folder structure
+!output/**/.gitkeep
+!logs/.gitkeep
 
 # ── CSV ──────────────────────────────────────────────────────────────────────────
 *.csv

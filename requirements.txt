@@ -1,23 +1,16 @@
-﻿# MagicLight Auto v3.0 — Python Dependencies
+﻿# MagicLight v2.0 — Requirements
 
-# Core automation
-google-api-python-client==2.164.0
-google-auth==2.38.0
-google-auth-httplib2==0.3.0
-google-auth-oauthlib==1.2.1
-gspread==6.1.4
-playwright==1.58.0
-python-dotenv==1.1.0
-requests==2.32.3
-requests-oauthlib==2.0.0
-rich==13.9.4
+# Google APIs
+gspread==6.1.2
+google-auth==2.29.0
+google-auth-oauthlib==1.2.0
+google-api-python-client==2.127.0
 
-# Dashboard
-flask>=3.0.0
+# Browser Automation
+playwright==1.44.0
 
-# Note: httplib2 is a transitive dependency of google-auth-httplib2
-httplib2>=0.22.0
+# Video Processing (FFmpeg must be installed separately)
+# No Python package needed — uses subprocess
 
-# ── System requirements (install separately) ───────────────────────────────
-# FFmpeg: https://ffmpeg.org/download.html  (add to PATH)
-# Playwright browsers: run  playwright install chromium
+# Utilities
+python-dotenv==1.0.1
