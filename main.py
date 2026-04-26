@@ -2670,13 +2670,24 @@ def _download(page, safe_name, sheet_row_num=None):
         if (a.href && r.width >= 0) return {type: 'link', url: a.href};
     }
     // Priority 3: Download video button (visible)
-    const dlTexts = ['Download video', 'Download Video', 'Download'];
-    const btns = Array.from(document.querySelectorAll('button, a, div[class*="btn"]'));
+    const dlTexts = ['Download video', 'Download Video', 'Download', 'Export', 'Save', '下载'];
+    const btns = Array.from(document.querySelectorAll('button, a, div[class*="btn"], span[class*="btn"]'));
     for (const el of btns) {
         const t = (el.innerText || '').trim();
         const r = el.getBoundingClientRect();
-        if (dlTexts.includes(t) && r.width > 0 && r.height > 0)
+        if (dlTexts.some(dt => t.includes(dt)) && r.width > 0 && r.height > 0)
             return {type: 'button', text: t, tag: el.tagName};
+    }
+    // Priority 3b: Elements with download icon/class
+    const iconBtns = Array.from(document.querySelectorAll('[class*="download"], [title*="ownload"], [aria-label*="ownload"], [class*="icon-download"]'));
+    for (const el of iconBtns) {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0 && ['BUTTON', 'A', 'DIV', 'SPAN'].includes(el.tagName)) {
+            // make sure it actually looks clickable or is a button
+            if (el.tagName === 'BUTTON' || el.tagName === 'A' || el.className.includes('btn') || el.className.includes('icon')) {
+                return {type: 'icon-button', tag: el.tagName};
+            }
+        }
     }
     // Priority 4: blob URL
     const vBlob = document.querySelector('video[src^="blob:"]');
@@ -2704,10 +2715,16 @@ def _download(page, safe_name, sheet_row_num=None):
         "button:text-is('Download Video')",
         "a:text-is('Download Video')",
         "div:text-is('Download Video')",
-        "button:text-is('Download')",
-        "div[class*='btn']:text-is('Download')",
+        "button:has-text('Download')",
+        "div[class*='btn']:has-text('Download')",
+        "button:has-text('Export')",
+        "div[class*='btn']:has-text('Export')",
         "a[download]",
         "a[href*='.mp4']",
+        "[title*='ownload']",
+        "[aria-label*='ownload']",
+        "[class*='icon-download']",
+        "[class*='download-btn']"
     ]
 
     def _try_download_click(loc):
@@ -2760,14 +2777,29 @@ def _download(page, safe_name, sheet_row_num=None):
         _info("[dl] Trying JS-click fallback for download button...")
         js_dl_click = """
 () => {
-    const texts = ['Download video', 'Download Video', 'Download'];
-    const els = Array.from(document.querySelectorAll('button, a, div, span'));
+    const texts = ['Download video', 'Download Video', 'Download', 'Export', 'Save', '下载'];
+    const els = Array.from(document.querySelectorAll('button, a, div, span, svg'));
+    // Pass 1: text match
     for (const el of els) {
         const t = (el.innerText || '').trim();
         const r = el.getBoundingClientRect();
-        if (texts.includes(t) && r.width > 0 && r.height > 0) {
+        if (texts.some(dt => t.includes(dt)) && r.width > 0 && r.height > 0) {
             el.click();
             return el.tagName + ':' + t;
+        }
+    }
+    // Pass 2: class/title/aria match (download icons)
+    for (const el of els) {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) {
+            const cls = (el.className || '').toString().toLowerCase();
+            const tit = (el.getAttribute('title') || '').toLowerCase();
+            const ari = (el.getAttribute('aria-label') || '').toLowerCase();
+            if ((cls.includes('download') || tit.includes('download') || ari.includes('download'))
+                && (el.tagName === 'BUTTON' || el.tagName === 'A' || cls.includes('btn') || cls.includes('icon'))) {
+                el.click();
+                return 'icon-match:' + el.tagName;
+            }
         }
     }
     return null;
