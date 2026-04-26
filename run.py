@@ -127,8 +127,11 @@ def do_check_credits():
 
 
 def do_migrate_schema():
-    """Ensure all Sheet tabs have the correct header rows."""
-    from utils.sheets import get_sheet
+    """Ensure all Sheet tabs have the correct header rows, creating them if necessary."""
+    from utils.sheets import _get_workbook
+    from gspread.exceptions import WorksheetNotFound
+
+    wb = _get_workbook()
 
     HEADERS = {
         "INPUT":    ["ID", "Theme", "Title", "Story", "Moral", "Status"],
@@ -145,8 +148,18 @@ def do_migrate_schema():
     }
 
     for tab, headers in HEADERS.items():
-        ws = get_sheet(tab)
-        existing = ws.row_values(1)
+        try:
+            ws = wb.worksheet(tab)
+            log.info(f"[Schema] {tab}: ✓ tab exists")
+        except WorksheetNotFound:
+            ws = wb.add_worksheet(title=tab, rows="1000", cols="20")
+            log.info(f"[Schema] {tab}: + created new tab")
+
+        try:
+            existing = ws.row_values(1)
+        except Exception:
+            existing = []
+            
         if existing == headers:
             log.info(f"[Schema] {tab}: ✓ headers OK")
         else:
