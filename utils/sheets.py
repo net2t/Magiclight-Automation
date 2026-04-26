@@ -128,20 +128,24 @@ def update_credits_row(email: str, updates: dict):
 
 # ─── Generic Helpers ─────────────────────────────────────────────────────────
 
-def _update_row(tab: str, job_id: str, updates: dict, id_col: str = "ID"):
-    """Find the row in `tab` where id_col == job_id and update specified columns."""
+def _update_row(tab: str, identifier: str, updates: dict, id_col: str = "Title"):
+    """Find the row in `tab` where id_col == identifier and update specified columns."""
     ws = get_sheet(tab)
     headers = ws.row_values(1)
     all_values = ws.get_all_values()
 
+    if id_col not in headers:
+        log.warning(f"{tab}: column {id_col} not found in headers")
+        return
+
     id_idx = headers.index(id_col)
     for i, row in enumerate(all_values[1:], start=2):  # skip header
-        if row[id_idx] == str(job_id):
+        if i - 2 < len(all_values[1:]) and len(row) > id_idx and row[id_idx] == str(identifier):
             for col_name, value in updates.items():
                 if col_name in headers:
                     col_num = headers.index(col_name) + 1
                     ws.update_cell(i, col_num, value)
-            log.debug(f"{tab} row {i} (ID={job_id}) updated: {updates}")
+            log.debug(f"{tab} row {i} ({id_col}={identifier}) updated: {updates}")
             return
 
-    log.warning(f"{tab}: row with {id_col}={job_id} not found for update")
+    log.warning(f"{tab}: row with {id_col}={identifier} not found for update")

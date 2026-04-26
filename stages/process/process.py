@@ -33,30 +33,46 @@ def run_process(max_jobs: int = DEFAULT_MAX_JOBS, dry_run: bool = False, debug: 
     log.info(f"[Process] Found {len(rows)} row(s) to process")
 
     for row in rows:
-        job_id  = row.get("ID", "")
-        gen_title = row.get("Gen_Title") or row.get("Title", "")
+        title     = row.get("Title", "")
+        gen_title = row.get("Gen_Title", title)
+        # Use a generated ID for safe path slugs if missing
+        job_id  = row.get("ID") or title.replace(' ', '_')[:20] 
         raw_path  = row.get("Raw_Video_Path", "")
         job_log   = get_job_logger(job_id)
 
-        job_log.info(f"[Process] Processing ID={job_id} — '{gen_title}'")
+        job_log.info(f"[Process] Processing Title='{title}' — '{gen_title}'")
 
         # Append Pending row to Process tab
         process_pending = {
-            "ID":                  job_id,
-            "Gen_Title":           gen_title,
-            "Raw_Video_Path":      raw_path,
-            "Processed_Video_Path":"",
-            "Thumbnail_Path":      "",
-            "Status":              "Pending",
-            "Trigger":             "",
-            "Notes":               "",
-            "Completed_Time":      "",
+            "Status": "Pending",
+            "Theme": row.get("Theme", ""),
+            "Title": title,
+            "Story": row.get("Story", ""),
+            "Moral": row.get("Moral", ""),
+            "Gen_Title": gen_title,
+            "Gen_Summary": row.get("Gen_Summary", ""),
+            "Gen_Tags": row.get("Gen_Tags", ""),
+            "Project_URL": row.get("Project_URL", ""),
+            "Created_Time": row.get("Created_Time", ""),
+            "Completed_Time": "",
+            "Notes": row.get("Notes", ""),
+            "Drive_Link": "",
+            "DriveImg_Link": "",
+            "Credit_Before": "",
+            "Credit_After": "",
+            "Email_Used": "",
+            "Credit_Acct": "",
+            "Credit_Total": "",
+            "Credit_Used": "",
+            "Credit_Remaining": "",
+            "Process_D_Link": "",
+            "YouTube_Link": ""
         }
         if not dry_run:
             append_process_row(process_pending)
 
         if dry_run:
-            job_log.info(f"[DRY-RUN] Would process ID={job_id}")
+            job_log.info(f"[DRY-RUN] Would process Title={title}")
             continue
 
         try:
@@ -67,23 +83,20 @@ def run_process(max_jobs: int = DEFAULT_MAX_JOBS, dry_run: bool = False, debug: 
             extract_thumbnail(processed_path, thumbnail_path, job_log=job_log)
 
             # Update Process tab
-            update_process_row(job_id, {
-                "Processed_Video_Path": processed_path,
-                "Thumbnail_Path":       thumbnail_path,
+            update_process_row(title, {
                 "Status":               "Processed",
-                "Trigger":              "UPLOAD",
                 "Completed_Time":       now_str(),
+                "Notes":                f"Processed: {processed_path} | Thumb: {thumbnail_path}",
             })
 
-            # Clear trigger on VideoGen row so it's not re-picked
-            from utils.sheets import update_videogen_row
-            update_videogen_row(job_id, {"Trigger": "DONE"})
+            # We no longer trigger tracking back to Videogen tab since we use identical tabs. 
+            # We keep it simple and just rely on the independent tabs.
 
-            job_log.info(f"[Process] ✓ ID={job_id} complete — trigger=UPLOAD")
+            job_log.info(f"[Process] ✓ Title={title} complete")
 
         except Exception as e:
-            job_log.error(f"[Process] ✗ ID={job_id} FAILED: {e}", exc_info=debug)
-            update_process_row(job_id, {
+            job_log.error(f"[Process] ✗ Title={title} FAILED: {e}", exc_info=debug)
+            update_process_row(title, {
                 "Status": "Failed",
                 "Notes":  str(e)[:500],
             })

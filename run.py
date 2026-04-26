@@ -133,18 +133,20 @@ def do_migrate_schema():
 
     wb = _get_workbook()
 
+    old_schema = [
+        "Status", "Theme", "Title", "Story", "Moral", "Gen_Title", "Gen_Summary",
+        "Gen_Tags", "Project_URL", "Created_Time", "Completed_Time", "Notes", 
+        "Drive_Link", "DriveImg_Link", "Credit_Before", "Credit_After", "Email_Used",
+        "Credit_Acct", "Credit_Total", "Credit_Used", "Credit_Remaining",
+        "Process_D_Link", "YouTube_Link"
+    ]
     HEADERS = {
-        "Phase1":    ["ID", "Theme", "Title", "Story", "Moral", "Status"],
-        "Phase2": ["ID", "Title", "Theme", "Story", "Moral", "Gen_Title", "Gen_Summary",
-                     "Gen_Tags", "Project_URL", "Raw_Video_Path", "Status", "Trigger",
-                     "Notes", "Created_Time"],
-        "Phase3":  ["ID", "Gen_Title", "Raw_Video_Path", "Processed_Video_Path",
-                     "Thumbnail_Path", "Status", "Trigger", "Notes", "Completed_Time"],
-        "Phase4":  ["ID", "Gen_Title", "Gen_Summary", "Gen_Tags", "Processed_Video_Path",
-                     "Thumbnail_Path", "Drive_Link", "YouTube_Link", "Status", "Notes",
-                     "Completed_Time"],
-        "Credits":  ["Email", "Total_Credits", "Used_Credits", "Remaining",
-                     "Last_Checked", "Log_Timestamp", "Log_Detail"],
+        "Phase1": old_schema.copy(),
+        "Phase2": old_schema.copy(),
+        "Phase3": old_schema.copy(),
+        "Phase4": old_schema.copy(),
+        "Credits": ["Email", "Total_Credits", "Used_Credits", "Remaining",
+                    "Last_Checked", "Log_Timestamp", "Log_Detail"],
     }
 
     for tab, headers in HEADERS.items():

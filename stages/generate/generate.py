@@ -50,27 +50,37 @@ def run_generate(max_jobs: int = DEFAULT_MAX_JOBS, headless: bool = HEADLESS,
             mark_input_picked(sheet_row_index)
 
         # Append a Pending row to VideoGen immediately
+        # Append a Pending row to VideoGen immediately
         videogen_pending = {
-            "ID": job_id,
-            "Title": title,
+            "Status": "Pending",
             "Theme": row.get("Theme", ""),
+            "Title": title,
             "Story": row.get("Story", ""),
             "Moral": row.get("Moral", ""),
             "Gen_Title": "",
             "Gen_Summary": "",
             "Gen_Tags": "",
             "Project_URL": "",
-            "Raw_Video_Path": "",
-            "Status": "Pending",
-            "Trigger": "",
-            "Notes": "",
             "Created_Time": now_str(),
+            "Completed_Time": "",
+            "Notes": "",
+            "Drive_Link": "",
+            "DriveImg_Link": "",
+            "Credit_Before": "",
+            "Credit_After": "",
+            "Email_Used": "",
+            "Credit_Acct": "",
+            "Credit_Total": "",
+            "Credit_Used": "",
+            "Credit_Remaining": "",
+            "Process_D_Link": "",
+            "YouTube_Link": ""
         }
         if not dry_run:
             append_videogen_row(videogen_pending)
 
         if dry_run:
-            job_log.info(f"[DRY-RUN] Would generate ID={job_id}")
+            job_log.info(f"[DRY-RUN] Would generate ID={job_id} Title={title}")
             continue
 
         # Run Playwright automation
@@ -87,21 +97,19 @@ def run_generate(max_jobs: int = DEFAULT_MAX_JOBS, headless: bool = HEADLESS,
             )
             raw_path = build_raw_path(job_id, result.get("gen_title", title))
 
-            update_videogen_row(job_id, {
+            update_videogen_row(title, {
                 "Gen_Title":       result.get("gen_title", title),
                 "Gen_Summary":     result.get("gen_summary", ""),
                 "Gen_Tags":        result.get("gen_tags", ""),
                 "Project_URL":     result.get("project_url", ""),
-                "Raw_Video_Path":  raw_path,
                 "Status":          "Generated",
-                "Trigger":         "PROCESS",
-                "Notes":           "",
+                "Notes":           f"Raw_Video_Path: {raw_path}",
             })
             job_log.info(f"[Generate] ✓ ID={job_id} complete — trigger=PROCESS")
 
         except Exception as e:
-            job_log.error(f"[Generate] ✗ ID={job_id} FAILED: {e}", exc_info=debug)
-            update_videogen_row(job_id, {
+            job_log.error(f"[Generate] ✗ ID={job_id} Title={title} FAILED: {e}", exc_info=debug)
+            update_videogen_row(title, {
                 "Status": "Failed",
                 "Notes":  str(e)[:500],
             })

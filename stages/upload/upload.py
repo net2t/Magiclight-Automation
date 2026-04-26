@@ -41,35 +41,49 @@ def run_upload(
     log.info(f"[Upload] Found {len(rows)} row(s) to upload")
 
     for row in rows:
-        job_id        = row.get("ID", "")
-        gen_title     = row.get("Gen_Title", "")
+        title         = row.get("Title", "")
+        gen_title     = row.get("Gen_Title", title)
+        # Use a generated ID for safe path slugs if missing
+        job_id        = row.get("ID") or title.replace(' ', '_')[:20] 
         gen_summary   = row.get("Gen_Summary", "")
         gen_tags      = row.get("Gen_Tags", "")
         proc_path     = row.get("Processed_Video_Path", "")
         thumb_path    = row.get("Thumbnail_Path", "")
         job_log       = get_job_logger(job_id)
 
-        job_log.info(f"[Upload] Uploading ID={job_id} — '{gen_title}'")
+        job_log.info(f"[Upload] Uploading Title='{title}' — '{gen_title}'")
 
         # Append Pending to YouTube tab
         yt_pending = {
-            "ID":                   job_id,
-            "Gen_Title":            gen_title,
-            "Gen_Summary":          gen_summary,
-            "Gen_Tags":             gen_tags,
-            "Processed_Video_Path": proc_path,
-            "Thumbnail_Path":       thumb_path,
-            "Drive_Link":           "",
-            "YouTube_Link":         "",
-            "Status":               "Pending",
-            "Notes":                "",
-            "Completed_Time":       "",
+            "Status": "Pending",
+            "Theme": row.get("Theme", ""),
+            "Title": title,
+            "Story": row.get("Story", ""),
+            "Moral": row.get("Moral", ""),
+            "Gen_Title": gen_title,
+            "Gen_Summary": gen_summary,
+            "Gen_Tags": gen_tags,
+            "Project_URL": row.get("Project_URL", ""),
+            "Created_Time": row.get("Created_Time", ""),
+            "Completed_Time": "",
+            "Notes": row.get("Notes", ""),
+            "Drive_Link": "",
+            "DriveImg_Link": "",
+            "Credit_Before": "",
+            "Credit_After": "",
+            "Email_Used": "",
+            "Credit_Acct": "",
+            "Credit_Total": "",
+            "Credit_Used": "",
+            "Credit_Remaining": "",
+            "Process_D_Link": proc_path,
+            "YouTube_Link": ""
         }
         if not dry_run:
             append_youtube_row(yt_pending)
 
         if dry_run:
-            job_log.info(f"[DRY-RUN] Would upload ID={job_id}")
+            job_log.info(f"[DRY-RUN] Would upload Title={title}")
             continue
 
         youtube_link = ""
@@ -96,22 +110,20 @@ def run_upload(
                 )
 
             # Update YouTube tab to Done
-            update_youtube_row(job_id, {
+            update_youtube_row(title, {
                 "YouTube_Link":   youtube_link,
                 "Drive_Link":     drive_link,
                 "Status":         "Done",
                 "Completed_Time": now_str(),
             })
 
-            # Clear trigger on Process row
-            from utils.sheets import update_process_row
-            update_process_row(job_id, {"Trigger": "DONE"})
+            # We keep modular stages independent, so no triggering backward updates here.
 
-            job_log.info(f"[Upload] ✓ ID={job_id} complete — YouTube={youtube_link}")
+            job_log.info(f"[Upload] ✓ Title={title} complete — YouTube={youtube_link}")
 
         except Exception as e:
-            job_log.error(f"[Upload] ✗ ID={job_id} FAILED: {e}", exc_info=debug)
-            update_youtube_row(job_id, {
+            job_log.error(f"[Upload] ✗ Title={title} FAILED: {e}", exc_info=debug)
+            update_youtube_row(title, {
                 "Status": "Failed",
                 "Notes":  str(e)[:500],
             })

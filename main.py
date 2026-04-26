@@ -114,7 +114,7 @@ EMAIL    = os.getenv("EMAIL", "")
 PASSWORD = os.getenv("PASSWORD", "")
 
 SHEET_ID        = os.getenv("SHEET_ID",   "")
-SHEET_NAME      = os.getenv("SHEET_NAME", "Database")
+SHEET_NAME      = os.getenv("SHEET_NAME", "Phase1")
 CREDS_JSON      = os.getenv("CREDS_JSON", "credentials.json")
 DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID", "")
 
@@ -433,7 +433,7 @@ def _update_credits_completion(email, total, used, row_num, action, status):
                     # Update existing row
                     try:
                         ws.update(f"C{found_row}:G{found_row}",
-                                  [[str(used), str(remaining), now_str, detail]])
+                                  [[str(used), str(remaining), now_str, now_str, detail]])
                         _dbg(f"[credits] Updated existing row {found_row} for {email}")
                     except Exception as update_e:
                         raise Exception(f"Failed to update row {found_row}: {update_e}")
@@ -1806,14 +1806,15 @@ def _click_style_option(page, style_text):
     # Strategy 1: JS exact text match on visible elements
     result = page.evaluate("""
 (style) => {
+    const styleLC = style.toLowerCase();
     const candidates = Array.from(document.querySelectorAll('div,span,button,label,li'));
     for (const el of candidates) {
         const ownText = Array.from(el.childNodes)
             .filter(n => n.nodeType === 3)
-            .map(n => n.textContent.trim()).join('');
-        const fullText = (el.innerText || '').trim();
+            .map(n => n.textContent.trim()).join('').toLowerCase();
+        const fullText = (el.innerText || '').trim().toLowerCase();
         const r = el.getBoundingClientRect();
-        if ((ownText === style || fullText === style) && r.width > 0 && r.height > 0) {
+        if ((ownText.includes(styleLC) || fullText === styleLC) && r.width > 0 && r.height > 0) {
             ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e => 
                 el.dispatchEvent(new MouseEvent(e, {bubbles:true, cancelable:true, view:window})));
             return style;
@@ -1826,7 +1827,7 @@ def _click_style_option(page, style_text):
         return True
     # Strategy 2: Playwright filter
     try:
-        loc = page.locator("div,span").filter(has_text=re.compile(f"^{re.escape(style_text)}$")).first
+        loc = page.locator("div,span,button,li").filter(has_text=re.compile(style_text, re.IGNORECASE)).first
         if loc.is_visible(timeout=3000):
             loc.click()
             _ok(f"Style: {style_text}")
@@ -1958,6 +1959,7 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
 }"""
     js_pick = """
 (opt) => {
+    const optLC = opt.toLowerCase();
     const simulateClick = (el) => {
         ['pointerdown', 'mousedown', 'mouseup', 'pointerup', 'click'].forEach(e => {
             el.dispatchEvent(new MouseEvent(e, { bubbles: true, cancelable: true, view: window }));
@@ -1974,16 +1976,12 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
         const items = Array.from(container.querySelectorAll(
             '.arco-select-option, [class*="select-option"], [class*="option-item"], ' +
             'li[class*="option"], [role="option"]'
-        )).filter(el => {
-            const r = el.getBoundingClientRect();
-            return r.width > 0 && r.height > 0;
-        });
+        )).filter(el => el.getBoundingClientRect().width > 0 && el.getBoundingClientRect().height > 0);
         for (const el of items) {
-            const t = (el.innerText || el.textContent || '').trim();
-            // exact match OR starts-with (handles 'Sophia (Adult)' style labels)
-            if (t === opt || t.startsWith(opt)) {
+            const t = (el.innerText || el.textContent || '').trim().toLowerCase();
+            if (t.includes(optLC)) {
                 simulateClick(el);
-                return t;
+                return (el.innerText || '').trim();
             }
         }
     }
@@ -1991,8 +1989,8 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
     for (const container of containers) {
         const items = Array.from(container.querySelectorAll('[title]')).filter(el => {
             const r = el.getBoundingClientRect();
-            const t = (el.getAttribute('title') || '').trim();
-            return r.width > 0 && r.height > 0 && (t === opt || t.startsWith(opt));
+            const t = (el.getAttribute('title') || '').trim().toLowerCase();
+            return r.width > 0 && r.height > 0 && t.includes(optLC);
         });
         if (items.length > 0) { simulateClick(items[0]); return items[0].getAttribute('title'); }
     }
@@ -2078,8 +2076,8 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
             # Step 3b: Playwright native exact-text click as reinforcement
             try:
                 pl_opt = page.locator(
-                    '.arco-select-option, [class*="select-option"], [class*="option-item"], [role="option"]'
-                ).filter(has_text=re.compile(f"^{re.escape(option_text)}")).first
+                    '.arco-select-option, [class*="select-option"], [class*="option-item"], [class*="option"], [role="option"]'
+                ).filter(has_text=re.compile(option_text, re.IGNORECASE)).first
                 if pl_opt.count() > 0 and pl_opt.is_visible(timeout=1500):
                     pl_opt.click(timeout=3000)
                     r2 = option_text  # treat as picked
