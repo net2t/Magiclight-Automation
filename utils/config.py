@@ -29,10 +29,10 @@ for _d in [OUTPUT_RAW, OUTPUT_PROCESSED, OUTPUT_THUMBNAILS, LOGS_DIR]:
 SHEET_ID = os.getenv("SHEET_ID", "YOUR_GOOGLE_SHEET_ID")
 
 # Tab names — STRICT
-TAB_INPUT    = "INPUT"
-TAB_VIDEOGEN = "VideoGen"
-TAB_PROCESS  = "Process"
-TAB_YOUTUBE  = "YouTube"
+TAB_INPUT    = "Phase1"
+TAB_VIDEOGEN = "Phase2"
+TAB_PROCESS  = "Phase3"
+TAB_YOUTUBE  = "Phase4"
 TAB_CREDITS  = "Credits"
 
 SERVICE_ACCOUNT_FILE = CRED_COMMON / "service_account.json"

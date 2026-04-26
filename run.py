@@ -134,13 +134,13 @@ def do_migrate_schema():
     wb = _get_workbook()
 
     HEADERS = {
-        "INPUT":    ["ID", "Theme", "Title", "Story", "Moral", "Status"],
-        "VideoGen": ["ID", "Title", "Theme", "Story", "Moral", "Gen_Title", "Gen_Summary",
+        "Phase1":    ["ID", "Theme", "Title", "Story", "Moral", "Status"],
+        "Phase2": ["ID", "Title", "Theme", "Story", "Moral", "Gen_Title", "Gen_Summary",
                      "Gen_Tags", "Project_URL", "Raw_Video_Path", "Status", "Trigger",
                      "Notes", "Created_Time"],
-        "Process":  ["ID", "Gen_Title", "Raw_Video_Path", "Processed_Video_Path",
+        "Phase3":  ["ID", "Gen_Title", "Raw_Video_Path", "Processed_Video_Path",
                      "Thumbnail_Path", "Status", "Trigger", "Notes", "Completed_Time"],
-        "YouTube":  ["ID", "Gen_Title", "Gen_Summary", "Gen_Tags", "Processed_Video_Path",
+        "Phase4":  ["ID", "Gen_Title", "Gen_Summary", "Gen_Tags", "Processed_Video_Path",
                      "Thumbnail_Path", "Drive_Link", "YouTube_Link", "Status", "Notes",
                      "Completed_Time"],
         "Credits":  ["Email", "Total_Credits", "Used_Credits", "Remaining",

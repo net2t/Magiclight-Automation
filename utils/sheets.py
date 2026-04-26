@@ -1,6 +1,6 @@
 """
 MagicLight v2.0 — Google Sheets Client
-Single interface for reading/writing all tabs: INPUT, VideoGen, Process, YouTube, Credits.
+Single interface for reading/writing all tabs: Phase1, Phase2, Phase3, Phase4, Credits.
 """
 
 import gspread
@@ -34,81 +34,81 @@ def get_sheet(tab_name: str) -> gspread.Worksheet:
     return _get_workbook().worksheet(tab_name)
 
 
-# ─── INPUT tab ────────────────────────────────────────────────────────────────
+# ─── Phase1 tab ────────────────────────────────────────────────────────────────
 
 def get_ready_rows(max_rows: int = 5) -> list[dict]:
-    """Return up to max_rows rows from INPUT where Status == 'Ready'."""
-    ws = get_sheet("INPUT")
+    """Return up to max_rows rows from Phase1 where Status == 'Ready'."""
+    ws = get_sheet("Phase1")
     records = ws.get_all_records()
     ready = [r for r in records if r.get("Status") == "Ready"]
     return ready[:max_rows]
 
 
 def mark_input_picked(row_index: int):
-    """Mark an INPUT row as Picked (1-indexed, including header)."""
-    ws = get_sheet("INPUT")
+    """Mark an Phase1 row as Picked (1-indexed, including header)."""
+    ws = get_sheet("Phase1")
     headers = ws.row_values(1)
     col = headers.index("Status") + 1
     ws.update_cell(row_index, col, "Picked")
-    log.debug(f"INPUT row {row_index} → Picked")
+    log.debug(f"Phase1 row {row_index} → Picked")
 
 
-# ─── VideoGen tab ─────────────────────────────────────────────────────────────
+# ─── Phase2 tab ─────────────────────────────────────────────────────────────
 
 def append_videogen_row(data: dict):
-    """Append a new row to VideoGen with Status=Pending."""
-    ws = get_sheet("VideoGen")
+    """Append a new row to Phase2 with Status=Pending."""
+    ws = get_sheet("Phase2")
     headers = ws.row_values(1)
     row = [data.get(h, "") for h in headers]
     ws.append_row(row, value_input_option="USER_ENTERED")
-    log.debug(f"VideoGen ← appended row for ID={data.get('ID')}")
+    log.debug(f"Phase2 ← appended row for ID={data.get('ID')}")
 
 
 def update_videogen_row(job_id: str, updates: dict):
-    """Update specific cells in the VideoGen row matching job_id."""
-    _update_row("VideoGen", job_id, updates)
+    """Update specific cells in the Phase2 row matching job_id."""
+    _update_row("Phase2", job_id, updates)
 
 
-# ─── Process tab ─────────────────────────────────────────────────────────────
+# ─── Phase3 tab ─────────────────────────────────────────────────────────────
 
 def get_process_pending() -> list[dict]:
-    """Return VideoGen rows with Trigger == 'PROCESS' and Status == 'Generated'."""
-    ws = get_sheet("VideoGen")
+    """Return Phase2 rows with Trigger == 'PROCESS' and Status == 'Generated'."""
+    ws = get_sheet("Phase2")
     records = ws.get_all_records()
     return [r for r in records if r.get("Trigger") == "PROCESS" and r.get("Status") == "Generated"]
 
 
 def append_process_row(data: dict):
-    ws = get_sheet("Process")
+    ws = get_sheet("Phase3")
     headers = ws.row_values(1)
     row = [data.get(h, "") for h in headers]
     ws.append_row(row, value_input_option="USER_ENTERED")
-    log.debug(f"Process ← appended row for ID={data.get('ID')}")
+    log.debug(f"Phase3 ← appended row for ID={data.get('ID')}")
 
 
 def update_process_row(job_id: str, updates: dict):
-    _update_row("Process", job_id, updates)
+    _update_row("Phase3", job_id, updates)
 
 
-# ─── YouTube tab ─────────────────────────────────────────────────────────────
+# ─── Phase4 tab ─────────────────────────────────────────────────────────────
 
 def get_upload_pending() -> list[dict]:
-    """Return Process rows with Trigger == 'UPLOAD' and Status == 'Processed'."""
-    ws = get_sheet("Process")
+    """Return Phase3 rows with Trigger == 'UPLOAD' and Status == 'Processed'."""
+    ws = get_sheet("Phase3")
     records = ws.get_all_records()
     return [r for r in records if r.get("Trigger") == "UPLOAD" and r.get("Status") == "Processed"]
 
 
 def append_youtube_row(data: dict):
-    ws = get_sheet("YouTube")
+    ws = get_sheet("Phase4")
     headers = ws.row_values(1)
     row = [data.get(h, "") for h in headers]
     ws.append_row(row, value_input_option="USER_ENTERED")
-    log.debug(f"YouTube ← appended row for ID={data.get('ID')}")
+    log.debug(f"Phase4 ← appended row for ID={data.get('ID')}")
 
 
 def update_youtube_row(job_id: str, updates: dict):
-    _update_row("YouTube", job_id, updates)
+    _update_row("Phase4", job_id, updates)
 
 
 # ─── Credits tab ─────────────────────────────────────────────────────────────
