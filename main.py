@@ -158,12 +158,13 @@ def close_browser():
                     pages_to_close = list(context.pages)  # Copy list
                     for page in pages_to_close:
                         try:
-                            if not page.is_closed():
-                                page.close()
+                            page.close()
                         except Exception as page_e:
                             _dbg(f"[browser] Error closing page: {page_e}")
-                    if not context.is_closed():
+                    try:
                         context.close()
+                    except Exception as ctx_e:
+                        _dbg(f"[browser] Error closing context: {ctx_e}")
                 except Exception as ctx_e:
                     _dbg(f"[browser] Error closing context: {ctx_e}")
             if not _browser.is_connected():
@@ -2441,9 +2442,6 @@ def step4(page, safe_name, sheet_row_num=None):
             last_reload = time.time()
         _dismiss_all(page)
         try:
-            if page.is_closed():
-                _err("Page was closed during render wait - aborting")
-                break
             sig = page.evaluate(js_state)
         except Exception as e:
             _warn(f"Page evaluation error: {e}")
@@ -3633,8 +3631,7 @@ def _run_pipeline_core(limit, source_type="auto", upload=False):
             # Clean up current context before switching
             try:
                 if 'context' in locals() and context:
-                    if not context.is_closed():
-                        context.close()
+                    context.close()
             except Exception as cleanup_e:
                 _dbg(f"[rotate] Context cleanup error: {cleanup_e}")
             
@@ -3665,13 +3662,15 @@ def _run_pipeline_core(limit, source_type="auto", upload=False):
                         break
                     else:
                         _warn(f"[Rotate] New account also low on credits: {credit_before}")
-                        if not context.is_closed():
+                        try:
                             context.close()
+                        except:
+                            pass
                         
                 except Exception as re_err:
                     _warn(f"[Rotate] Rotation attempt {rotation_attempt + 1} failed: {re_err}")
                     try:
-                        if 'context' in locals() and context and not context.is_closed():
+                        if 'context' in locals() and context:
                             context.close()
                     except:
                         pass
