@@ -1764,7 +1764,7 @@ def step1(page, story_text):
     sleep_log(2)
     
     # Select Pixar style with robust selector
-    _click_style_option(page, "Pixar 2.0")
+    _click_style_option(page, "Pixar")
     sleep_log(1)
     
     # Select 16:9 aspect ratio with robust JS click
@@ -1956,7 +1956,7 @@ def _select_dropdown_robust(page, label_text, option_text, timeout_open=5, timeo
             anySelect.dispatchEvent(new MouseEvent(e, {bubbles:true, cancelable:true, view:window})));
         return label + ':attr-fallback';
     }
-    return null;
+    return label + ':not-found';
 }"""
     js_pick = """
 (opt) => {
