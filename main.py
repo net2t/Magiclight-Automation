@@ -4088,7 +4088,7 @@ def run_cli_mode(args):
     
     # Handle --check-credits flag
     if getattr(args, 'check_credits', False):
-        check_all_accounts_credits(headless=getattr(args, 'headless', False))
+        check_all_accounts_credits(headless=getattr(args, 'headless', True))
         return True
     
     if getattr(args, 'mode', None) == 'loop':
