@@ -460,7 +460,7 @@ def _update_credits_completion(email, total, used, row_num, action, status):
                 _err(f"[credits] All update attempts failed for {email}: {e}")
                 break
 
-def check_all_accounts_credits(headless=False):
+def check_all_accounts_credits(headless=True):
     """
     Check all accounts from accounts.txt and log their credit data to the Credits sheet.
     This function iterates through all accounts, logs in to each, reads the credit balance,
@@ -4200,7 +4200,7 @@ if __name__ == "__main__":
         if not run_cli_mode(args):
             class Args: pass
             args = Args()
-            args.headless     = False
+            args.headless     = True
             args.upload_drive = False
             menu()
     except KeyboardInterrupt:
